@@ -1,4 +1,10 @@
-﻿using System;
+﻿// -----------------------------------------------------------------------
+// <copyright file="DefaultLivenessProbe.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
 using Akka.Actor;
 
@@ -6,17 +12,16 @@ namespace Akka.HealthCheck.Liveness
 {
     /// <inheritdoc />
     /// <summary>
-    /// The default liveness probe implementation. Reports that the application
-    /// is live as soon as the <see cref="T:Akka.Actor.ActorSystem" /> is live.
+    ///     The default liveness probe implementation. Reports that the application
+    ///     is live as soon as the <see cref="T:Akka.Actor.ActorSystem" /> is live.
     /// </summary>
     public sealed class DefaultLivenessProbe : ReceiveActor
     {
         private readonly LivenessStatus _livenessStatus;
-        private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>(); 
+        private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
 
         public DefaultLivenessProbe() : this(new LivenessStatus(true, $"Live: {DateTimeOffset.UtcNow}"))
         {
-
         }
 
         public DefaultLivenessProbe(LivenessStatus livenessStatus)

@@ -17,8 +17,4 @@
     <ProjectReference Include="..\Akka.HealthCheck\Akka.HealthCheck.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Readiness\" />
-  </ItemGroup>
-
 </Project>
