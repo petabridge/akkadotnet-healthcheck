@@ -12,6 +12,11 @@ namespace Akka.HealthCheck
     ///     Used to construct liveness and readiness probes for detecting changes
     ///     in system liveness or readiness.
     /// </summary>
+    /// <remarks>
+    /// NOTE: all <see cref="IProbeProvider"/> implementations need to take a <see cref="ActorSystem"/>
+    /// as their only constructor argument. Use <see cref="ProbeProviderBase"/> as a template if you wish
+    /// to extend Akka.HealthCheck with your own custom <see cref="IProbeProvider"/> implementations.
+    /// </remarks>
     public interface IProbeProvider
     {
         /// <summary>
