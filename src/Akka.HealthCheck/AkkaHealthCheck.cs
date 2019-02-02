@@ -82,5 +82,15 @@ namespace Akka.HealthCheck
         /// and unsubscribe via <see cref="UnsubscribeFromReadiness"/>.
         /// </summary>
         public IActorRef ReadinessProbe { get; }
+
+        /// <summary>
+        /// Gets the current <see cref="AkkaHealthCheck"/> instance registered with the <see cref="ActorSystem"/>.
+        /// </summary>
+        /// <param name="system">The actor system.</param>
+        /// <returns>The current <see cref="AkkaHealthCheck"/> instance.</returns>
+        public static AkkaHealthCheck For(ActorSystem system)
+        {
+            return system.WithExtension<AkkaHealthCheck, AkkaHealthCheckExt>();
+        }
     }
 }
