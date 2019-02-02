@@ -34,7 +34,15 @@ namespace Akka.HealthCheck
                 LivenessProvider = TryCreateProvider(settings.LivenessProbeProvider, system);
                 ReadinessProvider = TryCreateProvider(settings.ReadinessProbeProvider, system);
             }
+            else // if we are misconfigured
+            {
+                LivenessProvider = new MisconfiguredLivenessProvider(system);
+                ReadinessProvider = new MisconfiguredReadinessProvider(system);
+            }
             
+            // start the probes
+            LivenessProbe = system.SystemActorOf(LivenessProvider.ProbeProps, "healthcheck-live");
+            ReadinessProbe = system.SystemActorOf(ReadinessProvider.ProbeProps, "healthcheck-readiness");
         }
 
         internal static IProbeProvider TryCreateProvider(Type providerType, ActorSystem system)
