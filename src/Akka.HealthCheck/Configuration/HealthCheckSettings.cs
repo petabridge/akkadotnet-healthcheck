@@ -1,4 +1,5 @@
 ﻿using System;
+using Akka.Actor;
 using Akka.Configuration;
 using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Readiness;
@@ -10,6 +11,9 @@ namespace Akka.HealthCheck.Configuration
    /// </summary>
     public sealed class HealthCheckSettings
     {
+        public HealthCheckSettings(ActorSystem system) 
+            : this(system.Settings.Config.WithFallback(DefaultConfig()).GetConfig("akka.healthcheck")) { }
+
         public HealthCheckSettings(Config healthcheckConfig)
         {
             // liveness probe type checking and setting

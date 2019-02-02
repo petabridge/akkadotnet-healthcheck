@@ -15,7 +15,7 @@ namespace Akka.HealthCheck
     {
         public override AkkaHealthCheck CreateExtension(ExtendedActorSystem system)
         {
-            throw new NotImplementedException();
+            return new AkkaHealthCheck(new HealthCheckSettings(system), system);
         }
     }
 
