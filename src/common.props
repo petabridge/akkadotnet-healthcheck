@@ -1,17 +1,18 @@
 <Project>
   <PropertyGroup>
-    <Copyright>Copyright © 2017 Your Company</Copyright>
-    <Authors>Your Authors</Authors>
+    <Copyright>Copyright © 2015-2019 Petabridge®</Copyright>
+    <Authors>Petabridge</Authors>
     <VersionPrefix>0.1.0</VersionPrefix>
-    <PackageReleaseNotes>Placeholder</PackageReleaseNotes>
-    <PackageIconUrl></PackageIconUrl>
-    <PackageProjectUrl></PackageProjectUrl>
-    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageReleaseNotes>First release</PackageReleaseNotes>
+    <PackageIconUrl>https://petabridge.com/images/logo.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/petabridge/akkadotnet-healthcheck</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/petabridge/akkadotnet-healthchec/blob/master/LICENSE</PackageLicenseUrl>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <NBenchVersion>1.2.2</NBenchVersion>
     <XunitVersion>2.4.1</XunitVersion>
     <TestSdkVersion>15.9.0</TestSdkVersion>
+    <AkkaVersion>1.3.11</AkkaVersion>
   </PropertyGroup>
 </Project>
