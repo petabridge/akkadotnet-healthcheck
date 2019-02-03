@@ -54,15 +54,43 @@ namespace Akka.HealthCheck.Tests
             }
         }
 
-        [Fact(DisplayName = "Should load AkkaHealthCheck plugin and settings with custom providers")]
+        [Fact(DisplayName = "Should load AkkaHealthCheck plugin and settings with MISCONFIGURED custom providers")]
         public async Task Should_load_custom_AkkaHealthCheck()
+        {
+            Config config = @"
+                akka.healthcheck.liveness.provider = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider+FakeName, Akka.HealthCheck.Tests""
+                akka.healthcheck.readiness.provider = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider+FakeName, Akka.HealthCheck.Tests""
+            ";
+
+             using (var system = ActorSystem.Create("foo", config))
+            {
+                var healthCheck = AkkaHealthCheck.For(system);
+
+                // should be misconfigured
+                healthCheck.Settings.Misconfigured.Should().BeTrue();
+
+                // check that the custom plugins were NOT loaded
+                healthCheck.Settings.LivenessProbeProvider.Should().Be(typeof(DefaultLivenessProvider));
+                healthCheck.Settings.ReadinessProbeProvider.Should().Be(typeof(DefaultReadinessProvider));
+
+                // when misconfigured, probes should report that we are neither live nor ready
+                var livenessStatus = await healthCheck.LivenessProbe.Ask<LivenessStatus>(GetCurrentLiveness.Instance, TimeSpan.FromSeconds(1));
+                livenessStatus.IsLive.Should().BeFalse();
+
+                var readinessStatus = await healthCheck.ReadinessProbe.Ask<ReadinessStatus>(GetCurrentReadiness.Instance, TimeSpan.FromSeconds(1));
+                readinessStatus.IsReady.Should().BeFalse();
+            }
+        }
+
+        [Fact(DisplayName = "Should load AkkaHealthCheck plugin and settings with custom providers")]
+        public async Task Should_load_misconfigured_AkkaHealthCheck()
         {
             Config config = @"
                 akka.healthcheck.liveness.provider = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider, Akka.HealthCheck.Tests""
                 akka.healthcheck.readiness.provider = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider, Akka.HealthCheck.Tests""
             ";
 
-             using (var system = ActorSystem.Create("foo", config))
+            using (var system = ActorSystem.Create("foo", config))
             {
                 var healthCheck = AkkaHealthCheck.For(system);
                 healthCheck.Settings.Misconfigured.Should().BeFalse();
