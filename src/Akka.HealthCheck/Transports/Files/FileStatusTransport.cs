@@ -36,7 +36,8 @@ namespace Akka.HealthCheck.Transports.Files
         {
             try
             {
-                File.Delete(Settings.FilePath);
+                if(File.Exists(Settings.FilePath)) // check first
+                    File.Delete(Settings.FilePath);
                 return new TransportWriteStatus(true);
             }
             catch (Exception ex)
