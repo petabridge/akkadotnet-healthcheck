@@ -7,6 +7,14 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <None Remove="Configuration\akka.healthcheck.conf" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration\akka.healthcheck.conf" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="Akka" Version="$(AkkaVersion)" />
   </ItemGroup>
 

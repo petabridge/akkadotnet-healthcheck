@@ -45,5 +45,15 @@ namespace Akka.HealthCheck.Liveness
 
             Receive<Terminated>(t => { _subscribers.Remove(t.ActorRef); });
         }
+
+        /// <summary>
+        ///     Used in cases where the end-user screwed up their configuration.
+        /// </summary>
+        /// <returns><see cref="Props" /> for a <see cref="DefaultLivenessProbe" /> that will indicate the system is not live.</returns>
+        public static Props MisconfiguredProbeProbs()
+        {
+            return Props.Create(() => new DefaultLivenessProbe(new LivenessStatus(false,
+                "akka.healthcheck.liveness.provider is misconfigured. No suitable type found.")));
+        }
     }
 }

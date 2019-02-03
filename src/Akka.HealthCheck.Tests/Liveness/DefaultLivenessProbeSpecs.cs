@@ -1,11 +1,17 @@
-﻿using Akka.Actor;
+﻿// -----------------------------------------------------------------------
+// <copyright file="DefaultLivenessProbeSpecs.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using Akka.Actor;
 using Akka.HealthCheck.Liveness;
 using Xunit.Abstractions;
 
 namespace Akka.HealthCheck.Tests
 {
     /// <summary>
-    /// Specs for the <see cref="DefaultLivenessProbe"/>
+    ///     Specs for the <see cref="DefaultLivenessProbe" />
     /// </summary>
     public class DefaultLivenessProbeSpecs : LivenessProbeSpecBase
     {
