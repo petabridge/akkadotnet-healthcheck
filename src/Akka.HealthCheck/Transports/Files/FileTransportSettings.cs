@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Akka.HealthCheck.Transports
+﻿namespace Akka.HealthCheck.Transports.Files
 {
     /// <inheritdoc />
     /// <summary>
@@ -22,5 +18,6 @@ namespace Akka.HealthCheck.Transports
         public string FilePath { get; }
 
         public ProbeTransport TransportType => ProbeTransport.File;
+        public string StartupMessage => $"Writing probe data to [{FilePath}]";
     }
 }

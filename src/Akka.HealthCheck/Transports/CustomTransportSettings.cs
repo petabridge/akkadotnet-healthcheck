@@ -9,5 +9,6 @@
     public sealed class CustomTransportSettings : ITransportSettings
     {
         public ProbeTransport TransportType => ProbeTransport.Custom;
+        public string StartupMessage => "No built-in probe transport configured. Relying on user-definted tools to suppply status data.";
     }
 }
