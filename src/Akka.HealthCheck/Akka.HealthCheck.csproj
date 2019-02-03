@@ -19,7 +19,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="Transports\" />
+    <Folder Include="Transports\Sockets\" />
   </ItemGroup>
 
 </Project>
