@@ -1,20 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\common.props" />
-
-  <PropertyGroup>    
+  <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Akka.TestKit.Xunit" Version="$(AkkaVersion)" />
+    <PackageReference Include="FluentAssertions" Version="5.6.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
     <PackageReference Include="xunit" Version="$(XunitVersion)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Akka.Cluster.HealthCheck\Akka.Cluster.HealthCheck.csproj" />
+    <ProjectReference Include="..\Akka.HealthCheck\Akka.HealthCheck.csproj" />
   </ItemGroup>
 
 </Project>
