@@ -1,6 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// -----------------------------------------------------------------------
+// <copyright file="HealthCheckSettingsSpecs.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Akka.Configuration;
 using Akka.HealthCheck.Configuration;
 using Akka.HealthCheck.Liveness;
@@ -34,7 +37,8 @@ namespace Akka.HealthCheck.Tests.Configuration
                 akka.healthcheck.liveness.provider = ""Akka.Fake.FakeProvider, Akka.Fake""
             ");
 
-            var settings = new HealthCheckSettings(hocon.WithFallback(HealthCheckSettings.DefaultConfig()).GetConfig("akka.healthcheck"));
+            var settings = new HealthCheckSettings(hocon.WithFallback(HealthCheckSettings.DefaultConfig())
+                .GetConfig("akka.healthcheck"));
             settings.Misconfigured.Should().BeTrue();
             settings.LivenessProbeProvider.Should().Be(typeof(DefaultLivenessProvider));
             settings.ReadinessProbeProvider.Should().Be(typeof(DefaultReadinessProvider));
@@ -47,7 +51,8 @@ namespace Akka.HealthCheck.Tests.Configuration
                 akka.healthcheck.readiness.provider = ""Akka.Fake.FakeProvider, Akka.Fake""
             ");
 
-            var settings = new HealthCheckSettings(hocon.WithFallback(HealthCheckSettings.DefaultConfig()).GetConfig("akka.healthcheck"));
+            var settings = new HealthCheckSettings(hocon.WithFallback(HealthCheckSettings.DefaultConfig())
+                .GetConfig("akka.healthcheck"));
             settings.Misconfigured.Should().BeTrue();
             settings.LivenessProbeProvider.Should().Be(typeof(DefaultLivenessProvider));
             settings.ReadinessProbeProvider.Should().Be(typeof(DefaultReadinessProvider));

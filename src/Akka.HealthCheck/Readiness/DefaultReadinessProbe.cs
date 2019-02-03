@@ -17,16 +17,6 @@ namespace Akka.HealthCheck.Readiness
     /// </summary>
     public sealed class DefaultReadinessProbe : ReceiveActor
     {
-        /// <summary>
-        /// Used in cases where the end-user screwed up their configuration.
-        /// </summary>
-        /// <returns><see cref="Props"/> for a <see cref="DefaultReadinessProbe"/> that will indicate the system is not ready.</returns>
-        public static Props MisconfiguredProbeProbs()
-        {
-            return Props.Create(() => new DefaultReadinessProbe(new ReadinessStatus(false,
-                "akka.healthcheck.readiness.provider is misconfigured. No suitable type found.")));
-        }
-
         private readonly ReadinessStatus _readinessStatus;
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
 
@@ -54,6 +44,16 @@ namespace Akka.HealthCheck.Readiness
             });
 
             Receive<Terminated>(t => { _subscribers.Remove(t.ActorRef); });
+        }
+
+        /// <summary>
+        ///     Used in cases where the end-user screwed up their configuration.
+        /// </summary>
+        /// <returns><see cref="Props" /> for a <see cref="DefaultReadinessProbe" /> that will indicate the system is not ready.</returns>
+        public static Props MisconfiguredProbeProbs()
+        {
+            return Props.Create(() => new DefaultReadinessProbe(new ReadinessStatus(false,
+                "akka.healthcheck.readiness.provider is misconfigured. No suitable type found.")));
         }
     }
 }

@@ -17,16 +17,6 @@ namespace Akka.HealthCheck.Liveness
     /// </summary>
     public sealed class DefaultLivenessProbe : ReceiveActor
     {
-        /// <summary>
-        /// Used in cases where the end-user screwed up their configuration.
-        /// </summary>
-        /// <returns><see cref="Props"/> for a <see cref="DefaultLivenessProbe"/> that will indicate the system is not live.</returns>
-        public static Props MisconfiguredProbeProbs()
-        {
-            return Props.Create(() => new DefaultLivenessProbe(new LivenessStatus(false,
-                "akka.healthcheck.liveness.provider is misconfigured. No suitable type found.")));
-        }
-
         private readonly LivenessStatus _livenessStatus;
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
 
@@ -54,6 +44,16 @@ namespace Akka.HealthCheck.Liveness
             });
 
             Receive<Terminated>(t => { _subscribers.Remove(t.ActorRef); });
+        }
+
+        /// <summary>
+        ///     Used in cases where the end-user screwed up their configuration.
+        /// </summary>
+        /// <returns><see cref="Props" /> for a <see cref="DefaultLivenessProbe" /> that will indicate the system is not live.</returns>
+        public static Props MisconfiguredProbeProbs()
+        {
+            return Props.Create(() => new DefaultLivenessProbe(new LivenessStatus(false,
+                "akka.healthcheck.liveness.provider is misconfigured. No suitable type found.")));
         }
     }
 }
