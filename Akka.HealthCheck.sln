@@ -17,9 +17,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{79D71264
 		build.sh = build.sh
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.HealthCheck", "src\Akka.HealthCheck\Akka.HealthCheck.csproj", "{642308A0-B6F7-4478-B286-3B8707A00F82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akka.HealthCheck", "src\Akka.HealthCheck\Akka.HealthCheck.csproj", "{642308A0-B6F7-4478-B286-3B8707A00F82}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.HealthCheck.Tests", "src\Akka.HealthCheck.Tests\Akka.HealthCheck.Tests.csproj", "{BC2368AB-C2CC-497C-9900-4C9C70394C28}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akka.HealthCheck.Tests", "src\Akka.HealthCheck.Tests\Akka.HealthCheck.Tests.csproj", "{BC2368AB-C2CC-497C-9900-4C9C70394C28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

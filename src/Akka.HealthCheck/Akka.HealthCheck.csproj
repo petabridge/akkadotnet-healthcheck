@@ -17,5 +17,9 @@
   <ItemGroup>
     <PackageReference Include="Akka" Version="$(AkkaVersion)" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Transports\" />
+  </ItemGroup>
 
 </Project>
