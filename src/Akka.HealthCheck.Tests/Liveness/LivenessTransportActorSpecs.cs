@@ -67,7 +67,7 @@ namespace Akka.HealthCheck.Tests.Liveness
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
             fakeLiveness.Reply(new LivenessStatus(true));
 
-            AwaitCondition(() => testTransport.SystemCalls.Count == 1
+            AwaitCondition(() => testTransport.SystemCalls.Count == 2
                                  && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Go);
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
@@ -87,16 +87,29 @@ namespace Akka.HealthCheck.Tests.Liveness
                 Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
-            fakeLiveness.Reply(new LivenessStatus(true));
 
-            AwaitCondition(() => testTransport.SystemCalls.Count == 1
-                                 && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Go);
+            // we expect the LivenessTransportActor to throw this exception
+            EventFilter.Exception<ProbeUpdateException>().ExpectOne(() =>
+            {
+                fakeLiveness.Reply(new LivenessStatus(true));
+
+                AwaitCondition(() => testTransport.SystemCalls.Count == 2
+                                     && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Go);
+            });
+            
 
             // actor should crash and restart here
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
-            fakeLiveness.Reply(new LivenessStatus(false));
-            AwaitCondition(() => testTransport.SystemCalls.Count == 2
-                                 && testTransport.SystemCalls[1] == TestStatusTransport.TransportCall.Stop);
+
+            // should throw second exception when we try to change status again
+            EventFilter.Exception<ProbeUpdateException>().ExpectOne(() =>
+            {
+                fakeLiveness.Reply(new LivenessStatus(false));
+
+                AwaitCondition(() => testTransport.SystemCalls.Count == 4
+                                     && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Go) == 1
+                                     && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) == 3);
+            });
         }
     }
 }

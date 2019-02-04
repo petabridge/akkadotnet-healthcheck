@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using Akka.HealthCheck.Transports;
+
+namespace Akka.HealthCheck
+{
+    /// <summary>
+    /// Thrown when a probe fails to update its underlying <see cref="IStatusTransport"/>
+    /// </summary>
+    public sealed class ProbeUpdateException : Exception
+    {
+        public ProbeUpdateException(ProbeKind probeKind, string message, Exception innerException) 
+            : base(message, innerException)
+        {
+            ProbeKind = probeKind;
+        }
+
+        public ProbeKind ProbeKind { get; }
+    }
+}
