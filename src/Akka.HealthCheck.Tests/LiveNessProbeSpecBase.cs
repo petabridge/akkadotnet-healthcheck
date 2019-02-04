@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="LivenessProbeSpecBase.cs" company="Petabridge, LLC">
+// <copyright file="LiveNessProbeSpecBase.cs" company="Petabridge, LLC">
 //      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
 // </copyright>
 // -----------------------------------------------------------------------
