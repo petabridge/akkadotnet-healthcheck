@@ -6,7 +6,7 @@ using Akka.HealthCheck;
 namespace Akka.Cluster.HealthCheck
 {
     /// <summary>
-    /// <see cref="IProbeProvider"/> implementation intended for use with Akka.Cluster.
+    /// <see cref="IProbeProvider"/> liveness implementation intended for use with Akka.Cluster.
     /// </summary>
     public sealed class ClusterLivenessProbeProvider : ProbeProviderBase
     {
