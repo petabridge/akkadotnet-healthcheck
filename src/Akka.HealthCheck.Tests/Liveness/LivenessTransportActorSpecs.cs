@@ -74,5 +74,27 @@ namespace Akka.HealthCheck.Tests.Liveness
             AwaitCondition(() => testTransport.SystemCalls.Count == 2
                                  && testTransport.SystemCalls[1] == TestStatusTransport.TransportCall.Stop);
         }
+
+        [Fact(DisplayName = "LivenessTransportActor should crash and during try or stop failure")]
+        public void LivenessTransportActor_should_crash_when_Stop_or_Go_failure()
+        {
+            var testTransport = new TestStatusTransport(new TestStatusTransportSettings(false, false, TimeSpan.Zero));
+            var fakeLiveness = CreateTestProbe("liveness");
+
+            var transportActor =
+                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness)));
+
+            fakeLiveness.ExpectMsg<SubscribeToLiveness>();
+            fakeLiveness.Reply(new LivenessStatus(true));
+
+            AwaitCondition(() => testTransport.SystemCalls.Count == 1
+                                 && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Go);
+
+            // actor should crash and restart here
+            fakeLiveness.ExpectMsg<SubscribeToLiveness>();
+            fakeLiveness.Reply(new LivenessStatus(false));
+            AwaitCondition(() => testTransport.SystemCalls.Count == 2
+                                 && testTransport.SystemCalls[1] == TestStatusTransport.TransportCall.Stop);
+        }
     }
 }
