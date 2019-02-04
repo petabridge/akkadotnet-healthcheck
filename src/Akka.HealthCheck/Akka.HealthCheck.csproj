@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\common.props" />
+  
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>Akka.NET healthchecks for environments like K8s, AWS, Azure, Pivotal Cloud Foundry, and more.</Description>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <None Remove="Configuration\akka.healthcheck.conf" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration\akka.healthcheck.conf" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Akka" Version="$(AkkaVersion)" />
+  </ItemGroup>
+
+</Project>

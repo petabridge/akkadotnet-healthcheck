@@ -1,2 +1,2 @@
-#### 0.1.0 August 14 2017 ####
-First release
+#### 0.1.0 February 04 2019 ####
+Initial release of Akka.HealthCheck and Akka.HealthCheck.Cluster. These packages are designed to make it possible to automatically and simply pass on information about the health of your Akka.NET applications to external application management and monitoring systems such as K8s, AWS, Azure, and so forth.

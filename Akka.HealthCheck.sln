@@ -17,6 +17,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{79D71264
 		build.sh = build.sh
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akka.HealthCheck", "src\Akka.HealthCheck\Akka.HealthCheck.csproj", "{642308A0-B6F7-4478-B286-3B8707A00F82}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akka.HealthCheck.Tests", "src\Akka.HealthCheck.Tests\Akka.HealthCheck.Tests.csproj", "{BC2368AB-C2CC-497C-9900-4C9C70394C28}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +39,14 @@ Global
 		{CAE7CA7C-0D0C-4FDA-BDE9-BE16A27343EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CAE7CA7C-0D0C-4FDA-BDE9-BE16A27343EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CAE7CA7C-0D0C-4FDA-BDE9-BE16A27343EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{642308A0-B6F7-4478-B286-3B8707A00F82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{642308A0-B6F7-4478-B286-3B8707A00F82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{642308A0-B6F7-4478-B286-3B8707A00F82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{642308A0-B6F7-4478-B286-3B8707A00F82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC2368AB-C2CC-497C-9900-4C9C70394C28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC2368AB-C2CC-497C-9900-4C9C70394C28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC2368AB-C2CC-497C-9900-4C9C70394C28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC2368AB-C2CC-497C-9900-4C9C70394C28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
