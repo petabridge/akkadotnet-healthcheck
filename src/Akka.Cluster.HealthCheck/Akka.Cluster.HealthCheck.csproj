@@ -12,4 +12,9 @@
     <PackageReference Include="Akka.Cluster" Version="$(AkkaVersion)" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <ProjectReference Include="..\Akka.HealthCheck\Akka.HealthCheck.csproj" />
+  </ItemGroup>
+
 </Project>
