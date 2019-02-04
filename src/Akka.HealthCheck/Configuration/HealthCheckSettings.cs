@@ -28,9 +28,13 @@ namespace Akka.HealthCheck.Configuration
             LivenessProbeProvider = ValidateProbeType(healthcheckConfig.GetString("liveness.provider"),
                 typeof(DefaultLivenessProvider));
 
+            LivenessTransport = MapToTransport(healthcheckConfig.GetString("liveness.transport"));
+
             // readiness probe type checking and setting
             ReadinessProbeProvider = ValidateProbeType(healthcheckConfig.GetString("readiness.provider"),
                 typeof(DefaultReadinessProvider));
+
+            ReadinessTransport = MapToTransport(healthcheckConfig.GetString("readiness.transport"));
         }
 
         /// <summary>
@@ -48,10 +52,22 @@ namespace Akka.HealthCheck.Configuration
         public Type LivenessProbeProvider { get; }
 
         /// <summary>
+        /// The transportation medium we're going to use
+        /// for signaling liveness data.
+        /// </summary>
+        public ProbeTransport LivenessTransport { get; }
+
+        /// <summary>
         ///     The <see cref="IProbeProvider" /> implementation used in this instance
         ///     for readiness probes.
         /// </summary>
         public Type ReadinessProbeProvider { get; }
+
+        /// <summary>
+        /// The transportation medium we're going to use
+        /// for signaling readiness data.
+        /// </summary>
+        public ProbeTransport ReadinessTransport { get; }
 
         private Type ValidateProbeType(string probeType, Type defaultValue)
         {
@@ -66,6 +82,19 @@ namespace Akka.HealthCheck.Configuration
             }
 
             return livenessType;
+        }
+
+        public static ProbeTransport MapToTransport(string transportName)
+        {
+            switch (transportName.ToLowerInvariant())
+            {
+                case "tcp":
+                    return ProbeTransport.TcpSocket;
+                case "file":
+                    return ProbeTransport.File;
+                default:
+                    return ProbeTransport.Custom;
+            }
         }
 
         /// <summary>
