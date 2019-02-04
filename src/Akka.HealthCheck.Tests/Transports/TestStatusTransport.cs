@@ -1,0 +1,69 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Akka.HealthCheck.Transports;
+
+namespace Akka.HealthCheck.Tests.Transports
+{
+    public class TestStatusTransportSettings : ITransportSettings
+    {
+        public TestStatusTransportSettings(bool canGo, bool canStop, TimeSpan delayTime)
+        {
+            CanGo = canGo;
+            CanStop = canStop;
+            DelayTime = delayTime;
+        }
+
+        public ProbeTransport TransportType => ProbeTransport.Custom;
+        public string StartupMessage => $"CanGo: {CanGo}, CanStop: {CanStop}, DelayTime: {DelayTime}";
+
+        public bool CanGo { get; set; }
+
+        public bool CanStop { get; set; }
+
+        public TimeSpan DelayTime { get; set; }
+    }
+
+    public class TestStatusTransport : IStatusTransport
+    {
+        public enum TransportCall
+        {
+            Go,
+            Stop
+        }
+
+        public TestStatusTransport(TestStatusTransportSettings settings)
+        {
+            Settings = settings;
+            SystemCalls = new List<TransportCall>();
+        }
+
+        public TestStatusTransportSettings Settings { get; }
+
+        public List<TransportCall> SystemCalls { get; } 
+
+        public async Task<TransportWriteStatus> Go(string statusMessage, CancellationToken token)
+        {
+            SystemCalls.Add(TransportCall.Go);
+            if (Settings.DelayTime > TimeSpan.Zero)
+                await Task.Delay(Settings.DelayTime);
+
+            token.ThrowIfCancellationRequested();
+
+            return new TransportWriteStatus(Settings.CanGo);
+        }
+
+        public async Task<TransportWriteStatus> Stop(string statusMessage, CancellationToken token)
+        {
+            SystemCalls.Add(TransportCall.Stop);
+            if (Settings.DelayTime > TimeSpan.Zero)
+                await Task.Delay(Settings.DelayTime);
+
+            token.ThrowIfCancellationRequested();
+
+            return new TransportWriteStatus(Settings.CanStop);
+        }
+    }
+}
