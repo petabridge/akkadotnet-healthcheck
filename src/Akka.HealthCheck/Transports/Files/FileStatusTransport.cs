@@ -1,4 +1,10 @@
-﻿using System;
+﻿// -----------------------------------------------------------------------
+// <copyright file="FileStatusTransport.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +13,7 @@ namespace Akka.HealthCheck.Transports.Files
 {
     /// <inheritdoc />
     /// <summary>
-    /// Used to write status data out to the file system.
+    ///     Used to write status data out to the file system.
     /// </summary>
     public sealed class FileStatusTransport : IStatusTransport
     {
@@ -17,6 +23,7 @@ namespace Akka.HealthCheck.Transports.Files
         }
 
         public FileTransportSettings Settings { get; }
+
         public async Task<TransportWriteStatus> Go(string statusMessage, CancellationToken token)
         {
             try
@@ -26,7 +33,7 @@ namespace Akka.HealthCheck.Transports.Files
 
                 return new TransportWriteStatus(true);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new TransportWriteStatus(false, ex);
             }
@@ -36,7 +43,7 @@ namespace Akka.HealthCheck.Transports.Files
         {
             try
             {
-                if(File.Exists(Settings.FilePath)) // check first
+                if (File.Exists(Settings.FilePath)) // check first
                     File.Delete(Settings.FilePath);
                 return new TransportWriteStatus(true);
             }

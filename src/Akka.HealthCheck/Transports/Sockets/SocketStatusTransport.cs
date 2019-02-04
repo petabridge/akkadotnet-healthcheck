@@ -1,4 +1,10 @@
-﻿using System;
+﻿// -----------------------------------------------------------------------
+// <copyright file="SocketStatusTransport.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -7,18 +13,18 @@ using System.Threading.Tasks;
 namespace Akka.HealthCheck.Transports.Sockets
 {
     /// <summary>
-    /// Used to write liveness / readiness status data by opening and maintaining a TCP socket.
+    ///     Used to write liveness / readiness status data by opening and maintaining a TCP socket.
     /// </summary>
     public sealed class SocketStatusTransport : IStatusTransport
     {
+        private Socket _socket;
+
         public SocketStatusTransport(SocketTransportSettings settings)
         {
             Settings = settings;
         }
 
         public SocketTransportSettings Settings { get; }
-
-        private Socket _socket;
 
         public async Task<TransportWriteStatus> Go(string statusMessage, CancellationToken token)
         {

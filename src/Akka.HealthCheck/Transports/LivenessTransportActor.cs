@@ -1,6 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// -----------------------------------------------------------------------
+// <copyright file="LivenessTransportActor.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System;
 using System.Threading;
 using Akka.Actor;
 using Akka.Event;
@@ -9,15 +13,15 @@ using Akka.HealthCheck.Liveness;
 namespace Akka.HealthCheck.Transports
 {
     /// <summary>
-    /// Subscribes to <see cref="LivenessStatus"/> changes and signals
-    /// the underlying <see cref="IStatusTransport"/> accordingly.
+    ///     Subscribes to <see cref="LivenessStatus" /> changes and signals
+    ///     the underlying <see cref="IStatusTransport" /> accordingly.
     /// </summary>
     public sealed class LivenessTransportActor : ReceiveActor
     {
-        const int LivenessTimeout = 1000;
-        private readonly IStatusTransport _statusTransport;
+        private const int LivenessTimeout = 1000;
         private readonly IActorRef _livenessProbe;
         private readonly ILoggingAdapter _log = Context.GetLogger();
+        private readonly IStatusTransport _statusTransport;
 
         public LivenessTransportActor(IStatusTransport statusTransport, IActorRef livenessProbe)
         {
@@ -26,17 +30,14 @@ namespace Akka.HealthCheck.Transports
 
             ReceiveAsync<LivenessStatus>(async status =>
             {
-                _log.Info("Received updated liveness status. Live: {0}, Message: {1}", status.IsLive, status.StatusMessage);
+                _log.Info("Received updated liveness status. Live: {0}, Message: {1}", status.IsLive,
+                    status.StatusMessage);
                 var cts = new CancellationTokenSource(LivenessTimeout);
                 TransportWriteStatus writeStatus = null;
                 if (status.IsLive)
-                {
                     writeStatus = await _statusTransport.Go(status.StatusMessage, cts.Token);
-                }
                 else
-                {
                     writeStatus = await _statusTransport.Stop(status.StatusMessage, cts.Token);
-                }
 
                 if (!writeStatus.Success)
                 {
@@ -61,7 +62,6 @@ namespace Akka.HealthCheck.Transports
 
         protected override void PostStop()
         {
-            
             var cts = new CancellationTokenSource(LivenessTimeout);
 
             try
@@ -70,7 +70,8 @@ namespace Akka.HealthCheck.Transports
             }
             catch (Exception ex)
             {
-                _log.Error(ex, "Error while attempting to stop liveness probe after [{0}] ms. Shutting down anyway.", LivenessTimeout);
+                _log.Error(ex, "Error while attempting to stop liveness probe after [{0}] ms. Shutting down anyway.",
+                    LivenessTimeout);
             }
         }
     }

@@ -1,9 +1,16 @@
-﻿namespace Akka.HealthCheck.Transports.Files
+﻿// -----------------------------------------------------------------------
+// <copyright file="FileTransportSettings.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+
+namespace Akka.HealthCheck.Transports.Files
 {
     /// <inheritdoc />
     /// <summary>
-    /// Used to write out the liveness / readiness status messages when <see cref="F:Akka.HealthCheck.ProbeTransport.File" />
-    /// is used.
+    ///     Used to write out the liveness / readiness status messages when
+    ///     <see cref="F:Akka.HealthCheck.ProbeTransport.File" />
+    ///     is used.
     /// </summary>
     public sealed class FileTransportSettings : ITransportSettings
     {
@@ -13,7 +20,7 @@
         }
 
         /// <summary>
-        /// The relative or absolute path of where the file should be written.
+        ///     The relative or absolute path of where the file should be written.
         /// </summary>
         public string FilePath { get; }
 
