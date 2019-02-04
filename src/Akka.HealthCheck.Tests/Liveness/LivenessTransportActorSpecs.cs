@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Akka.Actor;
 using Akka.HealthCheck.Liveness;
@@ -71,8 +72,9 @@ namespace Akka.HealthCheck.Tests.Liveness
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
             fakeLiveness.Reply(new LivenessStatus(false));
-            AwaitCondition(() => testTransport.SystemCalls.Count == 2
-                                 && testTransport.SystemCalls[1] == TestStatusTransport.TransportCall.Stop);
+            AwaitCondition(() => testTransport.SystemCalls.Count == 4
+                                 && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Go) == 1
+                                 && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) == 3);
         }
 
         [Fact(DisplayName = "LivenessTransportActor should crash and during try or stop failure")]
