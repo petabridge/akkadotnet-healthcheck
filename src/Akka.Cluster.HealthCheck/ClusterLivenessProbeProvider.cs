@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using Akka.Actor;
 using Akka.HealthCheck;
@@ -15,8 +14,6 @@ namespace Akka.Cluster.HealthCheck
         {
         }
 
-        public override Props ProbeProps { get; }
+        public override Props ProbeProps => Props.Create(() => new ClusterLivenessProbe());
     }
-
-
 }
