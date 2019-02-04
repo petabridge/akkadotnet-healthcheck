@@ -1,4 +1,10 @@
-﻿using System.Collections.Generic;
+﻿// -----------------------------------------------------------------------
+// <copyright file="ClusterLivenessProbe.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System.Collections.Generic;
 using Akka.Actor;
 using Akka.Event;
 using Akka.HealthCheck.Liveness;
@@ -6,17 +12,19 @@ using Akka.HealthCheck.Liveness;
 namespace Akka.Cluster.HealthCheck
 {
     /// <summary>
-    /// Algorithm that indicates that we are live if we are a member of the cluster, and we are not
-    /// if we are removed from the cluster's membership.
+    ///     Algorithm that indicates that we are live if we are a member of the cluster, and we are not
+    ///     if we are removed from the cluster's membership.
     /// </summary>
     public sealed class ClusterLivenessProbe : ReceiveActor
     {
-        public static readonly LivenessStatus DefaultClusterLivenessStatus = new LivenessStatus(false, "not yet joined cluster");
+        public static readonly LivenessStatus DefaultClusterLivenessStatus =
+            new LivenessStatus(false, "not yet joined cluster");
+
+        private readonly Cluster _cluster = Cluster.Get(Context.System);
+        private readonly ILoggingAdapter _log = Context.GetLogger();
+        private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
 
         private LivenessStatus _livenessStatus;
-        private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
-        private readonly ILoggingAdapter _log = Context.GetLogger();
-        private readonly Cluster _cluster = Cluster.Get(Context.System);
 
         public ClusterLivenessProbe() : this(DefaultClusterLivenessStatus)
         {
@@ -29,10 +37,7 @@ namespace Akka.Cluster.HealthCheck
             Receive<LivenessStatus>(s =>
             {
                 _livenessStatus = s;
-                foreach (var sub in _subscribers)
-                {
-                    sub.Tell(s);
-                }
+                foreach (var sub in _subscribers) sub.Tell(s);
             });
 
             Receive<GetCurrentLiveness>(_ => Sender.Tell(_livenessStatus));
@@ -57,15 +62,9 @@ namespace Akka.Cluster.HealthCheck
         {
             var self = Self;
 
-            _cluster.RegisterOnMemberUp(() =>
-            {
-                self.Tell(new LivenessStatus(true));
-            });
+            _cluster.RegisterOnMemberUp(() => { self.Tell(new LivenessStatus(true)); });
 
-            _cluster.RegisterOnMemberRemoved(() =>
-            {
-                self.Tell(new LivenessStatus(false));
-            });
+            _cluster.RegisterOnMemberRemoved(() => { self.Tell(new LivenessStatus(false)); });
         }
     }
 }

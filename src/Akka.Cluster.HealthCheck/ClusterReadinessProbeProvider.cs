@@ -1,16 +1,20 @@
-﻿using System;
+﻿// -----------------------------------------------------------------------
+// <copyright file="ClusterReadinessProbeProvider.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
-using System.Text;
 using Akka.Actor;
 using Akka.Event;
 using Akka.HealthCheck;
-using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Readiness;
 
 namespace Akka.Cluster.HealthCheck
 {
     /// <summary>
-    /// <see cref="IProbeProvider"/> readiness implementation intended for use with Akka.Cluster.
+    ///     <see cref="IProbeProvider" /> readiness implementation intended for use with Akka.Cluster.
     /// </summary>
     public sealed class ClusterReadinessProbeProvider : ProbeProviderBase
     {
@@ -22,20 +26,22 @@ namespace Akka.Cluster.HealthCheck
     }
 
     /// <summary>
-    /// Readiness algorithm for Akka.Cluster. We are ready when we join cluster,
-    /// not ready when we leave the cluster OR are the only reachable node in the cluster,
-    /// meaning that we have been partitioned away from everyone else for a lengthy period of
-    /// time.
+    ///     Readiness algorithm for Akka.Cluster. We are ready when we join cluster,
+    ///     not ready when we leave the cluster OR are the only reachable node in the cluster,
+    ///     meaning that we have been partitioned away from everyone else for a lengthy period of
+    ///     time.
     /// </summary>
     public sealed class ClusterReadinessProbe : ReceiveActor
     {
-        public static readonly ReadinessStatus DefaultClusterReadinessStatus = new ReadinessStatus(false, "not yet joined cluster");
+        public static readonly ReadinessStatus DefaultClusterReadinessStatus =
+            new ReadinessStatus(false, "not yet joined cluster");
 
-        private ReadinessStatus _readinessStatus;
-        private ICancelable _notReadyTask;
-        private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
-        private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly Cluster _cluster = Cluster.Get(Context.System);
+        private readonly ILoggingAdapter _log = Context.GetLogger();
+        private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
+        private ICancelable _notReadyTask;
+
+        private readonly ReadinessStatus _readinessStatus;
 
         public ClusterReadinessProbe() : this(DefaultClusterReadinessStatus)
         {
@@ -65,13 +71,10 @@ namespace Akka.Cluster.HealthCheck
             Receive<ClusterEvent.UnreachableMember>(r =>
             {
                 if (_cluster.State.Unreachable.SetEquals(_cluster.State.Members.Remove(_cluster.SelfMember)))
-                {
                     if (_notReadyTask == null)
-                    {
-                        _notReadyTask = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromSeconds(20), Self, 
+                        _notReadyTask = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromSeconds(20),
+                            Self,
                             new ReadinessStatus(false, "everyone else is unreachable"), ActorRefs.NoSender);
-                    }
-                }
             });
 
             Receive<ClusterEvent.ReachableMember>(r =>
@@ -85,17 +88,12 @@ namespace Akka.Cluster.HealthCheck
         {
             var self = Self;
 
-            _cluster.RegisterOnMemberUp(() =>
-            {
-                self.Tell(new ReadinessStatus(true));
-            });
+            _cluster.RegisterOnMemberUp(() => { self.Tell(new ReadinessStatus(true)); });
 
-            _cluster.RegisterOnMemberRemoved(() =>
-            {
-                self.Tell(new ReadinessStatus(false));
-            });
+            _cluster.RegisterOnMemberRemoved(() => { self.Tell(new ReadinessStatus(false)); });
 
-            _cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsSnapshot, typeof(ClusterEvent.IReachabilityEvent));
+            _cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsSnapshot,
+                typeof(ClusterEvent.IReachabilityEvent));
         }
     }
 }
