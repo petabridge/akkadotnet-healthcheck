@@ -26,13 +26,21 @@ namespace Akka.HealthCheck.Transports
             {
                 _log.Info("Received updated readiness status. Ready: {0}, Message: {1}", status.IsReady, status.StatusMessage);
                 var cts = new CancellationTokenSource(LivenessTimeout);
+                TransportWriteStatus writeStatus = null;
                 if (status.IsReady)
                 {
-                    await _statusTransport.Go(status.StatusMessage, cts.Token);
+                    writeStatus = await _statusTransport.Go(status.StatusMessage, cts.Token);
                 }
                 else
                 {
-                    await _statusTransport.Stop(status.StatusMessage, cts.Token);
+                    writeStatus = await _statusTransport.Stop(status.StatusMessage, cts.Token);
+                }
+
+                if (!writeStatus.Success)
+                {
+                    _log.Error(writeStatus.Exception, "Failed to write to transport.");
+                    throw new ProbeUpdateException(ProbeKind.Readiness,
+                        $"Failed to update underlying transport {_statusTransport}", writeStatus.Exception);
                 }
             });
 
