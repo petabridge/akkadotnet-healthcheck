@@ -8,6 +8,9 @@ using Akka.Configuration;
 using Akka.HealthCheck.Configuration;
 using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Readiness;
+using Akka.HealthCheck.Transports;
+using Akka.HealthCheck.Transports.Files;
+using Akka.HealthCheck.Transports.Sockets;
 using FluentAssertions;
 using Xunit;
 
@@ -30,6 +33,8 @@ namespace Akka.HealthCheck.Tests.Configuration
             settings.ReadinessProbeProvider.Should().Be(typeof(DefaultReadinessProvider));
             settings.LivenessTransport.Should().Be(ProbeTransport.Custom);
             settings.ReadinessTransport.Should().Be(ProbeTransport.Custom);
+            settings.LivenessTransportSettings.Should().BeOfType<CustomTransportSettings>();
+            settings.ReadinessTransportSettings.Should().BeOfType<CustomTransportSettings>();
         }
 
         [Fact(DisplayName = "HealthCheckSettings.Misconfigured should be true when Liveness provider is invalid")]
@@ -75,6 +80,10 @@ namespace Akka.HealthCheck.Tests.Configuration
             settings.ReadinessProbeProvider.Should().Be(typeof(DefaultReadinessProvider));
             settings.LivenessTransport.Should().Be(ProbeTransport.TcpSocket);
             settings.ReadinessTransport.Should().Be(ProbeTransport.File);
+            settings.LivenessTransportSettings.Should().BeOfType<SocketTransportSettings>();
+            settings.LivenessTransportSettings.As<SocketTransportSettings>().Port.Should().Be(11000);
+            settings.ReadinessTransportSettings.Should().BeOfType<FileTransportSettings>();
+            settings.ReadinessTransportSettings.As<FileTransportSettings>().FilePath.Should().Be("readiness.txt");
         }
     }
 }

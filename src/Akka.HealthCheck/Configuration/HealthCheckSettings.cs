@@ -9,6 +9,9 @@ using Akka.Actor;
 using Akka.Configuration;
 using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Readiness;
+using Akka.HealthCheck.Transports;
+using Akka.HealthCheck.Transports.Files;
+using Akka.HealthCheck.Transports.Sockets;
 
 namespace Akka.HealthCheck.Configuration
 {
@@ -30,11 +33,15 @@ namespace Akka.HealthCheck.Configuration
 
             LivenessTransport = MapToTransport(healthcheckConfig.GetString("liveness.transport"));
 
+            LivenessTransportSettings = PopulateSettings(healthcheckConfig.GetConfig("liveness"), LivenessTransport);
+
             // readiness probe type checking and setting
             ReadinessProbeProvider = ValidateProbeType(healthcheckConfig.GetString("readiness.provider"),
                 typeof(DefaultReadinessProvider));
 
             ReadinessTransport = MapToTransport(healthcheckConfig.GetString("readiness.transport"));
+
+            ReadinessTransportSettings = PopulateSettings(healthcheckConfig.GetConfig("readiness"), ReadinessTransport);
         }
 
         /// <summary>
@@ -58,6 +65,11 @@ namespace Akka.HealthCheck.Configuration
         public ProbeTransport LivenessTransport { get; }
 
         /// <summary>
+        /// Liveness transport settings.
+        /// </summary>
+        public ITransportSettings LivenessTransportSettings { get; }
+
+        /// <summary>
         ///     The <see cref="IProbeProvider" /> implementation used in this instance
         ///     for readiness probes.
         /// </summary>
@@ -68,6 +80,11 @@ namespace Akka.HealthCheck.Configuration
         /// for signaling readiness data.
         /// </summary>
         public ProbeTransport ReadinessTransport { get; }
+
+        /// <summary>
+        /// Readiness transport settings.
+        /// </summary>
+        public ITransportSettings ReadinessTransportSettings { get; }
 
         private Type ValidateProbeType(string probeType, Type defaultValue)
         {
@@ -94,6 +111,19 @@ namespace Akka.HealthCheck.Configuration
                     return ProbeTransport.File;
                 default:
                     return ProbeTransport.Custom;
+            }
+        }
+
+        private static ITransportSettings PopulateSettings(Config config, ProbeTransport transportType)
+        {
+            switch (transportType)
+            {
+                case ProbeTransport.File:
+                    return new FileTransportSettings(config.GetString("file.path"));
+                case ProbeTransport.TcpSocket:
+                    return new SocketTransportSettings(config.GetInt("tcp.port"));
+                default:
+                    return new CustomTransportSettings();
             }
         }
 

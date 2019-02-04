@@ -6,9 +6,13 @@
 
 using System;
 using Akka.Actor;
+using Akka.Configuration;
 using Akka.HealthCheck.Configuration;
 using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Readiness;
+using Akka.HealthCheck.Transports;
+using Akka.HealthCheck.Transports.Files;
+using Akka.HealthCheck.Transports.Sockets;
 
 namespace Akka.HealthCheck
 {
@@ -47,7 +51,11 @@ namespace Akka.HealthCheck
             // start the probes
             LivenessProbe = system.SystemActorOf(LivenessProvider.ProbeProps, "healthcheck-live");
             ReadinessProbe = system.SystemActorOf(ReadinessProvider.ProbeProps, "healthcheck-readiness");
+
+            // Need to set up transports (possibly)
         }
+
+       
 
         /// <summary>
         ///     The healthcheck settings.
@@ -79,6 +87,13 @@ namespace Akka.HealthCheck
         ///     and unsubscribe via <see cref="UnsubscribeFromReadiness" />.
         /// </summary>
         public IActorRef ReadinessProbe { get; }
+
+        /*
+         * Not used in the event that the transport
+         * is set to "ProbeTransport.Custom"
+         */
+        internal IActorRef ReadinessTransportActor;
+        internal IActorRef LivenessTransportActor;
 
         internal static IProbeProvider TryCreateProvider(Type providerType, ActorSystem system)
         {
