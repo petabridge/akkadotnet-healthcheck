@@ -38,10 +38,10 @@ namespace Akka.Cluster.HealthCheck
 
         private readonly Cluster _cluster = Cluster.Get(Context.System);
         private readonly ILoggingAdapter _log = Context.GetLogger();
-        private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
-        private ICancelable _notReadyTask;
 
         private readonly ReadinessStatus _readinessStatus;
+        private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
+        private ICancelable _notReadyTask;
 
         public ClusterReadinessProbe() : this(DefaultClusterReadinessStatus)
         {

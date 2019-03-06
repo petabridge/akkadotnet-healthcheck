@@ -59,13 +59,13 @@ namespace Akka.HealthCheck.Configuration
         public Type LivenessProbeProvider { get; }
 
         /// <summary>
-        /// The transportation medium we're going to use
-        /// for signaling liveness data.
+        ///     The transportation medium we're going to use
+        ///     for signaling liveness data.
         /// </summary>
         public ProbeTransport LivenessTransport { get; }
 
         /// <summary>
-        /// Liveness transport settings.
+        ///     Liveness transport settings.
         /// </summary>
         public ITransportSettings LivenessTransportSettings { get; }
 
@@ -76,13 +76,13 @@ namespace Akka.HealthCheck.Configuration
         public Type ReadinessProbeProvider { get; }
 
         /// <summary>
-        /// The transportation medium we're going to use
-        /// for signaling readiness data.
+        ///     The transportation medium we're going to use
+        ///     for signaling readiness data.
         /// </summary>
         public ProbeTransport ReadinessTransport { get; }
 
         /// <summary>
-        /// Readiness transport settings.
+        ///     Readiness transport settings.
         /// </summary>
         public ITransportSettings ReadinessTransportSettings { get; }
 
