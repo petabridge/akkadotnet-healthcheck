@@ -15,10 +15,10 @@ namespace Akka.HealthCheck.Persistence.Tests
     {
 
         public AkkaPersistenceLivenessProbeProviderSettingsTest(ITestOutputHelper helper)
-            : base(hoconString, output: helper)
+            : base(HoconString, output: helper)
         {
         }
-        public static string hoconString = @"
+        public static string HoconString = @"
                    akka.healthcheck{
                         liveness{
                             provider = ""Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbeProvider, Akka.HealthCheck.Persistence""
