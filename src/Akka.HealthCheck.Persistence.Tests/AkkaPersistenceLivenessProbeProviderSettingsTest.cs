@@ -1,0 +1,36 @@
+// -----------------------------------------------------------------------
+// <copyright file="UnitTest1.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+using Akka.Actor;
+using Akka.Configuration;
+using FluentAssertions;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Akka.HealthCheck.Persistence.Tests
+{
+    public class AkkaPersistenceLivenessProbeProviderSettingsTest : TestKit.Xunit.TestKit
+    {
+
+        public AkkaPersistenceLivenessProbeProviderSettingsTest(ITestOutputHelper helper)
+            : base(hoconString, output: helper)
+        {
+        }
+        public static string hoconString = @"
+                   akka.healthcheck{
+                        liveness{
+                            provider = ""Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbeProvider, Akka.HealthCheck.Persistence""
+}}  }";
+
+
+        [Fact]
+        public void AkkaPersistenceLivenessProbeProviderSettingsTest_Should_Load()
+        {
+            var healthCheck = AkkaHealthCheck.For(Sys);
+            healthCheck.Settings.Misconfigured.Should().BeFalse();
+            healthCheck.Settings.LivenessProbeProvider.Should().Be(typeof(AkkaPersistenceLivenessProbeProvider));
+        }
+    }
+}
