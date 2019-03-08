@@ -186,17 +186,18 @@ namespace Akka.HealthCheck.Persistence
 
             Command<string>(str =>
             {
+                SaveSnapshot(str);
                 Persist(str, 
                 s =>
                 {
-                    SaveSnapshot(s);
+                    
                 }); });
 
             Command<SaveSnapshotSuccess>(save =>
             {
                 if (!_firstAttempt)
                 {
-                    DeleteMessages(LastSequenceNr - 1);
+                    DeleteMessages(save.Metadata.SequenceNr - 1);
                      DeleteSnapshots(new SnapshotSelectionCriteria(save.Metadata.SequenceNr - 1));
                 }
 
