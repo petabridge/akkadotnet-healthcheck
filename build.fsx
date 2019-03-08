@@ -10,7 +10,7 @@ open Fake.DotNetCli
 open Fake.DocFxHelper
 
 // Information about the project for Nuget and Assembly info files
-let product = "Incrementalist"
+let product = "Akka.HealthCheck"
 let configuration = "Release"
 
 // Metadata used when signing packages and DLLs
