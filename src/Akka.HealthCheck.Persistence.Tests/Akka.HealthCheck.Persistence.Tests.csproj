@@ -4,6 +4,9 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Akka.HealthCheck.Tests\LiveNessProbeSpecBase.cs" Link="LiveNessProbeSpecBase.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Akka.TestKit.Xunit" Version="$(AkkaVersion)" />

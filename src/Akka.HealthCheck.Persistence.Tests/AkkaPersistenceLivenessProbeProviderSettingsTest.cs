@@ -25,7 +25,7 @@ namespace Akka.HealthCheck.Persistence.Tests
 }}  }";
 
 
-        [Fact]
+        [Fact(DisplayName = "AkkaPersistenceLivenessProbeProviderSettingsTest_Should_Load")]
         public void AkkaPersistenceLivenessProbeProviderSettingsTest_Should_Load()
         {
             var healthCheck = AkkaHealthCheck.For(Sys);

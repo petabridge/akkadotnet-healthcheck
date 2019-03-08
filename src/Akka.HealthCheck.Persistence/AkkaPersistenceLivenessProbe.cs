@@ -22,7 +22,16 @@ namespace Akka.HealthCheck.Persistence
         private IActorRef _probe;
         private int _probeCounter;
         private bool _snapshotStoreLive;
+        private readonly TimeSpan _delay;
 
+        public AkkaPersistenceLivenessProbe(TimeSpan delay)
+        {
+            _delay = delay;
+        }
+        public AkkaPersistenceLivenessProbe() : this(TimeSpan.FromSeconds(10))
+        {
+
+        }
         public IStash Stash { get; set; }
 
         public static Props PersistentHealthCheckProps()
@@ -113,7 +122,14 @@ namespace Akka.HealthCheck.Persistence
         private void CreateProbe(bool firstTime)
         {
             _probe = Context.ActorOf(Props.Create(() => new AkkaPersistenceHealthCheckProbe(Self, firstTime)));
-            Context.System.Scheduler.ScheduleTellOnce(TimeSpan.FromSeconds(10), _probe, "hit" + _probeCounter++, Self);
+            if(firstTime)
+            {
+                _probe.Tell("hit" + _probeCounter++);
+            }
+            else
+            {
+                Context.System.Scheduler.ScheduleTellOnce(_delay, _probe, "hit" + _probeCounter++, Self);
+            }
             Context.Watch(_probe);
         }
 
@@ -168,14 +184,20 @@ namespace Akka.HealthCheck.Persistence
                 SendRecoveryStatusWhenFinished();
             });
 
-            Command<string>(str => { Persist(str, s => { SaveSnapshot(s); }); });
+            Command<string>(str =>
+            {
+                Persist(str, 
+                s =>
+                {
+                    SaveSnapshot(s);
+                }); });
 
             Command<SaveSnapshotSuccess>(save =>
             {
                 if (!_firstAttempt)
                 {
                     DeleteMessages(LastSequenceNr - 1);
-                    DeleteSnapshots(new SnapshotSelectionCriteria(save.Metadata.SequenceNr - 1));
+                     DeleteSnapshots(new SnapshotSelectionCriteria(save.Metadata.SequenceNr - 1));
                 }
 
                 Context.Stop(Self);
