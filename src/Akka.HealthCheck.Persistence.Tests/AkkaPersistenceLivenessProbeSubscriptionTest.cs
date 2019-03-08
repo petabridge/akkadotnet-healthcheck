@@ -37,7 +37,7 @@ namespace Akka.HealthCheck.Persistence.Tests
                                                 connection-string = ""Filename=file:memdb.db;Mode=Memory;Cache=Shared""
                        }
                    }}";
-        [Fact(DisplayName = "Should be able to accept a subsrcibe request in any state")]
+        [Fact(DisplayName = "AkkaPersistenceLivenessProbe should correctly handle subscription requests")]
         public void AkkaPersistenceLivenessProbe_Should_Handle_Subscriptions_In_Any_State()
         {
             var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(TimeSpan.FromMilliseconds(250))));
