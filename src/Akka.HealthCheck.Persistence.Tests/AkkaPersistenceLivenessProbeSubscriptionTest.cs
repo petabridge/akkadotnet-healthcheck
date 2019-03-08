@@ -20,17 +20,35 @@ namespace Akka.HealthCheck.Persistence.Tests
         {
 
         }
+
+        public static string config = @"akka.persistence {
+                                         journal {
+                                                    plugin = ""akka.persistence.journal.sqlite""
+                                                    sqlite {
+                                                            class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
+                                                            auto-initialize = on
+                                                            connection-string = """ + "Filename=file:memdb.db;Mode=Memory;Cache=Shared" + @"""
+                                                     }}
+                                         snapshot-store {
+                                                plugin = ""akka.persistence.snapshot-store.sqlite""
+                                                sqlite {
+                                                class = ""Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite""
+                                                auto-initialize = on
+                                                connection-string = """ + "Filename=file:memdb.db;Mode=Memory;Cache=Shared" + @"""
+                       }
+                   }}";
         [Fact(DisplayName = "AkkaPersistenceLivenessProbe_Should_Handle_Subscriptions_In_Any_State")]
         public void AkkaPersistenceLivenessProbe_Should_Handle_Subscriptions_In_Any_State()
         {
-            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(TimeSpan.FromMilliseconds(25000))));
+            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(TimeSpan.FromMilliseconds(250))));
             ProbActor.Tell(new SubscribeToLiveness(TestActor));
             ExpectMsg<LivenessStatus>().IsLive.Should().BeFalse();
-            AwaitAssert(() => ExpectMsg<LivenessStatus>().IsLive.Should().BeTrue(),TimeSpan.FromSeconds(60));
+            AwaitAssert(() => ExpectMsg<LivenessStatus>().IsLive.Should().BeTrue(),TimeSpan.FromSeconds(10));
 
-
-
-
+            var probe = CreateTestProbe();
+            ProbActor.Tell(new SubscribeToLiveness(probe));
+            probe.ExpectMsg<LivenessStatus>().IsLive.Should().BeTrue();
+            
         }
 
 

@@ -176,22 +176,25 @@ namespace Akka.HealthCheck.Persistence
             Recover<string>(str =>
             {
                 _recoveredJournal = true;
-                SendRecoveryStatusWhenFinished();
+                
             });
             Recover<SnapshotOffer>(offer =>
             {
                 _recoveredSnapshotStore = true;
-                SendRecoveryStatusWhenFinished();
+                
             });
 
             Command<string>(str =>
             {
+                SendRecoveryStatusWhenFinished();
                 SaveSnapshot(str);
                 Persist(str, 
                 s =>
                 {
                     
-                }); });
+                });
+
+            });
 
             Command<SaveSnapshotSuccess>(save =>
             {
