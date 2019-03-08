@@ -16,7 +16,7 @@ namespace Akka.HealthCheck.Persistence.Tests
     {
 
         public AkkaPersistenceLivenessProbeSubscriptionTest(ITestOutputHelper helper)
-            : base(output: helper)
+            : base(config, output: helper)
         {
 
         }
@@ -27,17 +27,17 @@ namespace Akka.HealthCheck.Persistence.Tests
                                                     sqlite {
                                                             class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
                                                             auto-initialize = on
-                                                            connection-string = """ + "Filename=file:memdb.db;Mode=Memory;Cache=Shared" + @"""
+                                                            connection-string = ""Filename=file:memdb.db;Mode=Memory;Cache=Shared""
                                                      }}
                                          snapshot-store {
                                                 plugin = ""akka.persistence.snapshot-store.sqlite""
                                                 sqlite {
                                                 class = ""Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite""
                                                 auto-initialize = on
-                                                connection-string = """ + "Filename=file:memdb.db;Mode=Memory;Cache=Shared" + @"""
+                                                connection-string = ""Filename=file:memdb.db;Mode=Memory;Cache=Shared""
                        }
                    }}";
-        [Fact(DisplayName = "AkkaPersistenceLivenessProbe_Should_Handle_Subscriptions_In_Any_State")]
+        [Fact(DisplayName = "Should be able to accept a subsrcibe request in any state")]
         public void AkkaPersistenceLivenessProbe_Should_Handle_Subscriptions_In_Any_State()
         {
             var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(TimeSpan.FromMilliseconds(250))));

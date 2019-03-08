@@ -25,7 +25,7 @@ namespace Akka.HealthCheck.Persistence.Tests
 }}  }";
 
 
-        [Fact(DisplayName = "AkkaPersistenceLivenessProbeProviderSettingsTest_Should_Load")]
+        [Fact(DisplayName = "Should be able to load using hocon configuration")]
         public void AkkaPersistenceLivenessProbeProviderSettingsTest_Should_Load()
         {
             var healthCheck = AkkaHealthCheck.For(Sys);
