@@ -14,9 +14,9 @@ let product = "Akka.HealthCheck"
 let configuration = "Release"
 
 // Metadata used when signing packages and DLLs
-let signingName = "My Library"
-let signingDescription = "My REALLY COOL Library"
-let signingUrl = "https://signing.is.cool/"
+let signingName = "Akka.HealthCheck"
+let signingDescription = "Akka.NET HealthChecks"
+let signingUrl = "https://petabridge.com/"
 
 // Read release notes and version
 let solutionFile = FindFirstMatchingFile "*.sln" __SOURCE_DIRECTORY__  // dynamically look up the solution
