@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using static Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbe;
 
 namespace Akka.HealthCheck.Persistence.Tests
 {
@@ -18,9 +19,9 @@ namespace Akka.HealthCheck.Persistence.Tests
                                          journal {
                                                     plugin = ""akka.persistence.journal.sqlite""
                                                     sqlite {
-                                                            class = ""Akka.Persistence.False.Journal.FalseSQLIte, Akka.Persistence.Sqlite.Fake""
+                                                            class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
                                                             auto-initialize = on
-                                                            connection-string = ""FakeFilename:memdb.db;Mode=Memory;Cache=Shared""
+                                                            connection-string = ""Fake=file:memdb.db;Mode=Memory;Cache=Shared""
                                                      }}
                                          snapshot-store {
                                                 plugin = ""akka.persistence.snapshot-store.sqlite""
@@ -32,16 +33,28 @@ namespace Akka.HealthCheck.Persistence.Tests
                    }}";
 
         [Fact(DisplayName = " ActorSystem should correcly report when Akk.Persistence is unavailable due to bad journal configuration")]
-        public async Task AkkaPersistenceLivenessProbeProvidert_Should_Report_Akka_Persistance_Is_Unavailable_With_Bad_Journal_Setup()
+        public void AkkaPersistenceLivenessProbeProvidert_Should_Report_Akka_Persistance_Is_Unavailable_With_Bad_Journal_Setup()
         {
-            var healthCheck = AkkaHealthCheck.For(Sys);
-            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(TimeSpan.FromMilliseconds(250))));
-            ProbActor.Tell(new SubscribeToLiveness(TestActor));
+            IActorRef ProbActor;
+            try
+            {
+                 ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(TimeSpan.FromMilliseconds(250))));
+                ProbActor.Tell(new SubscribeToLiveness(TestActor));
+            }
+            catch (Akka.Actor.ActorInitializationException ex) { }
+            
+
             ExpectMsg<LivenessStatus>().IsLive.Should().BeFalse();
-            var livenessStatus =
-                    await healthCheck.LivenessProbe.Ask<LivenessStatus>(GetCurrentLiveness.Instance,
-                        TimeSpan.FromSeconds(3));
-            livenessStatus.IsLive.Should().BeFalse();
+            AwaitAssert(() => ExpectMsg<LivenessStatus>().IsLive.Should().BeTrue(), TimeSpan.FromSeconds(10));
+            //for (var i = 0; i < 1000000000; i++) { }
+
+            //ProbActor.Tell(GetCurrentLiveness.Instance);
+            //ProbActor.ToString;
+            //ExpectMsg<LivenessStatus>().IsLive.Should().BeFalse();
+           
+               
+
+
 
         }
     }
