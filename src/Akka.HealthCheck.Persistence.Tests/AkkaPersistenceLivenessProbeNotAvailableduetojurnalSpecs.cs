@@ -17,29 +17,10 @@ namespace Akka.HealthCheck.Persistence.Tests
     public class AkkaPersistenceLivenessProbeNotAvailableDueToJurnalSpecs : TestKit.Xunit.TestKit
     {
         public AkkaPersistenceLivenessProbeNotAvailableDueToJurnalSpecs(ITestOutputHelper helper)
-                    : base(config, output: helper)
+                    : base(TestConfig.badJurnalConfig, output: helper)
         {
         }
-        private static AtomicCounter counter = new AtomicCounter(0);
-
-        public static string config = @"akka.persistence {
-                                         journal {
-                                                    plugin = ""akka.persistence.journal.sqlite""
-                                                    recovery-event-timeout = 2s
-                                                    circuit-breaker.reset-timeout = 2s
-                                                    sqlite {
-                                                            class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
-                                                            auto-initialize = on
-                                                            connection-string = ""Fake=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared"" #Invalid connetion string             
-                                                     }}
-                                         snapshot-store {
-                                                plugin = ""akka.persistence.snapshot-store.sqlite""
-                                                sqlite {
-                                                class = ""Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite""
-                                                auto-initialize = on
-                                                connection-string = ""Filename=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared""
-                       }
-                   }}";
+        
 
         [Fact(DisplayName = " ActorSystem should correcly report when Akk.Persistence is unavailable due to bad journal configuration")]
         public void AkkaPersistenceLivenessProbeProvidert_Should_Report_Akka_Persistance_Is_Unavailable_With_Bad_Journal_Setup()

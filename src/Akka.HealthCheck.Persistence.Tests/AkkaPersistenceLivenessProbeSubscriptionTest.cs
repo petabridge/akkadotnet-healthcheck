@@ -17,28 +17,12 @@ namespace Akka.HealthCheck.Persistence.Tests
     {
 
         public AkkaPersistenceLivenessProbeSubscriptionTest(ITestOutputHelper helper)
-            : base(config, output: helper)
+            : base(TestConfig.config, output: helper)
         {
 
         }
 
-        private static AtomicCounter counter = new AtomicCounter(0);
-        public static string config = @"akka.persistence {
-                                         journal {
-                                                    plugin = ""akka.persistence.journal.sqlite""
-                                                    sqlite {
-                                                            class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
-                                                            auto-initialize = on
-                                                            connection-string = ""Filename=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared""
-                                                     }}
-                                         snapshot-store {
-                                                plugin = ""akka.persistence.snapshot-store.sqlite""
-                                                sqlite {
-                                                class = ""Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite""
-                                                auto-initialize = on
-                                                connection-string = ""Filename=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared""
-                       }
-                   }}";
+
         [Fact(DisplayName = "AkkaPersistenceLivenessProbe should correctly handle subscription requests")]
         public void AkkaPersistenceLivenessProbe_Should_Handle_Subscriptions_In_Any_State()
         {
