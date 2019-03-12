@@ -8,7 +8,6 @@ using Akka.HealthCheck.Liveness;
 using Akka.Util.Internal;
 using FluentAssertions;
 using System;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using static Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbe;
