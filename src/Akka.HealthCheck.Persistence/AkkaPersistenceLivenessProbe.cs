@@ -121,7 +121,7 @@ namespace Akka.HealthCheck.Persistence
 
         private void CreateProbe(bool firstTime)
         {
-            _probe = Context.ActorOf(Props.Create(() => new AkkaPersistenceHealthCheckProbe(Self, firstTime)));
+            _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, firstTime)));
             if(firstTime)
             {
                 _probe.Tell("hit" + _probeCounter++);
@@ -160,14 +160,15 @@ namespace Akka.HealthCheck.Persistence
     /// <summary>
     ///     Validate that the snapshot store and the journal and both working
     /// </summary>
-    public class AkkaPersistenceHealthCheckProbe : ReceivePersistentActor
+    public class SuicideProbe : ReceivePersistentActor 
     {
+        private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly IActorRef _probe;
         private readonly bool _firstAttempt;
         private bool _recoveredJournal;
         private bool _recoveredSnapshotStore;
 
-        public AkkaPersistenceHealthCheckProbe(IActorRef probe, bool firstAttempt)
+        public SuicideProbe(IActorRef probe, bool firstAttempt)
         {
             _probe = probe;
             _firstAttempt = firstAttempt;
@@ -219,6 +220,9 @@ namespace Akka.HealthCheck.Persistence
 
         protected override void OnRecoveryFailure(Exception reason, object message = null)
         {
+            _log.Error(reason,"Failed to Recover");
+            _probe.Tell(
+                   new AkkaPersistenceLivenessProbe.RecoveryStatus(_recoveredJournal, _recoveredSnapshotStore));
             throw new ApplicationException("Failed to recover", reason);
         }
     }

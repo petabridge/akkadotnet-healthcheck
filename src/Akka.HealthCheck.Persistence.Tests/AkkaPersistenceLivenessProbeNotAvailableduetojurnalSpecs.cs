@@ -26,11 +26,12 @@ namespace Akka.HealthCheck.Persistence.Tests
                                                     
                                                     plugin = ""akka.persistence.journal.sqlite""
                                                     recovery-event-timeout = 2s
-                                                    circuit-breaker{reset-timeout = 2s}
+                                                    circuit-breaker.reset-timeout = 2s
                                                     sqlite {
                                                             class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
                                                             auto-initialize = on
-                                                            connection-string = ""Fake=file:memdb.db;Mode=Memory;Cache=Shared""
+                                                            connection-string = ""Fake=file:memdb.db;Mode=Memory;Cache=Shared"" #Invalid connetion string
+                                                                            
                                                      }}
                                          snapshot-store {
                                                 plugin = ""akka.persistence.snapshot-store.sqlite""
@@ -48,9 +49,8 @@ namespace Akka.HealthCheck.Persistence.Tests
             
             var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(TimeSpan.FromMilliseconds(250))));
             ProbActor.Tell(new SubscribeToLiveness(TestActor));
-            AwaitAssert(() => ExpectNoMsg(), TimeSpan.FromSeconds(35));
-            ProbActor.Tell(GetCurrentLiveness.Instance);
-            ExpectMsg<LivenessStatus>().IsLive.Should().BeFalse();
+            ExpectMsg<LivenessStatus>().IsLive.Should().BeFalse("System should not be live");
+            ExpectMsg<LivenessStatus>(TimeSpan.FromMinutes(1)).IsLive.Should().BeFalse("System should not be live");
 
         }
     }
