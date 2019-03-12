@@ -1,4 +1,9 @@
-﻿using Akka.Actor;
+﻿// -----------------------------------------------------------------------
+// <copyright file="AkkaPersistenceLivenessProbeNotAvailableduetojurnalSpecs.cs" company="Petabridge, LLC">
+//      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
+// </copyright>
+// -----------------------------------------------------------------------
+using Akka.Actor;
 using Akka.HealthCheck.Liveness;
 using FluentAssertions;
 using System;
