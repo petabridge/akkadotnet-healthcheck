@@ -8,9 +8,10 @@ namespace Akka.HealthCheck.Persistence.Tests
     public static class TestConfig
     {
 
-        private static AtomicCounter counter = new AtomicCounter(0);
+        public static string GetValidConfigurationString(int? dbId = null)
+        {
 
-        public static string config = @"akka.persistence {
+            return  @"akka.persistence {
                                          journal {
                                                     plugin = ""akka.persistence.journal.sqlite""
                                                     recovery-event-timeout = 2s
@@ -18,17 +19,18 @@ namespace Akka.HealthCheck.Persistence.Tests
                                                     sqlite {
                                                             class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
                                                             auto-initialize = on
-                                                            connection-string = ""Filename=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared"" #Invalid connetion string             
+                                                            connection-string = ""Filename=file:memdb-" + dbId + @".db;Mode=Memory;Cache=Shared"" #Invalid connetion string             
                                                      }}
                                          snapshot-store {
                                                 plugin = ""akka.persistence.snapshot-store.sqlite""
                                                 sqlite {
                                                 class = ""Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite""
                                                 auto-initialize = on
-                                                connection-string = ""Filename=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared""
+                                                connection-string = ""Filename=file:memdb-" + dbId + @".db;Mode=Memory;Cache=Shared""
                        }
                    }}";
-        public static string badJurnalConfig = @"akka.persistence {
+        }
+        public static string BadJournalConfig = @"akka.persistence {
                                          journal {
                                                     plugin = ""akka.persistence.journal.sqlite""
                                                     recovery-event-timeout = 2s
@@ -36,18 +38,18 @@ namespace Akka.HealthCheck.Persistence.Tests
                                                     sqlite {
                                                             class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
                                                             auto-initialize = on
-                                                            connection-string = ""Fake=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared"" #Invalid connetion string             
+                                                            connection-string = ""Fake=file:memdb.db;Mode=Memory;Cache=Shared"" #Invalid connetion string             
                                                      }}
                                          snapshot-store {
                                                 plugin = ""akka.persistence.snapshot-store.sqlite""
                                                 sqlite {
                                                 class = ""Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite""
                                                 auto-initialize = on
-                                                connection-string = ""Filename=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared""
+                                                connection-string = ""Filename=file:memdb.db;Mode=Memory;Cache=Shared""
                        }
                    }}";
 
-        public static string badSnapshotConfig = @"akka.persistence {
+        public static string BadSnapshotConfig = @"akka.persistence {
                                          journal {
                                                     plugin = ""akka.persistence.journal.sqlite""
                                                     recovery-event-timeout = 2s
@@ -55,14 +57,14 @@ namespace Akka.HealthCheck.Persistence.Tests
                                                     sqlite {
                                                             class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
                                                             auto-initialize = on
-                                                            connection-string = ""Filename=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared"" #Invalid connetion string             
+                                                            connection-string = ""Filename=file:memdb.db;Mode=Memory;Cache=Shared"" #Invalid connetion string             
                                                      }}
                                          snapshot-store {
                                                 plugin = ""akka.persistence.snapshot-store.sqlite""
                                                 sqlite {
                                                 class = ""Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite""
                                                 auto-initialize = on
-                                                connection-string = ""Fake=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared""
+                                                connection-string = ""Fake=file:memdb.db;Mode=Memory;Cache=Shared""
                        }
                    }}";
     }

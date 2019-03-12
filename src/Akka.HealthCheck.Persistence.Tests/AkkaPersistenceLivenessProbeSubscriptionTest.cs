@@ -17,7 +17,7 @@ namespace Akka.HealthCheck.Persistence.Tests
     {
 
         public AkkaPersistenceLivenessProbeSubscriptionTest(ITestOutputHelper helper)
-            : base(TestConfig.config, output: helper)
+            : base(TestConfig.GetValidConfigurationString(), output: helper)
         {
 
         }

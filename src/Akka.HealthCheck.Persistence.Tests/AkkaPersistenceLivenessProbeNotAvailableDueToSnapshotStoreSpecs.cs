@@ -19,10 +19,9 @@ namespace Akka.HealthCheck.Persistence.Tests
     public class AkkaPersistenceLivenessProbeNotAvailableDueToSnapshotStoreSpecs : TestKit.Xunit.TestKit
     {
         public AkkaPersistenceLivenessProbeNotAvailableDueToSnapshotStoreSpecs(ITestOutputHelper helper)
-                    : base(TestConfig.badSnapshotConfig, output: helper)
+                    : base(TestConfig.BadSnapshotConfig, output: helper)
         {
         }
-
 
         [Fact(DisplayName = " ActorSystem should correcly report when Akk.Persistence is unavailable due to bad snapshot-store configuration")]
         public void AkkaPersistenceLivenessProbeProvidert_Should_Report_Akka_Persistance_Is_Unavailable_With_Bad_Snapshot_Store_Setup()

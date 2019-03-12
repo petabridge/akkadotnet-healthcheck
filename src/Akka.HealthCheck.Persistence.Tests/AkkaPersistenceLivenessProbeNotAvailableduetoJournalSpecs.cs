@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="AkkaPersistenceLivenessProbeNotAvailableduetojurnalSpecs.cs" company="Petabridge, LLC">
+// <copyright file="AkkaPersistenceLivenessProbeNotAvailableDueToJournalSpecs.cs" company="Petabridge, LLC">
 //      Copyright (C) 2015 - 2019 Petabridge, LLC <https://petabridge.com>
 // </copyright>
 // -----------------------------------------------------------------------
@@ -14,10 +14,10 @@ using static Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbe;
 
 namespace Akka.HealthCheck.Persistence.Tests
 {
-    public class AkkaPersistenceLivenessProbeNotAvailableDueToJurnalSpecs : TestKit.Xunit.TestKit
+    public class AkkaPersistenceLivenessProbeNotAvailableDueToJournalSpecs : TestKit.Xunit.TestKit
     {
-        public AkkaPersistenceLivenessProbeNotAvailableDueToJurnalSpecs(ITestOutputHelper helper)
-                    : base(TestConfig.badJurnalConfig, output: helper)
+        public AkkaPersistenceLivenessProbeNotAvailableDueToJournalSpecs(ITestOutputHelper helper)
+                    : base(TestConfig.BadJournalConfig, output: helper)
         {
         }
         
