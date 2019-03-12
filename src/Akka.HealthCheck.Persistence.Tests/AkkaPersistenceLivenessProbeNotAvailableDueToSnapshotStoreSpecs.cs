@@ -6,6 +6,7 @@
 
 using Akka.Actor;
 using Akka.HealthCheck.Liveness;
+using Akka.Util.Internal;
 using FluentAssertions;
 using System;
 using System.Threading.Tasks;
@@ -21,6 +22,8 @@ namespace Akka.HealthCheck.Persistence.Tests
                     : base(config, output: helper)
         {
         }
+        private static AtomicCounter counter = new AtomicCounter(0);
+
         public static string config = @"akka.persistence {
                                          journal { 
                                                     plugin = ""akka.persistence.journal.sqlite""
@@ -29,14 +32,14 @@ namespace Akka.HealthCheck.Persistence.Tests
                                                     sqlite {
                                                             class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
                                                             auto-initialize = on
-                                                            connection-string = ""Filename=file:memdb.db;Mode=Memory;Cache=Shared""                  
+                                                            connection-string = ""Filename=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared""                  
                                                      }}
                                          snapshot-store {
                                                 plugin = ""akka.persistence.snapshot-store.sqlite""
                                                 sqlite {
                                                 class = ""Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite""
                                                 auto-initialize = on
-                                                connection-string = ""Filename=file:memdb.db;Mode=Memory;Cache=Shared"" #Invalid connetion string
+                                                connection-string = ""Filename=file:memdb-" + counter.IncrementAndGet() + @".db;Mode=Memory;Cache=Shared"" #Invalid connetion string
                                                      }
                                           }}";
 
