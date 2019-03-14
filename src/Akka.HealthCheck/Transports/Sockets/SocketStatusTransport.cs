@@ -7,8 +7,10 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Akka.Event;
 
 namespace Akka.HealthCheck.Transports.Sockets
 {
@@ -18,6 +20,8 @@ namespace Akka.HealthCheck.Transports.Sockets
     public sealed class SocketStatusTransport : IStatusTransport
     {
         private Socket _socket;
+        private CancellationTokenSource _abortSocket;
+        private static readonly byte[] Msg = Encoding.ASCII.GetBytes("akka.net");
 
         public SocketStatusTransport(SocketTransportSettings settings)
         {
@@ -32,9 +36,13 @@ namespace Akka.HealthCheck.Transports.Sockets
             {
                 if (_socket == null)
                 {
+                    _abortSocket = new CancellationTokenSource();
                     _socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
                     _socket.Bind(new IPEndPoint(IPAddress.IPv6Any, Settings.Port));
                     _socket.Listen(10);
+
+                    // want this to run async, without waiting
+                    _socket.AcceptAsync().ContinueWith(HandleAccept, _socket, _abortSocket.Token);
                 }
 
                 return new TransportWriteStatus(true);
@@ -45,12 +53,25 @@ namespace Akka.HealthCheck.Transports.Sockets
             }
         }
 
+        private void HandleAccept(Task<Socket> tr, object o)
+        {
+            var parentSocket = (Socket) o;
+            var connectionSocket = tr.Result;
+            System.Diagnostics.Debug.Assert(parentSocket != connectionSocket);
+            connectionSocket.Send(Msg);
+            connectionSocket.Shutdown(SocketShutdown.Both);
+            connectionSocket.Close();
+            parentSocket.AcceptAsync().ContinueWith(HandleAccept, parentSocket, _abortSocket.Token);
+        }
+
         public async Task<TransportWriteStatus> Stop(string statusMessage, CancellationToken token)
         {
             try
             {
                 if (_socket != null)
                 {
+                    _abortSocket.Cancel();
+                    _abortSocket = null; // force recreate of token later
                     _socket.Close();
                     _socket.Dispose();
                     _socket = null;
