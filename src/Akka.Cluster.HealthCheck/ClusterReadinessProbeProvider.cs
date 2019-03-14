@@ -38,10 +38,9 @@ namespace Akka.Cluster.HealthCheck
 
         private readonly Cluster _cluster = Cluster.Get(Context.System);
         private readonly ILoggingAdapter _log = Context.GetLogger();
-
-        private readonly ReadinessStatus _readinessStatus;
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
         private ICancelable _notReadyTask;
+        private ReadinessStatus _readinessStatus;
 
         public ClusterReadinessProbe() : this(DefaultClusterReadinessStatus)
         {
@@ -50,6 +49,12 @@ namespace Akka.Cluster.HealthCheck
         public ClusterReadinessProbe(ReadinessStatus readinessStatus)
         {
             _readinessStatus = readinessStatus;
+
+            Receive<ReadinessStatus>(s =>
+            {
+                _readinessStatus = s;
+                foreach (var sub in _subscribers) sub.Tell(s);
+            });
 
             Receive<GetCurrentReadiness>(_ => Sender.Tell(_readinessStatus));
 
