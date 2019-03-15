@@ -9,7 +9,7 @@ using Akka.Actor;
 using Akka.Event;
 using Akka.HealthCheck.Liveness;
 
-namespace Akka.Cluster.HealthCheck
+namespace Akka.HealthCheck.Cluster
 {
     /// <summary>
     ///     Algorithm that indicates that we are live if we are a member of the cluster, and we are not
@@ -20,7 +20,7 @@ namespace Akka.Cluster.HealthCheck
         public static readonly LivenessStatus DefaultClusterLivenessStatus =
             new LivenessStatus(false, "not yet joined cluster");
 
-        private readonly Cluster _cluster = Cluster.Get(Context.System);
+        private readonly Akka.Cluster.Cluster _cluster = Akka.Cluster.Cluster.Get(Context.System);
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
 

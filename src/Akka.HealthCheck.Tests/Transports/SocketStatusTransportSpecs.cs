@@ -79,7 +79,6 @@ namespace Akka.HealthCheck.Tests.Transports
 
             var result2 = await Transport.Go("bar", CancellationToken.None);
             result.Success.Should().BeTrue();
-
             
             AwaitAssert(()=> tcpClient.Available.Should().Be(8));
             tcpClient.Connected.Should().BeTrue();
