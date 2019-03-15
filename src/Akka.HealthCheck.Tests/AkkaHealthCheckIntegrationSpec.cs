@@ -14,6 +14,7 @@ using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Readiness;
 using Akka.HealthCheck.Transports.Files;
 using Akka.HealthCheck.Transports.Sockets;
+using Akka.Util;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,15 +24,21 @@ namespace Akka.HealthCheck.Tests
     public class AkkaHealthCheckIntegrationSpec : TestKit.Xunit.TestKit
     {
         public AkkaHealthCheckIntegrationSpec(ITestOutputHelper helper)
-            : base(HealthcheckConfig, output: helper)
+            : base(GetConfig(), output: helper)
         {
         }
-        
-        public static readonly Config HealthcheckConfig = @"
+
+
+
+        public static Config GetConfig()
+        {
+            var PortNumber = ThreadLocalRandom.Current.Next(10000, 64000);
+
+            Config HealthcheckConfig = @"
             akka.healthcheck{
                 liveness{
                     transport = tcp
-                    tcp.port = 15050
+                    tcp.port = " + PortNumber + @"
                 }
 
                 readiness{
@@ -40,6 +47,8 @@ namespace Akka.HealthCheck.Tests
                 }
             }
         ";
+            return HealthcheckConfig;
+        }
 
         [Fact(DisplayName = "End2End: should load complete custom Akka.HealthCheck config")]
         public async Task Should_load_custom_HealthCheck_system_correctly()
