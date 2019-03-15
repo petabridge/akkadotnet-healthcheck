@@ -42,8 +42,7 @@ namespace Akka.HealthCheck.Tests.Transports
 
             try
             {
-                var bytesRead = await tcpClient.GetStream().ReadAsync(new byte[10], 0, 10);
-                AwaitAssert(() => bytesRead.Should().Be(8));
+                AwaitAssert(() => tcpClient.GetStream().ReadAsync(new byte[10], 0, 10).Should().Be(8));
             }
             catch
             {
@@ -81,16 +80,16 @@ namespace Akka.HealthCheck.Tests.Transports
             var result2 = await Transport.Go("bar", CancellationToken.None);
             result.Success.Should().BeTrue();
 
-            var bytesRead = tcpClient.Available;
-            AwaitAssert(()=> bytesRead.Should().Be(8));
+            
+            AwaitAssert(()=> tcpClient.Available.Should().Be(8));
             tcpClient.Connected.Should().BeTrue();
 
             // special case - need to test the NULL pattern
             var result3 = await Transport.Go(null, CancellationToken.None);
             result.Success.Should().BeTrue();
 
-            bytesRead = tcpClient.Available;
-            AwaitAssert(() => bytesRead.Should().Be(8)); 
+            
+            AwaitAssert(() => tcpClient.Available.Should().Be(8)); 
             tcpClient.Connected.Should().BeTrue();
         }
     }
