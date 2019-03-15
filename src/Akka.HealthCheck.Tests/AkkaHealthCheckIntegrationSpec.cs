@@ -26,7 +26,7 @@ namespace Akka.HealthCheck.Tests
             : base(HealthcheckConfig, output: helper)
         {
         }
-
+        
         public static readonly Config HealthcheckConfig = @"
             akka.healthcheck{
                 liveness{
