@@ -69,17 +69,21 @@ namespace Akka.HealthCheck.Tests
             // Readiness probe should not exist
             AwaitCondition(() => !File.Exists(filePath));
 
+            //Created a new client to see if it would be able to connect. 
+            var tcpClient2 = new TcpClient(AddressFamily.InterNetworkV6);
+
             // liveness probe should be disconnected
             try
             {
+                await tcpClient2.ConnectAsync(IPAddress.IPv6Loopback, tcpPort);
                 var bytesRead = await tcpClient.GetStream().ReadAsync(new byte[10], 0, 10);
                 bytesRead.Should().Be(0);
             }
             catch
             {
             }
-
-            tcpClient.Connected.Should().BeFalse();
+            //Second client should not be able to connect as socket has been closed
+            AwaitCondition(()=> !tcpClient2.Connected);
         }
     }
 }
