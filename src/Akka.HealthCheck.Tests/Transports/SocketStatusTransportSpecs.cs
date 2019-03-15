@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -41,14 +42,20 @@ namespace Akka.HealthCheck.Tests.Transports
 
             try
             {
-                var bytesRead = await tcpClient.GetStream().ReadAsync(new byte[10], 0, 10);
-                bytesRead.Should().Be(0);
+                AwaitAssert(() => tcpClient.GetStream().ReadAsync(new byte[10], 0, 10).Should().Be(8));
             }
             catch
             {
             }
 
-            tcpClient.Connected.Should().BeFalse();
+            var tcpClient2 = new TcpClient(AddressFamily.InterNetworkV6);
+            try
+            {
+                await tcpClient2.ConnectAsync(IPAddress.IPv6Loopback, PortNumber);
+            //Should throw execption as socket will refuse to establish a connection
+            }
+            catch{ }
+            tcpClient2.Connected.Should().BeFalse();
         }
 
         [Fact(DisplayName = "SocketTransport should idempotently close TCP signal")]
@@ -73,16 +80,16 @@ namespace Akka.HealthCheck.Tests.Transports
             var result2 = await Transport.Go("bar", CancellationToken.None);
             result.Success.Should().BeTrue();
 
-            var bytesRead = tcpClient.Available;
-            bytesRead.Should().Be(0);
+            
+            AwaitAssert(()=> tcpClient.Available.Should().Be(8));
             tcpClient.Connected.Should().BeTrue();
 
             // special case - need to test the NULL pattern
             var result3 = await Transport.Go(null, CancellationToken.None);
             result.Success.Should().BeTrue();
 
-            bytesRead = tcpClient.Available;
-            bytesRead.Should().Be(0);
+            
+            AwaitAssert(() => tcpClient.Available.Should().Be(8)); 
             tcpClient.Connected.Should().BeTrue();
         }
     }
