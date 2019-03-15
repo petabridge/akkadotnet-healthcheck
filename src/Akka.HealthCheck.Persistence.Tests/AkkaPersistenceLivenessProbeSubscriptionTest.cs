@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 using Akka.Actor;
 using Akka.HealthCheck.Liveness;
+using Akka.Util;
 using Akka.Util.Internal;
 using FluentAssertions;
 using System;
@@ -17,11 +18,11 @@ namespace Akka.HealthCheck.Persistence.Tests
     {
 
         public AkkaPersistenceLivenessProbeSubscriptionTest(ITestOutputHelper helper)
-            : base(TestConfig.GetValidConfigurationString(), output: helper)
+            : base(TestConfig.GetValidConfigurationString(ThreadLocalRandom.Current.Next()), output: helper)
         {
 
         }
-
+    
 
         [Fact(DisplayName = "AkkaPersistenceLivenessProbe should correctly handle subscription requests")]
         public void AkkaPersistenceLivenessProbe_Should_Handle_Subscriptions_In_Any_State()
