@@ -33,7 +33,7 @@ namespace Akka.HealthCheck.Persistence.Tests
 
             var probe = CreateTestProbe();
             ProbActor.Tell(new SubscribeToLiveness(probe));
-            probe.ExpectMsg<LivenessStatus>().IsLive.Should().BeTrue();
+            AwaitAssert(() => probe.ExpectMsg<LivenessStatus>().IsLive.Should().BeTrue());
             
         }
 
