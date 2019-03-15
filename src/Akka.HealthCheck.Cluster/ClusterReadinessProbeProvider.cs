@@ -7,11 +7,11 @@
 using System;
 using System.Collections.Generic;
 using Akka.Actor;
+using Akka.Cluster;
 using Akka.Event;
-using Akka.HealthCheck;
 using Akka.HealthCheck.Readiness;
 
-namespace Akka.Cluster.HealthCheck
+namespace Akka.HealthCheck.Cluster
 {
     /// <summary>
     ///     <see cref="IProbeProvider" /> readiness implementation intended for use with Akka.Cluster.
@@ -36,12 +36,11 @@ namespace Akka.Cluster.HealthCheck
         public static readonly ReadinessStatus DefaultClusterReadinessStatus =
             new ReadinessStatus(false, "not yet joined cluster");
 
-        private readonly Cluster _cluster = Cluster.Get(Context.System);
+        private readonly Akka.Cluster.Cluster _cluster = Akka.Cluster.Cluster.Get(Context.System);
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
         private ICancelable _notReadyTask;
-
-        private readonly ReadinessStatus _readinessStatus;
+        private ReadinessStatus _readinessStatus;
 
         public ClusterReadinessProbe() : this(DefaultClusterReadinessStatus)
         {
@@ -50,6 +49,12 @@ namespace Akka.Cluster.HealthCheck
         public ClusterReadinessProbe(ReadinessStatus readinessStatus)
         {
             _readinessStatus = readinessStatus;
+
+            Receive<ReadinessStatus>(s =>
+            {
+                _readinessStatus = s;
+                foreach (var sub in _subscribers) sub.Tell(s);
+            });
 
             Receive<GetCurrentReadiness>(_ => Sender.Tell(_readinessStatus));
 

@@ -10,13 +10,13 @@ open Fake.DotNetCli
 open Fake.DocFxHelper
 
 // Information about the project for Nuget and Assembly info files
-let product = "Akka.Cluster.HealthCheck"
+let product = "Akka.HealthCheck"
 let configuration = "Release"
 
 // Metadata used when signing packages and DLLs
-let signingName = "My Library"
-let signingDescription = "My REALLY COOL Library"
-let signingUrl = "https://signing.is.cool/"
+let signingName = "Akka.HealthCheck"
+let signingDescription = "Akka.NET HealthChecks"
+let signingUrl = "https://petabridge.com/"
 
 // Read release notes and version
 let solutionFile = FindFirstMatchingFile "*.sln" __SOURCE_DIRECTORY__  // dynamically look up the solution
@@ -39,11 +39,6 @@ let outputTests = __SOURCE_DIRECTORY__ @@ "TestResults"
 let outputPerfTests = __SOURCE_DIRECTORY__ @@ "PerfResults"
 let outputNuGet = output @@ "nuget"
 
-// Copied from original NugetCreate target
-let nugetDir = output @@ "nuget"
-let workingDir = output @@ "build"
-let nugetExe = FullName @"./tools/nuget.exe"
-
 Target "Clean" (fun _ ->
     ActivateFinalTarget "KillCreatedProcesses"
 
@@ -57,14 +52,6 @@ Target "Clean" (fun _ ->
 Target "AssemblyInfo" (fun _ ->
     XmlPokeInnerText "./src/common.props" "//Project/PropertyGroup/VersionPrefix" releaseNotes.AssemblyVersion    
     XmlPokeInnerText "./src/common.props" "//Project/PropertyGroup/PackageReleaseNotes" (releaseNotes.Notes |> String.concat "\n")
-)
-
-Target "RestorePackages" (fun _ ->
-    DotNetCli.Restore
-        (fun p -> 
-            { p with
-                Project = solutionFile
-                NoCache = false })
 )
 
 Target "Build" (fun _ ->          
@@ -106,15 +93,15 @@ Target "RunTests" (fun _ ->
     let runSingleProject project =
         let arguments =
             match (hasTeamCity) with
-            | true -> (sprintf "test -c Release --no-build --logger:\"console;verbosity=normal\" --results-directory %s -- -parallel none -teamcity" (outputTests))
-            | false -> (sprintf "test -c Release --no-build --logger:\"console;verbosity=normal\" --results-directory %s -- -parallel none" (outputTests))
+            | true -> (sprintf "test -c Release --no-build --logger:trx --logger:\"console;verbosity=normal\" --results-directory %s -- -parallel none -teamcity" (outputTests))
+            | false -> (sprintf "test -c Release --no-build --logger:trx --logger:\"console;verbosity=normal\" --results-directory %s -- -parallel none" (outputTests))
 
         let result = ExecProcess(fun info ->
             info.FileName <- "dotnet"
             info.WorkingDirectory <- (Directory.GetParent project).FullName
             info.Arguments <- arguments) (TimeSpan.FromMinutes 30.0) 
         
-        ResultHandling.failBuildIfXUnitReportedError TestRunnerErrorLevel.DontFailBuild result  
+        ResultHandling.failBuildIfXUnitReportedError TestRunnerErrorLevel.Error result  
 
     projects |> Seq.iter (log)
     projects |> Seq.iter (runSingleProject)
@@ -138,7 +125,7 @@ Target "NBench" <| fun _ ->
             info.WorkingDirectory <- (Directory.GetParent project).FullName
             info.Arguments <- arguments) (TimeSpan.FromMinutes 30.0) 
         
-        ResultHandling.failBuildIfXUnitReportedError TestRunnerErrorLevel.DontFailBuild result
+        ResultHandling.failBuildIfXUnitReportedError TestRunnerErrorLevel.Error result
     
     projects |> Seq.iter runSingleProject
 
@@ -302,17 +289,17 @@ Target "All" DoNothing
 Target "Nuget" DoNothing
 
 // build dependencies
-"Clean" ==> "RestorePackages" ==> "AssemblyInfo" ==> "Build" ==> "BuildRelease"
+"Clean" ==> "AssemblyInfo" ==> "Build" ==> "BuildRelease"
 
 // tests dependencies
-"Clean" ==> "RestorePackages" ==> "Build" ==> "RunTests"
+"Clean" ==> "Build" ==> "RunTests"
 
 // nuget dependencies
-"Clean" ==> "RestorePackages" ==> "Build" ==> "CreateNuget"
+"Clean" ==> "Build" ==> "CreateNuget"
 "CreateNuget" ==> "SignPackages" ==> "PublishNuget" ==> "Nuget"
 
 // docs
-"Clean" ==> "RestorePackages" ==> "BuildRelease" ==> "Docfx"
+"Clean" ==> "BuildRelease" ==> "Docfx"
 
 // all
 "BuildRelease" ==> "All"

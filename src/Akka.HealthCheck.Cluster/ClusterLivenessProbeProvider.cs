@@ -5,9 +5,8 @@
 // -----------------------------------------------------------------------
 
 using Akka.Actor;
-using Akka.HealthCheck;
 
-namespace Akka.Cluster.HealthCheck
+namespace Akka.HealthCheck.Cluster
 {
     /// <summary>
     ///     <see cref="IProbeProvider" /> liveness implementation intended for use with Akka.Cluster.
