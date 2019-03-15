@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 using Akka.Actor;
 using Akka.HealthCheck.Liveness;
+using Akka.Util;
 using Akka.Util.Internal;
 using FluentAssertions;
 using System;
@@ -17,7 +18,7 @@ namespace Akka.HealthCheck.Persistence.Tests
     {
 
         public AkkaPersistenceLivenessProbeSubscriptionTest(ITestOutputHelper helper)
-            : base(TestConfig.GetValidConfigurationString(), output: helper)
+            : base(TestConfig.GetValidConfigurationString(ThreadLocalRandom.Current.Next()), output: helper)
         {
 
         }
@@ -33,7 +34,7 @@ namespace Akka.HealthCheck.Persistence.Tests
 
             var probe = CreateTestProbe();
             ProbActor.Tell(new SubscribeToLiveness(probe));
-            AwaitAssert(() => probe.ExpectMsg<LivenessStatus>().IsLive.Should().BeTrue());
+            probe.ExpectMsg<LivenessStatus>().IsLive.Should().BeTrue();
             
         }
 
