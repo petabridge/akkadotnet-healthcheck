@@ -19,14 +19,14 @@ namespace Akka.HealthCheck.Persistence.Tests
                                                     sqlite {
                                                             class = ""Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite""
                                                             auto-initialize = on
-                                                            connection-string = ""Filename=file:memdb-" + dbId + @".db;Mode=Memory;Cache=Shared"" #Invalid connetion string             
+                                                            connection-string = ""Filename=file:memdb-" + dbId + @".db;Mode=Memory;Cache=Shared""            
                                                      }}
                                          snapshot-store {
                                                 plugin = ""akka.persistence.snapshot-store.sqlite""
                                                 sqlite {
                                                 class = ""Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite""
                                                 auto-initialize = on
-                                                connection-string = ""Filename=file:memdb-" + dbId + @".db;Mode=Memory;Cache=Shared""
+                                                connection-string = ""Filename=file:memdb-" + (dbId-1) + @".db;Mode=Memory;Cache=Shared""
                        }
                    }}";
         }
