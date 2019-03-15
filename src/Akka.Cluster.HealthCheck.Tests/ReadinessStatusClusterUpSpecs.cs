@@ -9,7 +9,7 @@ using Akka.HealthCheck.Readiness;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Akka.Cluster.HealthCheck.Tests
+namespace Akka.HealthCheck.Cluster.Tests
 {
     public class ReadinessStatusClusterUpSpecs : TestKit.Xunit.TestKit
     {
@@ -36,7 +36,7 @@ namespace Akka.Cluster.HealthCheck.Tests
 }
 ";
 
-        public Cluster Cluster => Cluster.Get(Sys);
+        public Akka.Cluster.Cluster Cluster => Akka.Cluster.Cluster.Get(Sys);
 
 
         [Fact(DisplayName = "ReadinessStatsuCluster should tell subscribers that it is up once it becomes avaialable")]
