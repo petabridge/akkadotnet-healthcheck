@@ -48,7 +48,13 @@ namespace Akka.HealthCheck.Tests.Transports
             {
             }
 
-            tcpClient.Connected.Should().BeFalse();
+            var tcpClient2 = new TcpClient(AddressFamily.InterNetworkV6);
+            try
+            {
+                await tcpClient2.ConnectAsync(IPAddress.IPv6Loopback, PortNumber);
+            }
+            catch { }
+            tcpClient2.Connected.Should().BeFalse();
         }
 
         [Fact(DisplayName = "SocketTransport should idempotently close TCP signal")]
