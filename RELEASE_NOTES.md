@@ -17,7 +17,3 @@ The project name and files has been change from Akka.Cluster.HealthCheck to Akka
 Resolves bug issue with incoming connection request. The Socket Status Transport code has been modify to  correctly accept/handle incoming connections. It has also been modify to properly dispose resources when done. 
 
 [See the full Socket Status Transport modification here](https://github.com/petabridge/akkadotnet-healthcheck/issues/21)
-
-
-#### 0.1.0 February 04 2019 ####
-Initial release of Akka.HealthCheck and Akka.HealthCheck.Cluster. These packages are designed to make it possible to automatically and simply pass on information about the health of your Akka.NET applications to external application management and monitoring systems such as K8s, AWS, Azure, and so forth.
