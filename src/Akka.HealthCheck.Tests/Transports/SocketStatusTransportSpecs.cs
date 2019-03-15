@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -52,8 +53,9 @@ namespace Akka.HealthCheck.Tests.Transports
             try
             {
                 await tcpClient2.ConnectAsync(IPAddress.IPv6Loopback, PortNumber);
+            //Should throw execption as socket will refuse to establish a connection
             }
-            catch { }
+            catch(Exception e) {e.Message.Contains("No connection could be made because the target machine actively refused it").Should().BeTrue(); }
             tcpClient2.Connected.Should().BeFalse();
         }
 
