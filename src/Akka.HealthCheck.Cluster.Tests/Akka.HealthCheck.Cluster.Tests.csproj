@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Akka.Cluster.HealthCheck\Akka.Cluster.HealthCheck.csproj" />
+    <ProjectReference Include="..\Akka.HealthCheck.Cluster\Akka.HealthCheck.Cluster.csproj" />
   </ItemGroup>
 
 </Project>
