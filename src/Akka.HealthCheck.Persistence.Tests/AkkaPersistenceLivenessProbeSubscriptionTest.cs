@@ -22,7 +22,7 @@ namespace Akka.HealthCheck.Persistence.Tests
         {
 
         }
-
+    
 
         [Fact(DisplayName = "AkkaPersistenceLivenessProbe should correctly handle subscription requests")]
         public void AkkaPersistenceLivenessProbe_Should_Handle_Subscriptions_In_Any_State()
