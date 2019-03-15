@@ -14,6 +14,7 @@ using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Readiness;
 using Akka.HealthCheck.Transports.Files;
 using Akka.HealthCheck.Transports.Sockets;
+using Akka.Util;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,15 +24,21 @@ namespace Akka.HealthCheck.Tests
     public class AkkaHealthCheckIntegrationSpec : TestKit.Xunit.TestKit
     {
         public AkkaHealthCheckIntegrationSpec(ITestOutputHelper helper)
-            : base(HealthcheckConfig, output: helper)
+            : base(GetConfig(), output: helper)
         {
         }
 
-        public static readonly Config HealthcheckConfig = @"
+
+
+        public static Config GetConfig()
+        {
+            var PortNumber = ThreadLocalRandom.Current.Next(10000, 64000);
+
+            Config HealthcheckConfig = @"
             akka.healthcheck{
                 liveness{
                     transport = tcp
-                    tcp.port = 15050
+                    tcp.port = " + PortNumber + @"
                 }
 
                 readiness{
@@ -40,6 +47,8 @@ namespace Akka.HealthCheck.Tests
                 }
             }
         ";
+            return HealthcheckConfig;
+        }
 
         [Fact(DisplayName = "End2End: should load complete custom Akka.HealthCheck config")]
         public async Task Should_load_custom_HealthCheck_system_correctly()
@@ -69,17 +78,21 @@ namespace Akka.HealthCheck.Tests
             // Readiness probe should not exist
             AwaitCondition(() => !File.Exists(filePath));
 
+            //Created a new client to see if it would be able to connect. 
+            var tcpClient2 = new TcpClient(AddressFamily.InterNetworkV6);
+
             // liveness probe should be disconnected
             try
             {
+                await tcpClient2.ConnectAsync(IPAddress.IPv6Loopback, tcpPort);
                 var bytesRead = await tcpClient.GetStream().ReadAsync(new byte[10], 0, 10);
                 bytesRead.Should().Be(0);
             }
             catch
             {
             }
-
-            tcpClient.Connected.Should().BeFalse();
+            //Second client should not be able to connect as socket has been closed
+            AwaitCondition(()=> !tcpClient2.Connected);
         }
     }
 }
