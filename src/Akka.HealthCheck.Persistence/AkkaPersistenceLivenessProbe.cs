@@ -98,7 +98,7 @@ namespace Akka.HealthCheck.Persistence
             switch (message)
             {
                 case Terminated t when t.ActorRef.Equals(_probe):
-                    _log.Debug("Persistence probe terminated. Recreating...");
+                    _log.Info("Persistence probe terminated. Recreating...");
                     CreateProbe(false);
                     return true;
                 case RecoveryStatus status:

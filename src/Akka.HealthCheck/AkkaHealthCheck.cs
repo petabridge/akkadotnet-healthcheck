@@ -102,19 +102,18 @@ namespace Akka.HealthCheck
         public static IActorRef StartTransportActor(ITransportSettings settings, ExtendedActorSystem system,
             ProbeKind probeKind, IActorRef probe)
         {
-            var  _log = system.Log;
             if (settings is FileTransportSettings fileTransport)
                 switch (probeKind)
                 {
                     case ProbeKind.Liveness:
-                        _log.Debug("Liveness file transport created");
+                        system.Log.Info("Liveness file transport created, writing to : {0}",fileTransport.FilePath);
                         return system.ActorOf(
                             Props.Create(
                                 () => new LivenessTransportActor(new FileStatusTransport(fileTransport), probe)),
                             "liveness-transport" + ThreadLocalRandom.Current.Next());
                     case ProbeKind.Readiness:
                     default:
-                        _log.Debug("Readiness file transport created");
+                        system.Log.Info("Readiness file transport created writing to : {0}", fileTransport.FilePath);
                         return system.ActorOf(
                             Props.Create(
                                 () => new ReadinessTransportActor(new FileStatusTransport(fileTransport), probe)),
@@ -125,14 +124,14 @@ namespace Akka.HealthCheck
                 switch (probeKind)
                 {
                     case ProbeKind.Liveness:
-                        _log.Debug("Liveness TCP transport created");
+                        system.Log.Info("Liveness TCP transport created. Bound to port{0}", socketTransport.Port);
                         return system.ActorOf(
                             Props.Create(
                                 () => new LivenessTransportActor(new SocketStatusTransport(socketTransport), probe)),
                             "liveness-transport" + ThreadLocalRandom.Current.Next());
                     case ProbeKind.Readiness:
                     default:
-                        _log.Debug("Readiness TCP transport created");
+                        system.Log.Info("Readiness TCP transport created. Bound to port{0}", socketTransport.Port);
                         return system.ActorOf(
                             Props.Create(
                                 () => new ReadinessTransportActor(new SocketStatusTransport(socketTransport), probe)),

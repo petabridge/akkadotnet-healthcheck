@@ -24,7 +24,7 @@ namespace Akka.HealthCheck.Liveness
 
         public DefaultLivenessProbe() : this(new LivenessStatus(true, $"Live: {DateTimeOffset.UtcNow}"))
         {
-            _log.Debug("Liveness probe correctly configuread");
+            _log.Info("Liveness probe correctly configuread");
         }
 
         public DefaultLivenessProbe(LivenessStatus livenessStatus)
@@ -32,13 +32,13 @@ namespace Akka.HealthCheck.Liveness
             _livenessStatus = livenessStatus;
 
             Receive<GetCurrentLiveness>(_ => {
-                _log.Debug("Liveness status {0} reported.", _livenessStatus);
+                _log.Info("Liveness Status {0} Reported.", _livenessStatus.IsLive);
                 Sender.Tell(_livenessStatus);
             });
 
             Receive<SubscribeToLiveness>(s =>
             {
-                _log.Debug("Liveness subscription.");
+                _log.Info("Actor [{0}] Subscribed to Liveness.", s.Subscriber);
                 _subscribers.Add(s.Subscriber);
                 Context.Watch(s.Subscriber);
                 s.Subscriber.Tell(_livenessStatus);
@@ -46,12 +46,14 @@ namespace Akka.HealthCheck.Liveness
 
             Receive<UnsubscribeFromLiveness>(u =>
             {
-                _log.Debug("Unsibscribed from Liveness");
+                _log.Info("Actor [{0}] Unsubscribed from Liveness.",u.Subscriber);
                 _subscribers.Remove(u.Subscriber);
                 Context.Unwatch(u.Subscriber);
             });
 
-            Receive<Terminated>(t => { _subscribers.Remove(t.ActorRef); });
+            Receive<Terminated>(t => {
+                _log.Info("Livenss Probe Terminated.");
+                _subscribers.Remove(t.ActorRef); });
         }
 
         /// <summary>
