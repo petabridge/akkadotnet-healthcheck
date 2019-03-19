@@ -14,6 +14,7 @@ using Akka.HealthCheck.Transports.Files;
 using Akka.HealthCheck.Transports.Sockets;
 using Akka.Util;
 
+
 namespace Akka.HealthCheck
 {
     /// <summary>
@@ -44,14 +45,32 @@ namespace Akka.HealthCheck
         public AkkaHealthCheck(HealthCheckSettings settings, ExtendedActorSystem system)
         {
             Settings = settings;
+            if (settings.LogConfigOnStart)
+            {
+                system.Log.Info("Liveness Prove Provider: {0}", Settings.LivenessProbeProvider);
+                system.Log.Info("Liveness Transport Type: {0}", Settings.LivenessTransport.ToString());
+                system.Log.Info(Settings.LivenessTransportSettings.StartupMessage);
+                system.Log.Info("Readiness Prove Provider: {0}", Settings.ReadinessProbeProvider);
+                system.Log.Info("Readines Transport Type: {0}", Settings.ReadinessTransport.ToString());
+                system.Log.Info(Settings.ReadinessTransportSettings.StartupMessage);
+            }
 
             if (!settings.Misconfigured)
             {
+                if (settings.LogConfigOnStart)
+                {
+                    system.Log.Info("Settings Correctly Configured");
+                }
                 LivenessProvider = TryCreateProvider(settings.LivenessProbeProvider, system);
                 ReadinessProvider = TryCreateProvider(settings.ReadinessProbeProvider, system);
+
             }
             else // if we are misconfigured
             {
+                if (settings.LogConfigOnStart)
+                {
+                    system.Log.Info("Settings Misconfigured");
+                }
                 LivenessProvider = new MisconfiguredLivenessProvider(system);
                 ReadinessProvider = new MisconfiguredReadinessProvider(system);
             }
@@ -140,7 +159,7 @@ namespace Akka.HealthCheck
 
         internal static IProbeProvider TryCreateProvider(Type providerType, ActorSystem system)
         {
-            return (IProbeProvider) Activator.CreateInstance(providerType, system);
+            return (IProbeProvider)Activator.CreateInstance(providerType, system);
         }
 
         /// <summary>
