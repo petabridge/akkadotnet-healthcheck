@@ -42,7 +42,15 @@ namespace Akka.HealthCheck.Configuration
             ReadinessTransport = MapToTransport(healthcheckConfig.GetString("readiness.transport"));
 
             ReadinessTransportSettings = PopulateSettings(healthcheckConfig.GetConfig("readiness"), ReadinessTransport);
+
+            LogConfigOnStart = healthcheckConfig.GetBoolean("log-config-on-start");
         }
+
+        /// <summary>
+        ///     Gets a value indicating whether [log configuration on start].
+        /// </summary>
+        /// <value><c>true</c> if [log configuration on start]; otherwise, <c>false</c>.</value>
+        public bool LogConfigOnStart { get; private set; }
 
         /// <summary>
         ///     If <c>true</c>, the probe and healthcheck configurations are invalid
