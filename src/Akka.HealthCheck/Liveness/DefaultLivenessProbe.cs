@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using Akka.Actor;
+using Akka.Event;
 
 namespace Akka.HealthCheck.Liveness
 {
@@ -17,11 +18,13 @@ namespace Akka.HealthCheck.Liveness
     /// </summary>
     public sealed class DefaultLivenessProbe : ReceiveActor
     {
+        private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly LivenessStatus _livenessStatus;
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
 
         public DefaultLivenessProbe() : this(new LivenessStatus(true, $"Live: {DateTimeOffset.UtcNow}"))
         {
+            _log.Debug("Liveness probe correctly configuread");
         }
 
         public DefaultLivenessProbe(LivenessStatus livenessStatus)

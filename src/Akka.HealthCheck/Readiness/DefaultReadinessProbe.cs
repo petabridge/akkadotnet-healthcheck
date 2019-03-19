@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using Akka.Actor;
+using Akka.Event;
 
 namespace Akka.HealthCheck.Readiness
 {
@@ -17,21 +18,27 @@ namespace Akka.HealthCheck.Readiness
     /// </summary>
     public sealed class DefaultReadinessProbe : ReceiveActor
     {
+        private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly ReadinessStatus _readinessStatus;
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
 
         public DefaultReadinessProbe() : this(new ReadinessStatus(true, $"Live: {DateTimeOffset.UtcNow}"))
         {
+            _log.Debug("Rediness probe correctly configured.");
         }
 
         public DefaultReadinessProbe(ReadinessStatus readinessStatus)
         {
             _readinessStatus = readinessStatus;
 
-            Receive<GetCurrentReadiness>(_ => Sender.Tell(_readinessStatus));
+            Receive<GetCurrentReadiness>(_ => {
+                Sender.Tell(_readinessStatus);
+                _log.Debug("Rediness Status {0} reported", _readinessStatus);
+            });
 
             Receive<SubscribeToReadiness>(s =>
             {
+                _log.Debug("Rediness Subscription.");
                 _subscribers.Add(s.Subscriber);
                 Context.Watch(s.Subscriber);
                 s.Subscriber.Tell(_readinessStatus);
@@ -39,6 +46,7 @@ namespace Akka.HealthCheck.Readiness
 
             Receive<UnsubscribeFromReadiness>(u =>
             {
+                _log.Debug("Unsubscribed from Readiness.");
                 _subscribers.Remove(u.Subscriber);
                 Context.Unwatch(u.Subscriber);
             });
