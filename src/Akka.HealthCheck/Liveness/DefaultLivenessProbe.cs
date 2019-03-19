@@ -31,10 +31,14 @@ namespace Akka.HealthCheck.Liveness
         {
             _livenessStatus = livenessStatus;
 
-            Receive<GetCurrentLiveness>(_ => Sender.Tell(_livenessStatus));
+            Receive<GetCurrentLiveness>(_ => {
+                _log.Debug("Liveness status {0} reported.", _livenessStatus);
+                Sender.Tell(_livenessStatus);
+            });
 
             Receive<SubscribeToLiveness>(s =>
             {
+                _log.Debug("Liveness subscription.");
                 _subscribers.Add(s.Subscriber);
                 Context.Watch(s.Subscriber);
                 s.Subscriber.Tell(_livenessStatus);
@@ -42,6 +46,7 @@ namespace Akka.HealthCheck.Liveness
 
             Receive<UnsubscribeFromLiveness>(u =>
             {
+                _log.Debug("Unsibscribed from Liveness");
                 _subscribers.Remove(u.Subscriber);
                 Context.Unwatch(u.Subscriber);
             });

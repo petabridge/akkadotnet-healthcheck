@@ -102,16 +102,19 @@ namespace Akka.HealthCheck
         public static IActorRef StartTransportActor(ITransportSettings settings, ExtendedActorSystem system,
             ProbeKind probeKind, IActorRef probe)
         {
+            var  _log = system.Log;
             if (settings is FileTransportSettings fileTransport)
                 switch (probeKind)
                 {
                     case ProbeKind.Liveness:
+                        _log.Debug("Liveness file transport created");
                         return system.ActorOf(
                             Props.Create(
                                 () => new LivenessTransportActor(new FileStatusTransport(fileTransport), probe)),
                             "liveness-transport" + ThreadLocalRandom.Current.Next());
                     case ProbeKind.Readiness:
                     default:
+                        _log.Debug("Readiness file transport created");
                         return system.ActorOf(
                             Props.Create(
                                 () => new ReadinessTransportActor(new FileStatusTransport(fileTransport), probe)),
@@ -122,12 +125,14 @@ namespace Akka.HealthCheck
                 switch (probeKind)
                 {
                     case ProbeKind.Liveness:
+                        _log.Debug("Liveness TCP transport created");
                         return system.ActorOf(
                             Props.Create(
                                 () => new LivenessTransportActor(new SocketStatusTransport(socketTransport), probe)),
                             "liveness-transport" + ThreadLocalRandom.Current.Next());
                     case ProbeKind.Readiness:
                     default:
+                        _log.Debug("Readiness TCP transport created");
                         return system.ActorOf(
                             Props.Create(
                                 () => new ReadinessTransportActor(new SocketStatusTransport(socketTransport), probe)),
