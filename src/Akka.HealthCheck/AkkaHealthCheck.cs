@@ -54,13 +54,13 @@ namespace Akka.HealthCheck
 
             if (!settings.Misconfigured)
             {
+                system.Log.Info("Settings Correctly Configured");
                 LivenessProvider = TryCreateProvider(settings.LivenessProbeProvider, system);
-                var x = settings.LivenessProbeProvider.ToString();
                 ReadinessProvider = TryCreateProvider(settings.ReadinessProbeProvider, system);
             }
             else // if we are misconfigured
             {
-                system.Log.Info("System Misconfigured");
+                system.Log.Info("Settings Misconfigured");
                 LivenessProvider = new MisconfiguredLivenessProvider(system);
                 ReadinessProvider = new MisconfiguredReadinessProvider(system);
             }
