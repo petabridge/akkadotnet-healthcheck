@@ -22,17 +22,17 @@ namespace Akka.HealthCheck.Transports
         private readonly IActorRef _livenessProbe;
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly IStatusTransport _statusTransport;
-        private readonly bool logInfo;
+        private readonly bool _logInfo;
 
         public LivenessTransportActor(IStatusTransport statusTransport, IActorRef livenessProbe, bool log)
         {
             _statusTransport = statusTransport;
             _livenessProbe = livenessProbe;
-            logInfo = log;
+            _logInfo = log;
 
             ReceiveAsync<LivenessStatus>(async status =>
             {
-                if (logInfo)
+                if (_logInfo)
                  _log.Info("Received liveness status. Live: {0}, Message: {1}", status.IsLive, status.StatusMessage);
                
                 var cts = new CancellationTokenSource(LivenessTimeout);
@@ -44,7 +44,7 @@ namespace Akka.HealthCheck.Transports
 
                 if (!writeStatus.Success)
                 {
-                    if (logInfo)
+                    if (_logInfo)
                         _log.Error(writeStatus.Exception, "Failed to write to transport.");
 
                     throw new ProbeUpdateException(ProbeKind.Liveness,
