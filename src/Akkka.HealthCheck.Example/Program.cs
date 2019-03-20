@@ -24,8 +24,6 @@ namespace Akkka.HealthCheck.Example
             var config = ConfigurationFactory.ParseString(hocon);
             var actorSystem = ActorSystem.Create("Probe", config);
             var healthCheck = AkkaHealthCheck.For(actorSystem);
-
-            //healthCheck.LivenessProbe.Tell(new GetCurrentLiveness);
             actorSystem.WhenTerminated.Wait();
         }
     }
