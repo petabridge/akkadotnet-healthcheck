@@ -23,6 +23,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akka.HealthCheck.Cluster", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akka.HealthCheck.Cluster.Tests", "src\Akka.HealthCheck.Cluster.Tests\Akka.HealthCheck.Cluster.Tests.csproj", "{BA43AC18-0706-49D1-9B71-BA1EDC54ABC2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{7D003D4D-7CB2-4AD4-86C8-ADC2D630EF64}"
+	ProjectSection(ProjectDependencies) = postProject
+		{642308A0-B6F7-4478-B286-3B8707A00F82} = {642308A0-B6F7-4478-B286-3B8707A00F82}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +58,10 @@ Global
 		{BA43AC18-0706-49D1-9B71-BA1EDC54ABC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA43AC18-0706-49D1-9B71-BA1EDC54ABC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA43AC18-0706-49D1-9B71-BA1EDC54ABC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D003D4D-7CB2-4AD4-86C8-ADC2D630EF64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D003D4D-7CB2-4AD4-86C8-ADC2D630EF64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D003D4D-7CB2-4AD4-86C8-ADC2D630EF64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D003D4D-7CB2-4AD4-86C8-ADC2D630EF64}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
