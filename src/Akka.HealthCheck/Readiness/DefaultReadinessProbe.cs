@@ -24,7 +24,6 @@ namespace Akka.HealthCheck.Readiness
 
         public DefaultReadinessProbe() : this(new ReadinessStatus(true, $"Live: {DateTimeOffset.UtcNow}"))
         {
-            _log.Info("Rediness probe correctly configured.");
         }
 
         public DefaultReadinessProbe(ReadinessStatus readinessStatus)
@@ -33,12 +32,10 @@ namespace Akka.HealthCheck.Readiness
 
             Receive<GetCurrentReadiness>(_ => {
                 Sender.Tell(_readinessStatus);
-                _log.Info("Rediness Status {0} Reported", _readinessStatus.ToString());
             });
 
             Receive<SubscribeToReadiness>(s =>
             {
-                _log.Info("Actor[{0}] Subscribed to Readiness Event", s.Subscriber.ToString());
                 _subscribers.Add(s.Subscriber);
                 Context.Watch(s.Subscriber);
                 s.Subscriber.Tell(_readinessStatus);
@@ -46,13 +43,11 @@ namespace Akka.HealthCheck.Readiness
 
             Receive<UnsubscribeFromReadiness>(u =>
             {
-                _log.Info("Actor[{0}] Unsubscribed from Readiness Event", u.Subscriber.ToString());
                 _subscribers.Remove(u.Subscriber);
                 Context.Unwatch(u.Subscriber);
             });
 
             Receive<Terminated>(t => {
-                _log.Info("Readiness Probe Terminate");
                 _subscribers.Remove(t.ActorRef);
             });
         }
