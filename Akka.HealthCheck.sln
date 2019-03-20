@@ -23,10 +23,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akka.HealthCheck.Cluster", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akka.HealthCheck.Cluster.Tests", "src\Akka.HealthCheck.Cluster.Tests\Akka.HealthCheck.Cluster.Tests.csproj", "{BA43AC18-0706-49D1-9B71-BA1EDC54ABC2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{7D003D4D-7CB2-4AD4-86C8-ADC2D630EF64}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConfigurationApplication", "TestApp\TestConfigurationApplication.csproj", "{7D003D4D-7CB2-4AD4-86C8-ADC2D630EF64}"
 	ProjectSection(ProjectDependencies) = postProject
 		{642308A0-B6F7-4478-B286-3B8707A00F82} = {642308A0-B6F7-4478-B286-3B8707A00F82}
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example", "Example", "{25D64D0F-94F2-4616-84CC-D09DFF52D61E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +67,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7D003D4D-7CB2-4AD4-86C8-ADC2D630EF64} = {25D64D0F-94F2-4616-84CC-D09DFF52D61E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B99E6BB8-642A-4A68-86DF-69567CBA700A}
