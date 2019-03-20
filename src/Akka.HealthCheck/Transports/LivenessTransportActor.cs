@@ -33,7 +33,7 @@ namespace Akka.HealthCheck.Transports
             ReceiveAsync<LivenessStatus>(async status =>
             {
                 if (logInfo)
-                 _log.Info("Received updated liveness status. Live: {0}, Message: {1}", status.IsLive, status.StatusMessage);
+                 _log.Info("Received liveness status. Live: {0}, Message: {1}", status.IsLive, status.StatusMessage);
                
                 var cts = new CancellationTokenSource(LivenessTimeout);
                 TransportWriteStatus writeStatus = null;
