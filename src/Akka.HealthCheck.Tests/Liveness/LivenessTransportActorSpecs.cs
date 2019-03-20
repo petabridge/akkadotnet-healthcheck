@@ -29,7 +29,7 @@ namespace Akka.HealthCheck.Tests.Liveness
             var fakeLiveness = CreateTestProbe("liveness");
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness)));
+                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness,true)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
 
@@ -69,7 +69,7 @@ namespace Akka.HealthCheck.Tests.Liveness
             var fakeLiveness = CreateTestProbe("liveness");
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness)));
+                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness,true)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
             fakeLiveness.Reply(new LivenessStatus(true));
@@ -92,7 +92,7 @@ namespace Akka.HealthCheck.Tests.Liveness
             var fakeLiveness = CreateTestProbe("liveness");
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness)));
+                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness,true)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
             fakeLiveness.Reply(new LivenessStatus(true));
@@ -112,7 +112,7 @@ namespace Akka.HealthCheck.Tests.Liveness
             var fakeLiveness = CreateTestProbe("liveness");
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness)));
+                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness, true)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
             Watch(transportActor);

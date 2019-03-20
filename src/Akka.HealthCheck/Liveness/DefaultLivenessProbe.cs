@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using Akka.Actor;
+using Akka.Event;
 
 namespace Akka.HealthCheck.Liveness
 {
@@ -17,18 +18,22 @@ namespace Akka.HealthCheck.Liveness
     /// </summary>
     public sealed class DefaultLivenessProbe : ReceiveActor
     {
+        private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly LivenessStatus _livenessStatus;
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
 
         public DefaultLivenessProbe() : this(new LivenessStatus(true, $"Live: {DateTimeOffset.UtcNow}"))
         {
+           
         }
 
         public DefaultLivenessProbe(LivenessStatus livenessStatus)
         {
             _livenessStatus = livenessStatus;
 
-            Receive<GetCurrentLiveness>(_ => Sender.Tell(_livenessStatus));
+            Receive<GetCurrentLiveness>(_ => {
+                Sender.Tell(_livenessStatus);
+            });
 
             Receive<SubscribeToLiveness>(s =>
             {
@@ -43,7 +48,8 @@ namespace Akka.HealthCheck.Liveness
                 Context.Unwatch(u.Subscriber);
             });
 
-            Receive<Terminated>(t => { _subscribers.Remove(t.ActorRef); });
+            Receive<Terminated>(t => {
+                _subscribers.Remove(t.ActorRef); });
         }
 
         /// <summary>

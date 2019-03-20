@@ -36,19 +36,22 @@ namespace Akka.HealthCheck.Tests.Configuration
             settings.LivenessTransportSettings.Should().BeOfType<CustomTransportSettings>();
             settings.ReadinessTransportSettings.Should().BeOfType<CustomTransportSettings>();
             settings.LogConfigOnStart.Should().BeTrue();
+            settings.LogInfoEvents.Should().BeTrue();
         }
 
         [Fact(DisplayName = "Should be able load non-default log options")]
         public void Should_load_non_default_Log_Settings()
         {
             var hocon = ConfigurationFactory.ParseString(@"
-                akka.healthcheck.log-config-on-start = false
-            ");
+                akka.healthcheck{         
+                                 log-config-on-start = off
+                                 log-info = off
+            }");
 
             var settings = new HealthCheckSettings(hocon.WithFallback(HealthCheckSettings.DefaultConfig())
                 .GetConfig("akka.healthcheck"));
             settings.LogConfigOnStart.Should().BeFalse();
-            //Will add option for normall log's in this same test later on
+            settings.LogInfoEvents.Should().BeFalse();
         }
 
         [Fact(DisplayName = "HealthCheckSettings should load non-default transport values")]

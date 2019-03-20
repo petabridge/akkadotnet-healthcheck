@@ -29,7 +29,7 @@ namespace Akka.HealthCheck.Tests.Readiness
             var fakeReadiness = CreateTestProbe("readiness");
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness)));
+                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness,true)));
 
             fakeReadiness.ExpectMsg<SubscribeToReadiness>();
 
@@ -69,7 +69,7 @@ namespace Akka.HealthCheck.Tests.Readiness
             var fakeReadiness = CreateTestProbe("readiness");
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness)));
+                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness,true)));
 
             fakeReadiness.ExpectMsg<SubscribeToReadiness>();
             fakeReadiness.Reply(new ReadinessStatus(true));
@@ -92,7 +92,7 @@ namespace Akka.HealthCheck.Tests.Readiness
             var fakeReadiness = CreateTestProbe("readiness");
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness)));
+                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness,true)));
 
             fakeReadiness.ExpectMsg<SubscribeToReadiness>();
             fakeReadiness.Reply(new ReadinessStatus(true));
@@ -112,7 +112,7 @@ namespace Akka.HealthCheck.Tests.Readiness
             var fakeReadiness = CreateTestProbe("readiness");
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness)));
+                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness,true)));
 
             fakeReadiness.ExpectMsg<SubscribeToReadiness>();
             Watch(transportActor);
