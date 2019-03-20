@@ -22,16 +22,20 @@ namespace Akka.HealthCheck.Transports
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly IActorRef _readinessProbe;
         private readonly IStatusTransport _statusTransport;
+        private readonly bool logInfo;
 
-        public ReadinessTransportActor(IStatusTransport statusTransport, IActorRef readinessProbe)
+        public ReadinessTransportActor(IStatusTransport statusTransport, IActorRef readinessProbe, bool log)
         {
             _statusTransport = statusTransport;
             _readinessProbe = readinessProbe;
+            logInfo = log;
 
             ReceiveAsync<ReadinessStatus>(async status =>
             {
-                _log.Info("Received updated readiness status. Ready: {0}, Message: {1}", status.IsReady,
+                if (logInfo)
+                    _log.Info("Received updated readiness status. Ready: {0}, Message: {1}", status.IsReady,
                     status.StatusMessage);
+
                 var cts = new CancellationTokenSource(LivenessTimeout);
                 TransportWriteStatus writeStatus = null;
                 if (status.IsReady)

@@ -35,7 +35,6 @@ namespace Akka.HealthCheck
     public sealed class AkkaHealthCheck : IExtension
     {
         internal IActorRef LivenessTransportActor;
-
         /*
          * Not used in the event that the transport
          * is set to "ProbeTransport.Custom"
@@ -45,6 +44,7 @@ namespace Akka.HealthCheck
         public AkkaHealthCheck(HealthCheckSettings settings, ExtendedActorSystem system)
         {
             Settings = settings;
+            
             if (settings.LogConfigOnStart)
             {
                 system.Log.Info("Liveness Prove Provider: {0}", Settings.LivenessProbeProvider);
@@ -73,6 +73,7 @@ namespace Akka.HealthCheck
                 }
                 LivenessProvider = new MisconfiguredLivenessProvider(system);
                 ReadinessProvider = new MisconfiguredReadinessProvider(system);
+                
             }
 
             // start the probes
@@ -81,10 +82,10 @@ namespace Akka.HealthCheck
 
             // Need to set up transports (possibly)
             LivenessTransportActor = StartTransportActor(Settings.LivenessTransportSettings, system, ProbeKind.Liveness,
-                LivenessProbe);
+                LivenessProbe, Settings.LogInfoEvents);
 
             ReadinessTransportActor = StartTransportActor(Settings.ReadinessTransportSettings, system,
-                ProbeKind.Readiness, ReadinessProbe);
+                ProbeKind.Readiness, ReadinessProbe, Settings.LogInfoEvents);
         }
 
         /// <summary>
@@ -119,23 +120,21 @@ namespace Akka.HealthCheck
         public IActorRef ReadinessProbe { get; }
 
         public static IActorRef StartTransportActor(ITransportSettings settings, ExtendedActorSystem system,
-            ProbeKind probeKind, IActorRef probe)
+            ProbeKind probeKind, IActorRef probe, bool log)
         {
             if (settings is FileTransportSettings fileTransport)
                 switch (probeKind)
                 {
                     case ProbeKind.Liveness:
-                        system.Log.Info("Liveness file transport created, writing to : {0}",fileTransport.FilePath);
                         return system.ActorOf(
                             Props.Create(
-                                () => new LivenessTransportActor(new FileStatusTransport(fileTransport), probe)),
+                                () => new LivenessTransportActor(new FileStatusTransport(fileTransport), probe, log)),
                             "liveness-transport" + ThreadLocalRandom.Current.Next());
                     case ProbeKind.Readiness:
                     default:
-                        system.Log.Info("Readiness file transport created writing to : {0}", fileTransport.FilePath);
                         return system.ActorOf(
                             Props.Create(
-                                () => new ReadinessTransportActor(new FileStatusTransport(fileTransport), probe)),
+                                () => new ReadinessTransportActor(new FileStatusTransport(fileTransport), probe, log)),
                             "readiness-transport" + ThreadLocalRandom.Current.Next());
                 }
 
@@ -143,17 +142,15 @@ namespace Akka.HealthCheck
                 switch (probeKind)
                 {
                     case ProbeKind.Liveness:
-                        system.Log.Info("Liveness TCP transport created. Bound to port{0}", socketTransport.Port);
                         return system.ActorOf(
                             Props.Create(
-                                () => new LivenessTransportActor(new SocketStatusTransport(socketTransport), probe)),
+                                () => new LivenessTransportActor(new SocketStatusTransport(socketTransport), probe, log)),
                             "liveness-transport" + ThreadLocalRandom.Current.Next());
                     case ProbeKind.Readiness:
                     default:
-                        system.Log.Info("Readiness TCP transport created. Bound to port{0}", socketTransport.Port);
                         return system.ActorOf(
                             Props.Create(
-                                () => new ReadinessTransportActor(new SocketStatusTransport(socketTransport), probe)),
+                                () => new ReadinessTransportActor(new SocketStatusTransport(socketTransport), probe, log)),
                             "readiness-transport" + ThreadLocalRandom.Current.Next());
                 }
 

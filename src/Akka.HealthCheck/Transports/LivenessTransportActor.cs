@@ -4,11 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
-using System.Threading;
 using Akka.Actor;
 using Akka.Event;
 using Akka.HealthCheck.Liveness;
+using System;
+using System.Threading;
 
 namespace Akka.HealthCheck.Transports
 {
@@ -22,16 +22,19 @@ namespace Akka.HealthCheck.Transports
         private readonly IActorRef _livenessProbe;
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly IStatusTransport _statusTransport;
+        private readonly bool logInfo;
 
-        public LivenessTransportActor(IStatusTransport statusTransport, IActorRef livenessProbe)
+        public LivenessTransportActor(IStatusTransport statusTransport, IActorRef livenessProbe, bool log)
         {
             _statusTransport = statusTransport;
             _livenessProbe = livenessProbe;
+            logInfo = log;
 
             ReceiveAsync<LivenessStatus>(async status =>
             {
-                _log.Info("Received updated liveness status. Live: {0}, Message: {1}", status.IsLive,
-                    status.StatusMessage);
+                if (logInfo)
+                 _log.Info("Received updated liveness status. Live: {0}, Message: {1}", status.IsLive, status.StatusMessage);
+               
                 var cts = new CancellationTokenSource(LivenessTimeout);
                 TransportWriteStatus writeStatus = null;
                 if (status.IsLive)
@@ -41,7 +44,9 @@ namespace Akka.HealthCheck.Transports
 
                 if (!writeStatus.Success)
                 {
-                    _log.Error(writeStatus.Exception, "Failed to write to transport.");
+                    if (logInfo)
+                        _log.Error(writeStatus.Exception, "Failed to write to transport.");
+
                     throw new ProbeUpdateException(ProbeKind.Liveness,
                         $"Failed to update underlying transport {_statusTransport}", writeStatus.Exception);
                 }
