@@ -13,6 +13,7 @@ namespace Akkka.HealthCheck.Example
                 akka{
                     healthcheck{
                         log-config-on-start = on
+                        log-info = on
                         liveness{
                             transport = tcp
                             tcp.port = 8080}

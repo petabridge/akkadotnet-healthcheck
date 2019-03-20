@@ -44,6 +44,8 @@ namespace Akka.HealthCheck.Configuration
             ReadinessTransportSettings = PopulateSettings(healthcheckConfig.GetConfig("readiness"), ReadinessTransport);
 
             LogConfigOnStart = healthcheckConfig.GetBoolean("log-config-on-start");
+
+            LogInfoEvents = healthcheckConfig.GetBoolean("log-info");
         }
 
         /// <summary>
@@ -51,6 +53,12 @@ namespace Akka.HealthCheck.Configuration
         /// </summary>
         /// <value><c>true</c> if [log configuration on start]; otherwise, <c>false</c>.</value>
         public bool LogConfigOnStart { get; private set; }
+
+        /// <summary>
+        ///     Gets a value indicating whether Rediness/Liveness probe logs are turned on.
+        /// </summary>
+        /// <value><c>true</c> if probe logs on; otherwise, <c>false</c>.</value>
+        public bool LogInfoEvents { get; private set; }
 
         /// <summary>
         ///     If <c>true</c>, the probe and healthcheck configurations are invalid
