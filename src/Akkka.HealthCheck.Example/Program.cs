@@ -1,9 +1,9 @@
-﻿using System;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Configuration;
 using Akka.HealthCheck;
+using System;
 
-namespace TestApp
+namespace Akkka.HealthCheck.Example
 {
     class Program
     {
@@ -24,6 +24,8 @@ namespace TestApp
             var config = ConfigurationFactory.ParseString(hocon);
             var actorSystem = ActorSystem.Create("Probe", config);
             var healthCheck = AkkaHealthCheck.For(actorSystem);
+
+            //healthCheck.LivenessProbe.Tell(new GetCurrentLiveness);
             actorSystem.WhenTerminated.Wait();
         }
     }
