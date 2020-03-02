@@ -11,6 +11,7 @@ using Akka.HealthCheck.Readiness;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
+using Hocon;
 
 namespace Akka.HealthCheck.Tests
 {

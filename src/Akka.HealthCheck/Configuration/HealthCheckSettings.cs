@@ -12,6 +12,7 @@ using Akka.HealthCheck.Readiness;
 using Akka.HealthCheck.Transports;
 using Akka.HealthCheck.Transports.Files;
 using Akka.HealthCheck.Transports.Sockets;
+using Hocon;
 
 namespace Akka.HealthCheck.Configuration
 {
