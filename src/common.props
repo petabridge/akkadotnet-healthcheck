@@ -2,8 +2,9 @@
   <PropertyGroup>
     <Copyright>Copyright © 2015-2019 Petabridge®</Copyright>
     <Authors>Petabridge</Authors>
-    <VersionPrefix>0.1.0</VersionPrefix>
-    <PackageReleaseNotes>Initial release of Akka.HealthCheck and Akka.HealthCheck.Cluster. These packages are designed to make it possible to automatically and simply pass on information about the health of your Akka.NET applications to external application management and monitoring systems such as K8s, AWS, Azure, and so forth.</PackageReleaseNotes>
+    <VersionPrefix>0.3</VersionPrefix>
+    <PackageReleaseNotes>Bumped Akka version**
+Bumped Akka version to 1.4.1-rc1</PackageReleaseNotes>
     <PackageIconUrl>https://petabridge.com/images/logo.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/petabridge/akkadotnet-healthcheck</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/petabridge/akkadotnet-healthchec/blob/master/LICENSE</PackageLicenseUrl>
