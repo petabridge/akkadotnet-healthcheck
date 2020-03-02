@@ -13,6 +13,7 @@ using Akka.HealthCheck.Transports.Files;
 using Akka.HealthCheck.Transports.Sockets;
 using FluentAssertions;
 using Xunit;
+using Hocon;
 
 namespace Akka.HealthCheck.Tests.Configuration
 {
