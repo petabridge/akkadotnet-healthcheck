@@ -12,6 +12,7 @@ using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Readiness;
 using FluentAssertions;
 using Xunit;
+using Hocon;
 
 namespace Akka.HealthCheck.Tests
 {

@@ -19,10 +19,11 @@ namespace Akka.HealthCheck.Persistence.Tests
         {
         }
         public static string HoconString = @"
-                   akka.healthcheck{
+                    akka.healthcheck{
                         liveness{
                             provider = ""Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbeProvider, Akka.HealthCheck.Persistence""
-}}  }";
+                        }
+                    }";
 
 
         [Fact(DisplayName = " ActorSystem should correcly load AkkaPersistenceLivenessProbeProvider from HOCON configuration")]
