@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <Copyright>Copyright © 2015-2019 Petabridge®</Copyright>
+    <Copyright>Copyright © 2015-2020 Petabridge®</Copyright>
     <Authors>Petabridge</Authors>
     <VersionPrefix>0.3</VersionPrefix>
     <PackageReleaseNotes>Bumped Akka version**
@@ -15,5 +15,13 @@ Bumped Akka version to 1.4.1-rc1</PackageReleaseNotes>
     <XunitVersion>2.4.1</XunitVersion>
     <TestSdkVersion>16.5.0</TestSdkVersion>
     <AkkaVersion>1.4.1-rc1</AkkaVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 </Project>
