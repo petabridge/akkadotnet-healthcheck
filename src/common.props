@@ -4,7 +4,7 @@
     <Authors>Petabridge</Authors>
     <VersionPrefix>0.3</VersionPrefix>
     <PackageReleaseNotes>Bumped Akka version**
-Bumped Akka version to 1.4.1-rc3</PackageReleaseNotes>
+Bumped Akka version to 1.4.1</PackageReleaseNotes>
     <PackageIconUrl>https://petabridge.com/images/logo.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/petabridge/akkadotnet-healthcheck</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/petabridge/akkadotnet-healthchec/blob/master/LICENSE</PackageLicenseUrl>
@@ -14,7 +14,7 @@ Bumped Akka version to 1.4.1-rc3</PackageReleaseNotes>
     <NBenchVersion>1.2.2</NBenchVersion>
     <XunitVersion>2.4.1</XunitVersion>
     <TestSdkVersion>16.5.0</TestSdkVersion>
-    <AkkaVersion>1.4.1-rc3</AkkaVersion>
+    <AkkaVersion>1.4.1</AkkaVersion>
   </PropertyGroup>
   <PropertyGroup>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
