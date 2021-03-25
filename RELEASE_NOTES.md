@@ -1,3 +1,3 @@
-#### 0.3 March 12 2020 ####
+#### 0.3.1 March 25 2021 ####
 **Bumped Akka version**
-Bumped Akka version to 1.4.1
+Bumped Akka version to 1.4.18
