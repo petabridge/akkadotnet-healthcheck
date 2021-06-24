@@ -7,6 +7,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.HealthCheck.Transports;
@@ -32,29 +33,24 @@ namespace Akka.HealthCheck.Tests.Transports
         public async Task Should_successfully_open_and_close_signal()
         {
             var result = await Transport.Go("foo", CancellationToken.None);
+            if (!result.Success)
+                ExceptionDispatchInfo.Capture(result.Exception).Throw();
+            
             result.Success.Should().BeTrue();
 
-            var tcpClient = new TcpClient(AddressFamily.InterNetworkV6);
-            await tcpClient.ConnectAsync(IPAddress.IPv6Loopback, PortNumber);
+            var tcpClient = new TcpClient(AddressFamily.InterNetwork);
+            await tcpClient.ConnectAsync(IPAddress.Loopback, PortNumber);
 
             var deleteResult = await Transport.Stop(null, CancellationToken.None);
             deleteResult.Success.Should().BeTrue();
 
-            try
-            {
-                AwaitAssert(() => tcpClient.GetStream().ReadAsync(new byte[10], 0, 10).Should().Be(8));
-            }
-            catch
-            {
-            }
+            await AwaitAssertAsync(async () => 
+                (await tcpClient.GetStream().ReadAsync(new byte[10], 0, 10)).Should().Be(8));
 
-            var tcpClient2 = new TcpClient(AddressFamily.InterNetworkV6);
-            try
-            {
-                await tcpClient2.ConnectAsync(IPAddress.IPv6Loopback, PortNumber);
+            var tcpClient2 = new TcpClient(AddressFamily.InterNetwork);
             //Should throw execption as socket will refuse to establish a connection
-            }
-            catch{ }
+            await tcpClient2.Awaiting(client => client.ConnectAsync(IPAddress.Loopback, PortNumber))
+                .Should().ThrowAsync<SocketException>();
             tcpClient2.Connected.Should().BeFalse();
         }
 
@@ -74,21 +70,21 @@ namespace Akka.HealthCheck.Tests.Transports
             var result = await Transport.Go("foo", CancellationToken.None);
             result.Success.Should().BeTrue();
 
-            var tcpClient = new TcpClient(AddressFamily.InterNetworkV6);
-            await tcpClient.ConnectAsync(IPAddress.IPv6Loopback, PortNumber);
+            var tcpClient = new TcpClient(AddressFamily.InterNetwork);
+            await tcpClient.ConnectAsync(IPAddress.Loopback, PortNumber);
 
             var result2 = await Transport.Go("bar", CancellationToken.None);
-            result.Success.Should().BeTrue();
+            result2.Success.Should().BeTrue();
             
-            AwaitAssert(()=> tcpClient.Available.Should().Be(8));
+            await AwaitAssertAsync(()=> tcpClient.Available.Should().Be(8));
             tcpClient.Connected.Should().BeTrue();
 
             // special case - need to test the NULL pattern
             var result3 = await Transport.Go(null, CancellationToken.None);
-            result.Success.Should().BeTrue();
+            result3.Success.Should().BeTrue();
 
             
-            AwaitAssert(() => tcpClient.Available.Should().Be(8)); 
+            await AwaitAssertAsync(() => tcpClient.Available.Should().Be(8)); 
             tcpClient.Connected.Should().BeTrue();
         }
     }
