@@ -38,7 +38,7 @@ namespace Akka.HealthCheck.Transports.Sockets
                 {
                     _abortSocket = new CancellationTokenSource();
                     _socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                    _socket.Bind(new IPEndPoint(IPAddress.IPv6Any, Settings.Port));
+                    _socket.Bind(new IPEndPoint(IPAddress.Any, Settings.Port));
                     _socket.Listen(10);
 
                     // want this to run async, without waiting

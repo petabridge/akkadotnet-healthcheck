@@ -69,8 +69,8 @@ namespace Akka.HealthCheck.Tests
 
             // check to see that our probes are up and running using the supplied transports
             AwaitCondition(() => File.Exists(filePath));
-            var tcpClient = new TcpClient(AddressFamily.InterNetworkV6);
-            await tcpClient.ConnectAsync(IPAddress.IPv6Loopback, tcpPort);
+            var tcpClient = new TcpClient(AddressFamily.InterNetwork);
+            await tcpClient.ConnectAsync(IPAddress.Loopback, tcpPort);
 
             // force shutdown of the ActorSystem and verify that probes are stopped
             await Sys.Terminate();
@@ -79,18 +79,12 @@ namespace Akka.HealthCheck.Tests
             AwaitCondition(() => !File.Exists(filePath));
 
             //Created a new client to see if it would be able to connect. 
-            var tcpClient2 = new TcpClient(AddressFamily.InterNetworkV6);
+            var tcpClient2 = new TcpClient(AddressFamily.InterNetwork);
 
             // liveness probe should be disconnected
-            try
-            {
-                await tcpClient2.ConnectAsync(IPAddress.IPv6Loopback, tcpPort);
-                var bytesRead = await tcpClient.GetStream().ReadAsync(new byte[10], 0, 10);
-                bytesRead.Should().Be(0);
-            }
-            catch
-            {
-            }
+            tcpClient2.Awaiting(client => client.ConnectAsync(IPAddress.Loopback, tcpPort))
+                .Should().Throw<SocketException>();
+            
             //Second client should not be able to connect as socket has been closed
             AwaitCondition(()=> !tcpClient2.Connected);
         }
