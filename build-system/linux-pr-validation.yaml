@@ -19,7 +19,7 @@ jobs:
     name: "net_tests_linux"
     displayName: ".NET Core Unit Tests (Linux)"
     vmImage: 'ubuntu-latest'
-    scriptFileName: build.cmd
+    scriptFileName: "./build.sh"
     scriptArgs: RunTests
     outputDirectory: "TestResults"
     artifactName: "net_tests_linux-$(Build.BuildId)"
@@ -28,7 +28,7 @@ jobs:
     name: "net_6_tests_windows"
     displayName: ".NET 6 Unit Tests (Linux)"
     vmImage: 'ubuntu-latest'
-    scriptFileName: build.cmd
+    scriptFileName: "./build.sh"
     scriptArgs: RunTestsNet
     outputDirectory: "TestResults"
     artifactName: "net_6_tests_linux-$(Build.BuildId)"
