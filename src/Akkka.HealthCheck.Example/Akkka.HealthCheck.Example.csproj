@@ -3,7 +3,7 @@
   
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFrameworks>$(NetCoreTestVersion);$(NetTestVersion)</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
