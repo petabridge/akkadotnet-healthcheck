@@ -2,7 +2,7 @@
   <Import Project="..\common.props" />
   
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(NetStandardLibVersion);$(NetLibVersion)</TargetFrameworks>
     <Description>Akka.NET healthchecks for environments like K8s, AWS, Azure, Pivotal Cloud Foundry, and more.</Description>
   </PropertyGroup>
   

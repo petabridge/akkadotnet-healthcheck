@@ -16,7 +16,19 @@ name: $(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
 jobs:
 - template: azure-pipeline.template.yaml
   parameters:
-    name: Windows
-    vmImage: 'windows-latest'
+    name: "net_tests_windows"
+    displayName: ".NET Core Unit Tests (Windows)"
+    vmImage: "windows-2019"
     scriptFileName: build.cmd
-    scriptArgs: all
+    scriptArgs: RunTests
+    outputDirectory: "TestResults"
+    artifactName: "net_tests_windows-$(Build.BuildId)"
+- template: azure-pipeline.template.yaml
+  parameters:
+    name: "net_6_tests_windows"
+    displayName: ".NET 6 Unit Tests (Windows)"
+    vmImage: "windows-2019"
+    scriptFileName: build.cmd
+    scriptArgs: RunTestsNet
+    outputDirectory: "TestResults"
+    artifactName: "net_6_tests_windows-$(Build.BuildId)"
