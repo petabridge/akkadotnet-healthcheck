@@ -14,6 +14,7 @@ using Akka.HealthCheck.Transports;
 using Akka.HealthCheck.Transports.Sockets;
 using Akka.Util;
 using FluentAssertions;
+using FluentAssertions.Extensions;
 using Xunit;
 
 namespace Akka.HealthCheck.Tests.Transports
@@ -44,11 +45,14 @@ namespace Akka.HealthCheck.Tests.Transports
             var deleteResult = await Transport.Stop(null, CancellationToken.None);
             deleteResult.Success.Should().BeTrue();
 
-            await AwaitAssertAsync(async () => 
-                (await tcpClient.GetStream().ReadAsync(new byte[10], 0, 10)).Should().Be(8));
+            await AwaitAssertAsync(
+                assertion: async () => 
+                    (await tcpClient.GetStream().ReadAsync(new byte[10], 0, 10)).Should().Be(8),
+                duration: 20.Seconds(), 
+                interval: 100.Milliseconds());
 
             var tcpClient2 = new TcpClient(AddressFamily.InterNetwork);
-            //Should throw execption as socket will refuse to establish a connection
+            //Should throw exception as socket will refuse to establish a connection
             await tcpClient2.Awaiting(client => client.ConnectAsync(IPAddress.Loopback, PortNumber))
                 .Should().ThrowAsync<SocketException>();
             tcpClient2.Connected.Should().BeFalse();
