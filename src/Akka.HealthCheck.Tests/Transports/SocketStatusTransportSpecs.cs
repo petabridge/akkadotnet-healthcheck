@@ -42,14 +42,10 @@ namespace Akka.HealthCheck.Tests.Transports
             var tcpClient = new TcpClient(AddressFamily.InterNetwork);
             await tcpClient.ConnectAsync(IPAddress.Loopback, PortNumber);
 
+            await AwaitAssertAsync(async () => (await tcpClient.GetStream().ReadAsync(new byte[10], 0, 10)).Should().Be(8));
+
             var deleteResult = await Transport.Stop(null, CancellationToken.None);
             deleteResult.Success.Should().BeTrue();
-
-            await AwaitAssertAsync(
-                assertion: async () => 
-                    (await tcpClient.GetStream().ReadAsync(new byte[10], 0, 10)).Should().Be(8),
-                duration: 20.Seconds(), 
-                interval: 100.Milliseconds());
 
             var tcpClient2 = new TcpClient(AddressFamily.InterNetwork);
             //Should throw exception as socket will refuse to establish a connection
