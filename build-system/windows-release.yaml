@@ -14,7 +14,7 @@ variables:
   - group: Signing Keys #create this group with SECRET variables `signingUsername` and `signingPassword`
   - group: NuGet Keys #create this group with SECRET variables `nugetKey`
   - name: githubConnectionName
-    value: yourConnection #replace this
+    value: Releases
   - name: projectName
     value: akka.healthcheck
   - name: githubRepositoryName
