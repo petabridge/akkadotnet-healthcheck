@@ -28,6 +28,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akka.HealthCheck.Example", 
 		{642308A0-B6F7-4478-B286-3B8707A00F82} = {642308A0-B6F7-4478-B286-3B8707A00F82}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.HealthCheck.IHealthCheckExample", "src\Akka.HealthCheck.IHealthCheckExample\Akka.HealthCheck.IHealthCheckExample.csproj", "{437E9BF1-75AE-4D1E-A6AF-37F799FAF8A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +64,10 @@ Global
 		{6213BECB-4145-41BF-BAD0-C5D16412BBD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6213BECB-4145-41BF-BAD0-C5D16412BBD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6213BECB-4145-41BF-BAD0-C5D16412BBD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{437E9BF1-75AE-4D1E-A6AF-37F799FAF8A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{437E9BF1-75AE-4D1E-A6AF-37F799FAF8A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{437E9BF1-75AE-4D1E-A6AF-37F799FAF8A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{437E9BF1-75AE-4D1E-A6AF-37F799FAF8A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
