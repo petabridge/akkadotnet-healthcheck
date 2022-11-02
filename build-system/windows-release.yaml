@@ -2,19 +2,20 @@
 # See https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema for reference
 
 pool:
-  vmImage: windows-2019
+  vmImage: windows-latest
   demands: Cmd
 
 trigger:
   branches:
     include:
       - refs/tags/*
+pr: none
 
 variables:
-  - group: signingSecrets #create this group with SECRET variables `signingUsername` and `signingPassword`
-  - group: nugetKeys #create this group with SECRET variables `nugetKey`
+  - group: Signing Keys #create this group with SECRET variables `signingUsername` and `signingPassword`
+  - group: NuGet Keys #create this group with SECRET variables `nugetKey`
   - name: githubConnectionName
-    value: yourConnection #replace this
+    value: Releases
   - name: projectName
     value: akka.healthcheck
   - name: githubRepositoryName
@@ -36,7 +37,7 @@ steps:
   displayName: 'FAKE Build'
   inputs:
     filename: build.cmd
-    arguments: 'All SignClientUser=$(signingUsername) SignClientSecret=$(signingPassword) nugetpublishurl=https://www.nuget.org/api/v2/package nugetkey=$(nugetKey)'
+    arguments: 'All SignClientUser=$(signingUsername) SignClientSecret=$(signingPassword) nugetpublishurl=https://www.nuget.org/api/v2/package nugetkey=$(Akka.NET Tools NuGet)'
 
 - task: GitHubRelease@0
   displayName: 'GitHub release (create)'
