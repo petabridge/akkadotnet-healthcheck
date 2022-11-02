@@ -12,9 +12,13 @@ Bumped Akka version to 1.4.1</PackageReleaseNotes>
   </PropertyGroup>
   <PropertyGroup>
     <NBenchVersion>1.2.2</NBenchVersion>
-    <XunitVersion>2.4.1</XunitVersion>
-    <TestSdkVersion>16.9.4</TestSdkVersion>
-    <AkkaVersion>1.4.21</AkkaVersion>
+    <XunitVersion>2.4.2</XunitVersion>
+    <TestSdkVersion>17.3.2</TestSdkVersion>
+    <AkkaVersion>1.4.45</AkkaVersion>
+    <NetCoreTestVersion>netcoreapp3.1</NetCoreTestVersion>
+    <NetTestVersion>net6.0</NetTestVersion>
+    <NetStandardLibVersion>netstandard2.0</NetStandardLibVersion>
+    <NetLibVersion>net6.0</NetLibVersion>
   </PropertyGroup>
   <PropertyGroup>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
