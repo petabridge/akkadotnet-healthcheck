@@ -2,19 +2,20 @@
 # See https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema for reference
 
 pool:
-  vmImage: windows-2019
+  vmImage: windows-latest
   demands: Cmd
 
 trigger:
   branches:
     include:
       - refs/tags/*
+pr: none
 
 variables:
-  - group: signingSecrets #create this group with SECRET variables `signingUsername` and `signingPassword`
-  - group: nugetKeys #create this group with SECRET variables `nugetKey`
+  - group: Signing Keys #create this group with SECRET variables `signingUsername` and `signingPassword`
+  - group: NuGet Keys #create this group with SECRET variables `nugetKey`
   - name: githubConnectionName
-    value: yourConnection #replace this
+    value: Releases
   - name: projectName
     value: akka.healthcheck
   - name: githubRepositoryName
