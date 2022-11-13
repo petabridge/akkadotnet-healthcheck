@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\common.props" />
+
+    <PropertyGroup>
+        <TargetFrameworks>$(NetStandardLibVersion);$(NetLibVersion)</TargetFrameworks>
+        <Nullable>enable</Nullable>
+        <LangVersion>9.0</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Akka.Hosting" Version="0.5.1" />
+      <PackageReference Include="Microsoft.AspNetCore.Diagnostics.HealthChecks" Version="2.2.0" />
+      <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="7.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Akka.HealthCheck.Cluster\Akka.HealthCheck.Cluster.csproj" />
+      <ProjectReference Include="..\Akka.HealthCheck.Persistence\Akka.HealthCheck.Persistence.csproj" />
+      <ProjectReference Include="..\Akka.HealthCheck\Akka.HealthCheck.csproj" />
+    </ItemGroup>
+
+</Project>

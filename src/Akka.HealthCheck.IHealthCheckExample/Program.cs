@@ -1,54 +1,66 @@
+using Akka.Cluster;
 using Akka.Cluster.Hosting;
-using Akka.HealthCheck.Cluster;
-using Akka.HealthCheck.IHealthCheckExample;
-using Akka.HealthCheck.IHealthCheckExample.HealthChecks;
-using Akka.HealthCheck.Liveness;
-using Akka.HealthCheck.Persistence;
-using Akka.HealthCheck.Readiness;
+using Akka.HealthCheck.Hosting;
 using Akka.Hosting;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddAkka("actor-system", (configurationBuilder, serviceProvider) =>
-{
-    configurationBuilder
-    .WithClustering()
-    .WithActors((actorSystem, registry) =>
+builder.Services
+    .WithAkkaHealthCheck()
+    .WithAkkaClusterHealthCheck()
+    .WithAkkaPersistenceHealthCheck()
+    .AddAkka("actor-system", (configurationBuilder, serviceProvider) =>
     {
-        // We need to start the Probe actors which we need in our HealthChecks
-        actorSystem.CreateAndRegisterHealthProbe<DefaultLivenessProbe>(registry, new DefaultLivenessProvider(actorSystem));
-        actorSystem.CreateAndRegisterHealthProbe<ClusterLivenessProbe>(registry, new ClusterLivenessProbeProvider(actorSystem));
-        actorSystem.CreateAndRegisterHealthProbe<AkkaPersistenceLivenessProbe>(registry, new AkkaPersistenceLivenessProbeProvider(actorSystem));
-        actorSystem.CreateAndRegisterHealthProbe<DefaultReadinessProbe>(registry, new DefaultReadinessProvider(actorSystem));
-        actorSystem.CreateAndRegisterHealthProbe<ClusterReadinessProbe>(registry, new ClusterReadinessProbeProvider(actorSystem));
+        configurationBuilder
+            .AddHocon("akka.cluster.min-nr-of-members = 1", HoconAddMode.Prepend)
+            .WithClustering()
+            .WithHealthCheck()
+            .AddStartup((system, registry) =>
+            {
+                var cluster = Cluster.Get(system);
+                cluster.Join(cluster.SelfAddress);
+            });
     });
-});
-
-// Add health checks - look here for documentation: https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-6.0
-builder.Services.AddHealthChecks()
-    .AddCheck<AkkaLivenessActorHealthCheck<ClusterLivenessProbe>>("akka-liveness-cluster", HealthStatus.Unhealthy, new[] { "liveness" })
-    .AddCheck<AkkaLivenessActorHealthCheck<DefaultLivenessProbe>>("akka-liveness-default", HealthStatus.Unhealthy, new[] { "liveness" })
-    .AddCheck<AkkaLivenessActorHealthCheck<AkkaPersistenceLivenessProbe>>("akka-liveness-persistance", HealthStatus.Unhealthy, new[] { "liveness" })
-    .AddCheck<AkkaReadinessActorHealthCheck<ClusterReadinessProbe>>("akka-readiness-cluster", HealthStatus.Unhealthy, new[] { "readiness" })
-    .AddCheck<AkkaReadinessActorHealthCheck<DefaultReadinessProbe>>("akka-readiness-default", HealthStatus.Unhealthy, new[] { "readiness" });
 
 var app = builder.Build();
 
 // Create our health endpoint(s) - look here for documentation: https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-6.0
-app.MapHealthChecks("/healthz/live", new HealthCheckOptions
+app.MapHealthChecks("/healthz/live/akka", new HealthCheckOptions
 {
-    // Only include HealthChecks with tag 'liveness' to this endpoint, customize this for your needs...
-    Predicate = healthCheck => healthCheck.Tags.Contains("liveness")
+    Predicate = healthCheck => healthCheck.Tags.IsSupersetOf(new [] {"akka", "liveness"})
 });
 
-app.MapHealthChecks("/healthz/ready", new HealthCheckOptions
+app.MapHealthChecks("/healthz/live/akka/node", new HealthCheckOptions
+{
+    Predicate = healthCheck => healthCheck.Tags.IsSupersetOf(new [] {"akka", "node", "liveness"})
+});
+
+app.MapHealthChecks("/healthz/live/akka/persistence", new HealthCheckOptions
+{
+    Predicate = healthCheck => healthCheck.Tags.IsSupersetOf(new [] {"akka", "persistence", "liveness"})
+});
+
+app.MapHealthChecks("/healthz/live/akka/cluster", new HealthCheckOptions
+{
+    Predicate = healthCheck => healthCheck.Tags.IsSupersetOf(new [] {"akka", "cluster", "liveness"})
+});
+
+app.MapHealthChecks("/healthz/ready/akka", new HealthCheckOptions
+{
+    Predicate = healthCheck => healthCheck.Tags.IsSupersetOf(new []{"akka", "readiness"})
+});
+
+app.MapHealthChecks("/healthz/ready/akka/node", new HealthCheckOptions
+{
+    Predicate = healthCheck => healthCheck.Tags.IsSupersetOf(new []{"akka", "node", "readiness"})
+});
+
+app.MapHealthChecks("/healthz/ready/akka/cluster", new HealthCheckOptions
 {
     // Only include HealthChecks with tag 'readiness' to this endpoint, customize this for your needs...
-    Predicate = healthCheck => healthCheck.Tags.Contains("readiness")
+    Predicate = healthCheck => healthCheck.Tags.IsSupersetOf(new []{"akka", "cluster", "readiness"})
 });
 
 app.Run();

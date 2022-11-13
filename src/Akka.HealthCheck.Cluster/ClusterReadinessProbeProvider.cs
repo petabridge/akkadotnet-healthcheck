@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Akka.Actor;
 using Akka.Cluster;
 using Akka.Event;
@@ -42,13 +43,11 @@ namespace Akka.HealthCheck.Cluster
         private ICancelable _notReadyTask;
         private ReadinessStatus _readinessStatus;
 
-        public ClusterReadinessProbe() : this(DefaultClusterReadinessStatus)
+        public ClusterReadinessProbe()
         {
-        }
-
-        public ClusterReadinessProbe(ReadinessStatus readinessStatus)
-        {
-            _readinessStatus = readinessStatus;
+            var selfMember = _cluster.State.Members.FirstOrDefault(m => m.Address == _cluster.SelfAddress);
+            var isUp = selfMember is { Status: MemberStatus.Up or MemberStatus.WeaklyUp };
+            _readinessStatus = isUp ? new ReadinessStatus(true) : DefaultClusterReadinessStatus;
 
             Receive<ReadinessStatus>(s =>
             {
