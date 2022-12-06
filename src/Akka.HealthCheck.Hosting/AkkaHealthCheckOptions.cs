@@ -17,17 +17,17 @@ namespace Akka.HealthCheck.Hosting
         Tcp
     }
     
-    public sealed class AkkaHealthCheckConfig
+    public sealed class AkkaHealthCheckOptions
     {
-        public ProviderConfig Liveness { get; } = new ProviderConfig();
-        public ProviderConfig Readiness { get; } = new ProviderConfig();
+        public ProviderOptions Liveness { get; } = new ProviderOptions();
+        public ProviderOptions Readiness { get; } = new ProviderOptions();
         public bool? LogConfigOnStart { get; set; }
         public bool? LogInfo { get; set; }
 
         internal Config? ToConfig()
         {
             var sb = new StringBuilder();
-            var liveness = Liveness?.GetStringBuilder();
+            var liveness = Liveness.GetStringBuilder();
             if (liveness is { })
             {
                 sb.AppendLine("liveness {")
@@ -35,7 +35,7 @@ namespace Akka.HealthCheck.Hosting
                     .AppendLine("}");
             }
 
-            var readiness = Readiness?.GetStringBuilder();
+            var readiness = Readiness.GetStringBuilder();
             if (readiness is { })
             {
                 sb.AppendLine("readiness {")
@@ -53,32 +53,32 @@ namespace Akka.HealthCheck.Hosting
                 return null;
             
             sb.Insert(0, "akka.healthcheck {");
-            sb.Append("}");
+            sb.Append('}');
                 
             return (Config)sb.ToString();
 
         }
     }
 
-    public sealed class ProviderConfig
+    public sealed class ProviderOptions
     {
         public Type? Provider { get; }
         public HealthCheckTransport? Transport { get; set; }
         public string? FilePath { get; set; }
         public int? TcpPort { get; set; }
 
-        public ProviderConfig()
+        public ProviderOptions()
         {
             Provider = null;
         }
 
-        private ProviderConfig(Type providerType)
+        private ProviderOptions(Type providerType)
         {
             Provider = providerType;
         }
 
-        public ProviderConfig WithProvider<T>() where T : IProbeProvider
-            => new ProviderConfig(typeof(T))
+        public ProviderOptions WithProvider<T>() where T : IProbeProvider
+            => new ProviderOptions(typeof(T))
             {
                 Transport = Transport,
                 FilePath = FilePath,

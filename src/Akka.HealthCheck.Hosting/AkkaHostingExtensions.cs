@@ -42,9 +42,9 @@ namespace Akka.HealthCheck.Hosting
         
         public static AkkaConfigurationBuilder WithHealthCheck(
             this AkkaConfigurationBuilder builder,
-            Action<AkkaHealthCheckConfig>? configure = null)
+            Action<AkkaHealthCheckOptions>? configure = null)
         {
-            var configuration = new AkkaHealthCheckConfig();
+            var configuration = new AkkaHealthCheckOptions();
             configure?.Invoke(configuration);
 
             var config = configuration.ToConfig();

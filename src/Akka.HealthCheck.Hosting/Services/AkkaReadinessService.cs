@@ -8,10 +8,18 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Akka.HealthCheck.Hosting.Services
 {
+    /// <summary>
+    /// An ASP.NET <see cref="IHealthCheck"/> service implementation for checking Akka.NET node readiness status.
+    /// </summary>
     public class AkkaReadinessService : IHealthCheck
     {
         private readonly IActorRef _probe;
 
+        /// <summary>
+        /// Creates a new <see cref="AkkaReadinessService"/> instance.
+        /// Note that this constructor is meant to be called by ASP.NET and not called directly by the user.
+        /// </summary>
+        /// <param name="system">The <see cref="ActorSystem"/> that hosts the cluster node</param>
         public AkkaReadinessService(ActorSystem system)
         {
             var sys = (ExtendedActorSystem)system;
@@ -24,6 +32,7 @@ namespace Akka.HealthCheck.Hosting.Services
             }
         }
 
+        ///<inheritdoc/>
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             try

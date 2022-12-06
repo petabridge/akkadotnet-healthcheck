@@ -29,7 +29,7 @@ var app = builder.Build();
 // Create our health endpoint(s) - look here for documentation: https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-6.0
 app.MapHealthChecks("/healthz/live/akka", new HealthCheckOptions
 {
-    Predicate = healthCheck => healthCheck.Tags.IsSupersetOf(new [] {"akka", "liveness"})
+    Predicate = healthCheck => healthCheck.Tags.Union(new []{"akka", "liveness"}).Equals(healthCheck.Tags)
 });
 
 app.MapHealthChecks("/healthz/live/akka/node", new HealthCheckOptions
@@ -59,7 +59,6 @@ app.MapHealthChecks("/healthz/ready/akka/node", new HealthCheckOptions
 
 app.MapHealthChecks("/healthz/ready/akka/cluster", new HealthCheckOptions
 {
-    // Only include HealthChecks with tag 'readiness' to this endpoint, customize this for your needs...
     Predicate = healthCheck => healthCheck.Tags.IsSupersetOf(new []{"akka", "cluster", "readiness"})
 });
 
