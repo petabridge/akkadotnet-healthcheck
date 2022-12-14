@@ -28,7 +28,7 @@ namespace Akka.HealthCheck
     {
         public override AkkaHealthCheck CreateExtension(ExtendedActorSystem system)
         {
-            return new AkkaHealthCheck(new HealthCheckSettings(system), system);
+            return new AkkaHealthCheck(system);
         }
     }
 
@@ -45,9 +45,10 @@ namespace Akka.HealthCheck
          */
         internal IActorRef ReadinessTransportActor;
 
-        public AkkaHealthCheck(HealthCheckSettings settings, ExtendedActorSystem system)
+        public AkkaHealthCheck(ExtendedActorSystem system)
         {
-            Settings = settings;
+            system.Settings.InjectTopLevelFallback(HealthCheckSettings.DefaultConfig());
+            var settings = Settings = new HealthCheckSettings(system);
             
             if (settings.LogConfigOnStart)
             {
