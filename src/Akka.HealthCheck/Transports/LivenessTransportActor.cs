@@ -8,6 +8,9 @@ using Akka.Actor;
 using Akka.Event;
 using Akka.HealthCheck.Liveness;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 
 namespace Akka.HealthCheck.Transports
@@ -19,15 +22,15 @@ namespace Akka.HealthCheck.Transports
     public sealed class LivenessTransportActor : ReceiveActor
     {
         private const int LivenessTimeout = 1000;
-        private readonly IActorRef _livenessProbe;
+        private readonly List<IActorRef> _livenessProbes;
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly IStatusTransport _statusTransport;
         private readonly bool _logInfo;
 
-        public LivenessTransportActor(IStatusTransport statusTransport, IActorRef livenessProbe, bool log)
+        public LivenessTransportActor(IStatusTransport statusTransport, ImmutableDictionary<string, IActorRef> livenessProbes, bool log)
         {
             _statusTransport = statusTransport;
-            _livenessProbe = livenessProbe;
+            _livenessProbes = livenessProbes.Values.ToList();
             _logInfo = log;
 
             ReceiveAsync<LivenessStatus>(async status =>
@@ -54,15 +57,22 @@ namespace Akka.HealthCheck.Transports
 
             Receive<Terminated>(t =>
             {
-                _log.Warning("Liveness probe actor terminated! Shutting down.");
-                Context.Stop(Self);
+                _livenessProbes.Remove(t.ActorRef);
+                if (_livenessProbes.Count == 0)
+                {
+                    _log.Warning("All liveness probe actors terminated! Shutting down.");
+                    Context.Stop(Self);
+                }
             });
         }
 
         protected override void PreStart()
         {
-            _livenessProbe.Tell(new SubscribeToLiveness(Self));
-            Context.Watch(_livenessProbe);
+            foreach (var probe in _livenessProbes)
+            {
+                probe.Tell(new SubscribeToLiveness(Self));
+                Context.Watch(probe);
+            }
         }
 
         protected override void PostStop()

@@ -20,8 +20,10 @@ namespace Akka.HealthCheck.Persistence.Tests
         }
         public static string HoconString = @"
                     akka.healthcheck{
-                        liveness{
-                            provider = ""Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbeProvider, Akka.HealthCheck.Persistence""
+                        liveness {
+                            providers {
+                                default = ""Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbeProvider, Akka.HealthCheck.Persistence""
+                            }
                         }
                     }";
 

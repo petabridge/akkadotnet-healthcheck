@@ -46,11 +46,11 @@ namespace Akka.HealthCheck.Tests
         }
 
         [Fact(DisplayName = "Should load AkkaHealthCheck plugin and settings with MISCONFIGURED custom providers")]
-        public async Task Should_load_custom_AkkaHealthCheck()
+        public async Task Should_load_misconfigured_AkkaHealthCheck()
         {
             Config config = @"
-                akka.healthcheck.liveness.provider = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider+FakeName, Akka.HealthCheck.Tests""
-                akka.healthcheck.readiness.provider = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider+FakeName, Akka.HealthCheck.Tests""
+                akka.healthcheck.liveness.providers.default = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+FakeName, Akka.HealthCheck.Tests""
+                akka.healthcheck.readiness.providers.default = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+FakeName, Akka.HealthCheck.Tests""
             ";
 
             using (var system = ActorSystem.Create("foo", config))
@@ -61,8 +61,8 @@ namespace Akka.HealthCheck.Tests
                 healthCheck.Settings.Misconfigured.Should().BeTrue();
 
                 // check that the custom plugins were NOT loaded
-                healthCheck.Settings.LivenessProbeProvider.Should().Be(typeof(DefaultLivenessProvider));
-                healthCheck.Settings.ReadinessProbeProvider.Should().Be(typeof(DefaultReadinessProvider));
+                healthCheck.Settings.LivenessProbeProvider.Should().Be(typeof(MisconfiguredLivenessProvider));
+                healthCheck.Settings.ReadinessProbeProvider.Should().Be(typeof(MisconfiguredReadinessProvider));
 
                 // when misconfigured, probes should report that we are neither live nor ready
                 var livenessStatus =
@@ -96,11 +96,11 @@ namespace Akka.HealthCheck.Tests
         }
 
         [Fact(DisplayName = "Should load AkkaHealthCheck plugin and settings with custom providers")]
-        public async Task Should_load_misconfigured_AkkaHealthCheck()
+        public async Task Should_load_custom_AkkaHealthCheck()
         {
             Config config = @"
-                akka.healthcheck.liveness.provider = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider, Akka.HealthCheck.Tests""
-                akka.healthcheck.readiness.provider = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider, Akka.HealthCheck.Tests""
+                akka.healthcheck.liveness.providers.default = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider, Akka.HealthCheck.Tests""
+                akka.healthcheck.readiness.providers.default = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider, Akka.HealthCheck.Tests""
             ";
 
             using (var system = ActorSystem.Create("foo", config))
@@ -118,6 +118,51 @@ namespace Akka.HealthCheck.Tests
                 livenessStatus.IsLive.Should().BeTrue();
                 var readinessStatus =
                     await healthCheck.ReadinessProbe.Ask<ReadinessStatus>(GetCurrentReadiness.Instance,
+                        TimeSpan.FromSeconds(1));
+                readinessStatus.IsReady.Should().BeTrue();
+            }
+        }
+
+        [Fact(DisplayName = "Should load AkkaHealthCheck plugin and settings with multiple providers")]
+        public async Task Should_load_multiple_providers()
+        {
+            Config config = @"
+                akka.healthcheck.liveness.providers.default = ""Akka.HealthCheck.Liveness.DefaultLivenessProvider, Akka.HealthCheck""
+                akka.healthcheck.liveness.providers.custom = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider, Akka.HealthCheck.Tests""
+                akka.healthcheck.readiness.providers.default = ""Akka.HealthCheck.Readiness.DefaultReadinessProvider, Akka.HealthCheck""
+                akka.healthcheck.readiness.providers.custom = ""Akka.HealthCheck.Tests.AkkaHealthCheckSpecs+CustomHealthCheckProvider, Akka.HealthCheck.Tests""
+            ";
+
+            using (var system = ActorSystem.Create("foo", config))
+            {
+                var healthCheck = AkkaHealthCheck.For(system);
+                healthCheck.Settings.Misconfigured.Should().BeFalse();
+
+                // check that the custom plugins were loaded
+                healthCheck.Settings.LivenessProbeProviders["default"].Should().Be(typeof(DefaultLivenessProvider));
+                healthCheck.Settings.LivenessProbeProviders["custom"].Should().Be(typeof(CustomHealthCheckProvider));
+                healthCheck.Settings.ReadinessProbeProviders["default"].Should().Be(typeof(DefaultReadinessProvider));
+                healthCheck.Settings.ReadinessProbeProviders["custom"].Should().Be(typeof(CustomHealthCheckProvider));
+
+                healthCheck.LivenessProbes["default"].Path.Name.Should().Be("healthcheck-live-default");
+                healthCheck.LivenessProbes["custom"].Path.Name.Should().Be("healthcheck-live-custom");
+                healthCheck.ReadinessProbes["default"].Path.Name.Should().Be("healthcheck-readiness-default");
+                healthCheck.ReadinessProbes["custom"].Path.Name.Should().Be("healthcheck-readiness-custom");
+                    
+                var livenessStatus =
+                    await healthCheck.LivenessProbes["default"].Ask<LivenessStatus>(GetCurrentLiveness.Instance,
+                        TimeSpan.FromSeconds(1));
+                livenessStatus.IsLive.Should().BeTrue();
+                livenessStatus =
+                    await healthCheck.LivenessProbes["custom"].Ask<LivenessStatus>(GetCurrentLiveness.Instance,
+                        TimeSpan.FromSeconds(1));
+                livenessStatus.IsLive.Should().BeTrue();
+                
+                var readinessStatus =
+                    await healthCheck.ReadinessProbes["default"].Ask<ReadinessStatus>(GetCurrentReadiness.Instance,
+                        TimeSpan.FromSeconds(1));
+                readinessStatus =
+                    await healthCheck.ReadinessProbes["custom"].Ask<ReadinessStatus>(GetCurrentReadiness.Instance,
                         TimeSpan.FromSeconds(1));
                 readinessStatus.IsReady.Should().BeTrue();
             }

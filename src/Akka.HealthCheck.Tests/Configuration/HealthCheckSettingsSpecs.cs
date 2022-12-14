@@ -79,13 +79,13 @@ namespace Akka.HealthCheck.Tests.Configuration
         public void Should_signal_misconfiguration_when_Liveness_provider_is_invalid()
         {
             var hocon = ConfigurationFactory.ParseString(@"
-                akka.healthcheck.liveness.provider = ""Akka.Fake.FakeProvider, Akka.Fake""
+                akka.healthcheck.liveness.providers.default = ""Akka.Fake.FakeProvider, Akka.Fake""
             ");
 
             var settings = new HealthCheckSettings(hocon.WithFallback(HealthCheckSettings.DefaultConfig())
                 .GetConfig("akka.healthcheck"));
             settings.Misconfigured.Should().BeTrue();
-            settings.LivenessProbeProvider.Should().Be(typeof(DefaultLivenessProvider));
+            settings.LivenessProbeProvider.Should().Be(typeof(MisconfiguredLivenessProvider));
             settings.ReadinessProbeProvider.Should().Be(typeof(DefaultReadinessProvider));
         }
 
@@ -93,14 +93,14 @@ namespace Akka.HealthCheck.Tests.Configuration
         public void Should_signal_misconfiguration_when_Readiness_provider_is_invalid()
         {
             var hocon = ConfigurationFactory.ParseString(@"
-                akka.healthcheck.readiness.provider = ""Akka.Fake.FakeProvider, Akka.Fake""
+                akka.healthcheck.readiness.providers.default = ""Akka.Fake.FakeProvider, Akka.Fake""
             ");
 
             var settings = new HealthCheckSettings(hocon.WithFallback(HealthCheckSettings.DefaultConfig())
                 .GetConfig("akka.healthcheck"));
             settings.Misconfigured.Should().BeTrue();
             settings.LivenessProbeProvider.Should().Be(typeof(DefaultLivenessProvider));
-            settings.ReadinessProbeProvider.Should().Be(typeof(DefaultReadinessProvider));
+            settings.ReadinessProbeProvider.Should().Be(typeof(MisconfiguredReadinessProvider));
         }
     }
 }
