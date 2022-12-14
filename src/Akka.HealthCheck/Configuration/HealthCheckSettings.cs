@@ -38,11 +38,25 @@ namespace Akka.HealthCheck.Configuration
                 if (!TryValidateProbeType(kvp.Value.GetString(), out var provider))
                 {
                     MisconfiguredLiveness = MisconfiguredLiveness.SetItem(kvp.Key, kvp.Value.GetString()); 
-                    LivenessProbeProviders = LivenessProbeProviders.SetItem(kvp.Key, typeof(MisconfiguredLivenessProvider));
+                    LivenessProbeProviders = LivenessProbeProviders.SetItem(kvp.Key, typeof(DefaultLivenessProvider));
                 }
                 else
                 {
                     LivenessProbeProviders = LivenessProbeProviders.SetItem(kvp.Key, provider);
+                }
+            }
+
+            var compatSetting = healthcheckConfig.GetString("liveness.provider");
+            if (!string.IsNullOrEmpty(compatSetting))
+            {
+                if (!TryValidateProbeType(compatSetting, out var provider))
+                {
+                    MisconfiguredLiveness = MisconfiguredLiveness.SetItem("default", compatSetting); 
+                    LivenessProbeProviders = LivenessProbeProviders.SetItem("default", typeof(DefaultLivenessProvider));
+                }
+                else
+                {
+                    LivenessProbeProviders = LivenessProbeProviders.SetItem("default", provider);
                 }
             }
 
@@ -59,11 +73,25 @@ namespace Akka.HealthCheck.Configuration
                 if (!TryValidateProbeType(kvp.Value.GetString(), out var provider))
                 {
                     MisconfiguredReadiness = MisconfiguredReadiness.SetItem(kvp.Key, kvp.Value.GetString());
-                    ReadinessProbeProviders = ReadinessProbeProviders.SetItem(kvp.Key, typeof(MisconfiguredReadinessProvider));
+                    ReadinessProbeProviders = ReadinessProbeProviders.SetItem(kvp.Key, typeof(DefaultReadinessProvider));
                 }
                 else
                 {
                     ReadinessProbeProviders = ReadinessProbeProviders.SetItem(kvp.Key, provider);
+                }
+            }
+
+            compatSetting = healthcheckConfig.GetString("readiness.provider");
+            if (!string.IsNullOrEmpty(compatSetting))
+            {
+                if (!TryValidateProbeType(compatSetting, out var provider))
+                {
+                    MisconfiguredReadiness = MisconfiguredLiveness.SetItem("default", compatSetting); 
+                    ReadinessProbeProviders = LivenessProbeProviders.SetItem("default", typeof(DefaultReadinessProvider));
+                }
+                else
+                {
+                    ReadinessProbeProviders = LivenessProbeProviders.SetItem("default", provider);
                 }
             }
 

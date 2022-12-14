@@ -109,7 +109,9 @@ namespace Akka.HealthCheck
             LivenessProbes = ImmutableDictionary<string, IActorRef>.Empty; 
             foreach (var kvp in settings.LivenessProbeProviders)
             {
-                var provider = TryCreateProvider(kvp, system);
+                var provider = settings.MisconfiguredLiveness.ContainsKey(kvp.Key)
+                    ? (IProbeProvider)Activator.CreateInstance(typeof(MisconfiguredLivenessProvider), kvp.Key, system)
+                    : (IProbeProvider)Activator.CreateInstance(kvp.Value, system);
                 LivenessProviders = LivenessProviders.SetItem(kvp.Key, provider);
                 LivenessProbes = LivenessProbes.SetItem(
                     kvp.Key,
@@ -121,7 +123,9 @@ namespace Akka.HealthCheck
             ReadinessProbes = ImmutableDictionary<string, IActorRef>.Empty;
             foreach (var kvp in settings.ReadinessProbeProviders)
             {
-                var provider = TryCreateProvider(kvp, system);
+                var provider = settings.MisconfiguredReadiness.ContainsKey(kvp.Key)
+                    ? (IProbeProvider)Activator.CreateInstance(typeof(MisconfiguredReadinessProvider), kvp.Key, system)
+                    : (IProbeProvider)Activator.CreateInstance(kvp.Value, system);
                 ReadinessProviders = ReadinessProviders.SetItem(kvp.Key, provider);
                 ReadinessProbes = ReadinessProbes.SetItem(
                     kvp.Key,
@@ -236,14 +240,6 @@ namespace Akka.HealthCheck
 
             // means that we don't have an automatic transport setup
             return ActorRefs.Nobody;
-        }
-
-        internal static IProbeProvider TryCreateProvider(KeyValuePair<string, Type> kvp, ActorSystem system)
-        {
-            if (kvp.Value == typeof(MisconfiguredLivenessProvider) || kvp.Value == typeof(MisconfiguredReadinessProvider))
-                return (IProbeProvider)Activator.CreateInstance(kvp.Value, kvp.Key, system);
-            
-            return (IProbeProvider)Activator.CreateInstance(kvp.Value, system);
         }
 
         /// <summary>
