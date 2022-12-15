@@ -30,28 +30,47 @@ namespace Akka.HealthCheck.Transports
         public LivenessTransportActor(IStatusTransport statusTransport, ImmutableDictionary<string, IActorRef> livenessProbes, bool log)
         {
             _statusTransport = statusTransport;
+            var probeReverseLookup = livenessProbes.ToImmutableDictionary(kvp => kvp.Value, kvp => kvp.Key);
             _livenessProbes = livenessProbes.Values.ToList();
             _logInfo = log;
 
             ReceiveAsync<LivenessStatus>(async status =>
             {
+                var probeName = probeReverseLookup[Sender];
+                
                 if (_logInfo)
-                 _log.Info("Received liveness status. Live: {0}, Message: {1}", status.IsLive, status.StatusMessage);
+                 _log.Info("Received liveness status from probe [{0}]. Live: {1}, Message: {2}", probeName, 
+                     status.IsLive, status.StatusMessage);
                
                 var cts = new CancellationTokenSource(LivenessTimeout);
                 TransportWriteStatus writeStatus = null;
-                if (status.IsLive)
-                    writeStatus = await _statusTransport.Go(status.StatusMessage, cts.Token);
-                else
-                    writeStatus = await _statusTransport.Stop(status.StatusMessage, cts.Token);
+                try
+                {
+                    if (status.IsLive)
+                        writeStatus = await _statusTransport.Go($"[{probeName}] {status.StatusMessage}", cts.Token);
+                    else
+                        writeStatus = await _statusTransport.Stop($"[{probeName}] {status.StatusMessage}", cts.Token);
+                }
+                catch (Exception e)
+                {
+                    if (_logInfo)
+                        _log.Error(e, $"While processing status from probe [{probeName}]. Failed to write to transport.");
+
+                    throw new ProbeUpdateException(ProbeKind.Liveness,
+                        $"While processing status from probe [{probeName}]. Failed to update underlying transport {_statusTransport}", e);
+                }
+                finally
+                {
+                    cts.Dispose();
+                }
 
                 if (!writeStatus.Success)
                 {
                     if (_logInfo)
-                        _log.Error(writeStatus.Exception, "Failed to write to transport.");
+                        _log.Error(writeStatus.Exception, $"While processing status from probe [{probeName}]. Failed to write to transport.");
 
                     throw new ProbeUpdateException(ProbeKind.Liveness,
-                        $"Failed to update underlying transport {_statusTransport}", writeStatus.Exception);
+                        $"While processing status from probe [{probeName}]. Failed to update underlying transport {_statusTransport}", writeStatus.Exception);
                 }
             });
 
