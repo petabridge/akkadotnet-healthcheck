@@ -10,6 +10,7 @@ using Akka.Actor;
 using Akka.HealthCheck.Readiness;
 using Akka.HealthCheck.Tests.Transports;
 using Akka.HealthCheck.Transports;
+using FluentAssertions.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -81,8 +82,8 @@ namespace Akka.HealthCheck.Tests.Readiness
             fakeReadiness.Reply(new ReadinessStatus(false));
             AwaitCondition(() => testTransport.SystemCalls.Count == 4
                                  && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Go) == 1
-                                 && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) ==
-                                 3);
+                                 && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) == 3,
+                5.Seconds(), 100.Milliseconds());
         }
 
         [Fact(DisplayName = "ReadinessTransportActor should process Go and Stop signals successfully")]
