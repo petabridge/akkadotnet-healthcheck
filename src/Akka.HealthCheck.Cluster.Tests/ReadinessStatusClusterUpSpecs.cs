@@ -8,10 +8,10 @@ namespace Akka.HealthCheck.Cluster.Tests
     public class ReadinessStatusClusterUpSpecs : TestKit.Xunit.TestKit
     {
         public ReadinessStatusClusterUpSpecs(ITestOutputHelper helper)
-                    : base(confi, "ClusterServer", output: helper)
+                    : base(Config, "ClusterServer", output: helper)
         {
         }
-        private const string confi = @"
+        private const string Config = @"
         akka {   
    
     actor {
@@ -33,8 +33,8 @@ namespace Akka.HealthCheck.Cluster.Tests
         public Akka.Cluster.Cluster Cluster => Akka.Cluster.Cluster.Get(Sys);
 
 
-        [Fact(DisplayName = "ReadinessStatsuCluster should tell subscribers that it is up once it becomes avaialable")]
-        public void ReadinessStatusCluster_Sould_Tell_Subsribers_When_It_Becomes_Avaialabe()
+        [Fact(DisplayName = "ReadinessStatusCluster should tell subscribers that it is up once it becomes available")]
+        public void ReadinessStatusCluster_Should_Tell_Subscribers_When_It_Becomes_Available()
         {
             // step1 - verify joining of cluster
             Cluster.RegisterOnMemberUp(() => TestActor.Tell("ready"));
@@ -49,8 +49,8 @@ namespace Akka.HealthCheck.Cluster.Tests
             FishForMessage<ReadinessStatus>(r => r.IsReady);
         }
 
-        [Fact(DisplayName = "ReadinessStatsuCluster should tell subscribers when it leaves the Cluster")]
-        public void ReadinessStatusCluster_Sould_Tell_Subsribers_When_It_Leaves_Cluster()
+        [Fact(DisplayName = "ReadinessStatusCluster should tell subscribers when it leaves the Cluster")]
+        public void ReadinessStatusCluster_Should_Tell_Subscribers_When_It_Leaves_Cluster()
         {
             // step1 - verify joining of cluster
             Cluster.RegisterOnMemberUp(() => TestActor.Tell("ready"));

@@ -14,7 +14,7 @@ Bumped Akka version to 1.4.1</PackageReleaseNotes>
     <NBenchVersion>1.2.2</NBenchVersion>
     <XunitVersion>2.4.2</XunitVersion>
     <TestSdkVersion>17.4.0</TestSdkVersion>
-    <AkkaVersion>1.4.46</AkkaVersion>
+    <AkkaVersion>1.4.47</AkkaVersion>
     <AkkaHostingVersion>0.5.1</AkkaHostingVersion>
     <NetCoreTestVersion>netcoreapp3.1</NetCoreTestVersion>
     <NetTestVersion>net6.0</NetTestVersion>

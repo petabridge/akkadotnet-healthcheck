@@ -6,10 +6,13 @@
 
 using System;
 using System.Linq;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.HealthCheck.Readiness;
 using Akka.HealthCheck.Tests.Transports;
 using Akka.HealthCheck.Transports;
+using FluentAssertions.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,9 +30,10 @@ namespace Akka.HealthCheck.Tests.Readiness
         {
             var testTransport = new TestStatusTransport(new TestStatusTransportSettings(false, false, TimeSpan.Zero));
             var fakeReadiness = CreateTestProbe("readiness");
+            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeReadiness }.ToImmutableDictionary();;
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness,true)));
+                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, dict, true)));
 
             fakeReadiness.ExpectMsg<SubscribeToReadiness>();
 
@@ -67,9 +71,10 @@ namespace Akka.HealthCheck.Tests.Readiness
             var testTransport =
                 new TestStatusTransport(new TestStatusTransportSettings(true, true, TimeSpan.FromSeconds(1.5)));
             var fakeReadiness = CreateTestProbe("readiness");
+            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeReadiness }.ToImmutableDictionary();;
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness,true)));
+                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, dict, true)));
 
             fakeReadiness.ExpectMsg<SubscribeToReadiness>();
             fakeReadiness.Reply(new ReadinessStatus(true));
@@ -81,8 +86,8 @@ namespace Akka.HealthCheck.Tests.Readiness
             fakeReadiness.Reply(new ReadinessStatus(false));
             AwaitCondition(() => testTransport.SystemCalls.Count == 4
                                  && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Go) == 1
-                                 && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) ==
-                                 3);
+                                 && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) == 3,
+                5.Seconds(), 100.Milliseconds());
         }
 
         [Fact(DisplayName = "ReadinessTransportActor should process Go and Stop signals successfully")]
@@ -90,9 +95,10 @@ namespace Akka.HealthCheck.Tests.Readiness
         {
             var testTransport = new TestStatusTransport(new TestStatusTransportSettings(true, true, TimeSpan.Zero));
             var fakeReadiness = CreateTestProbe("readiness");
+            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeReadiness }.ToImmutableDictionary();
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness,true)));
+                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, dict, true)));
 
             fakeReadiness.ExpectMsg<SubscribeToReadiness>();
             fakeReadiness.Reply(new ReadinessStatus(true));
@@ -110,9 +116,10 @@ namespace Akka.HealthCheck.Tests.Readiness
         {
             var testTransport = new TestStatusTransport(new TestStatusTransportSettings(true, true, TimeSpan.Zero));
             var fakeReadiness = CreateTestProbe("readiness");
+            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeReadiness }.ToImmutableDictionary();;
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, fakeReadiness,true)));
+                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, dict, true)));
 
             fakeReadiness.ExpectMsg<SubscribeToReadiness>();
             Watch(transportActor);

@@ -5,11 +5,14 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Akka.Actor;
 using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Tests.Transports;
 using Akka.HealthCheck.Transports;
+using FluentAssertions.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,9 +30,10 @@ namespace Akka.HealthCheck.Tests.Liveness
         {
             var testTransport = new TestStatusTransport(new TestStatusTransportSettings(false, false, TimeSpan.Zero));
             var fakeLiveness = CreateTestProbe("liveness");
+            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeLiveness }.ToImmutableDictionary();;
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness,true)));
+                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, dict, true)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
 
@@ -67,9 +71,10 @@ namespace Akka.HealthCheck.Tests.Liveness
             var testTransport =
                 new TestStatusTransport(new TestStatusTransportSettings(true, true, TimeSpan.FromSeconds(1.5)));
             var fakeLiveness = CreateTestProbe("liveness");
+            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeLiveness }.ToImmutableDictionary();;
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness,true)));
+                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, dict, true)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
             fakeLiveness.Reply(new LivenessStatus(true));
@@ -81,8 +86,8 @@ namespace Akka.HealthCheck.Tests.Liveness
             fakeLiveness.Reply(new LivenessStatus(false));
             AwaitCondition(() => testTransport.SystemCalls.Count == 4
                                  && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Go) == 1
-                                 && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) ==
-                                 3);
+                                 && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) == 3,
+                5.Seconds(), 100.Milliseconds());
         }
 
         [Fact(DisplayName = "LivenessTransportActor should process Go and Stop signals successfully")]
@@ -90,9 +95,10 @@ namespace Akka.HealthCheck.Tests.Liveness
         {
             var testTransport = new TestStatusTransport(new TestStatusTransportSettings(true, true, TimeSpan.Zero));
             var fakeLiveness = CreateTestProbe("liveness");
+            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeLiveness }.ToImmutableDictionary();;
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness,true)));
+                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, dict, true)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
             fakeLiveness.Reply(new LivenessStatus(true));
@@ -110,9 +116,10 @@ namespace Akka.HealthCheck.Tests.Liveness
         {
             var testTransport = new TestStatusTransport(new TestStatusTransportSettings(true, true, TimeSpan.Zero));
             var fakeLiveness = CreateTestProbe("liveness");
+            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeLiveness }.ToImmutableDictionary();;
 
             var transportActor =
-                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, fakeLiveness, true)));
+                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, dict, true)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
             Watch(transportActor);
