@@ -12,6 +12,7 @@ using Akka.Actor;
 using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Tests.Transports;
 using Akka.HealthCheck.Transports;
+using FluentAssertions.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -85,8 +86,8 @@ namespace Akka.HealthCheck.Tests.Liveness
             fakeLiveness.Reply(new LivenessStatus(false));
             AwaitCondition(() => testTransport.SystemCalls.Count == 4
                                  && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Go) == 1
-                                 && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) ==
-                                 3);
+                                 && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) == 3,
+                5.Seconds(), 100.Milliseconds());
         }
 
         [Fact(DisplayName = "LivenessTransportActor should process Go and Stop signals successfully")]
