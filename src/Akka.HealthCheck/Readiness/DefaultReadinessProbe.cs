@@ -56,10 +56,10 @@ namespace Akka.HealthCheck.Readiness
         ///     Used in cases where the end-user screwed up their configuration.
         /// </summary>
         /// <returns><see cref="Props" /> for a <see cref="DefaultReadinessProbe" /> that will indicate the system is not ready.</returns>
-        public static Props MisconfiguredProbeProbs()
+        public static Props MisconfiguredProbeProps(string key)
         {
             return Props.Create(() => new DefaultReadinessProbe(new ReadinessStatus(false,
-                "akka.healthcheck.readiness.provider is misconfigured. No suitable type found.")));
+                $"akka.healthcheck.readiness.providers{key} is misconfigured. No suitable type found.")));
         }
     }
 }

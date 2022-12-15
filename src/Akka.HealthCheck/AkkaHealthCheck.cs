@@ -5,6 +5,10 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
 using Akka.Actor;
 using Akka.HealthCheck.Configuration;
 using Akka.HealthCheck.Liveness;
@@ -24,7 +28,7 @@ namespace Akka.HealthCheck
     {
         public override AkkaHealthCheck CreateExtension(ExtendedActorSystem system)
         {
-            return new AkkaHealthCheck(new HealthCheckSettings(system), system);
+            return new AkkaHealthCheck(system);
         }
     }
 
@@ -41,51 +45,100 @@ namespace Akka.HealthCheck
          */
         internal IActorRef ReadinessTransportActor;
 
-        public AkkaHealthCheck(HealthCheckSettings settings, ExtendedActorSystem system)
+        public AkkaHealthCheck(ExtendedActorSystem system)
         {
-            Settings = settings;
+            system.Settings.InjectTopLevelFallback(HealthCheckSettings.DefaultConfig());
+            var settings = Settings = new HealthCheckSettings(system);
             
             if (settings.LogConfigOnStart)
             {
-                system.Log.Info("Liveness Prove Provider: {0}", Settings.LivenessProbeProvider);
+                var sb = new StringBuilder()
+                    .AppendLine("Liveness Prove Providers:");
+                foreach (var kvp in Settings.LivenessProbeProviders)
+                {
+                    sb.AppendLine($"\t{kvp.Key}: {kvp.Value}");
+                }
+                system.Log.Info(sb.ToString());
                 system.Log.Info("Liveness Transport Type: {0}", Settings.LivenessTransport.ToString());
                 system.Log.Info(Settings.LivenessTransportSettings.StartupMessage);
-                system.Log.Info("Readiness Prove Provider: {0}", Settings.ReadinessProbeProvider);
+                
+                sb.Clear().AppendLine("Readiness Prove Providers:");
+                foreach (var kvp in Settings.ReadinessProbeProviders)
+                {
+                    sb.AppendLine($"\t{kvp.Key}: {kvp.Value}");
+                }
                 system.Log.Info("Readines Transport Type: {0}", Settings.ReadinessTransport.ToString());
                 system.Log.Info(Settings.ReadinessTransportSettings.StartupMessage);
             }
 
-            if (!settings.Misconfigured)
+            if (settings.MisconfiguredLiveness.Count == 0)
             {
                 if (settings.LogConfigOnStart)
                 {
-                    system.Log.Info("Settings Correctly Configured");
+                    system.Log.Info("Liveness settings Correctly Configured");
                 }
-                LivenessProvider = TryCreateProvider(settings.LivenessProbeProvider, system);
-                ReadinessProvider = TryCreateProvider(settings.ReadinessProbeProvider, system);
-
             }
             else // if we are misconfigured
             {
                 if (settings.LogConfigOnStart)
                 {
-                    system.Log.Info("Settings Misconfigured");
+                    system.Log.Info(
+                        "Liveness settings misconfigured:\n" +
+                        $"{string.Join("\n\t", settings.MisconfiguredLiveness.Select(kvp => $"Invalid liveness provider type {kvp.Value} for key {kvp.Key}"))}");
                 }
-                LivenessProvider = new MisconfiguredLivenessProvider(system);
-                ReadinessProvider = new MisconfiguredReadinessProvider(system);
-                
             }
 
-            // start the probes
-            LivenessProbe = system.SystemActorOf(LivenessProvider.ProbeProps, "healthcheck-live");
-            ReadinessProbe = system.SystemActorOf(ReadinessProvider.ProbeProps, "healthcheck-readiness");
+            if (settings.MisconfiguredReadiness.Count == 0)
+            {
+                if (settings.LogConfigOnStart)
+                {
+                    system.Log.Info("Readiness settings Correctly Configured");
+                }
+            }
+            else // if we are misconfigured
+            {
+                if (settings.LogConfigOnStart)
+                {
+                    system.Log.Info(
+                        "Readiness settings misconfigured:\n" +
+                        $"{string.Join("\n\t", settings.MisconfiguredReadiness.Select(kvp => $"Invalid readiness provider type {kvp.Value} for key {kvp.Key}"))}");
+                }
+            }
+            
+            // Create liveness providers and start probes
+            LivenessProviders = ImmutableDictionary<string, IProbeProvider>.Empty;
+            LivenessProbes = ImmutableDictionary<string, IActorRef>.Empty; 
+            foreach (var kvp in settings.LivenessProbeProviders)
+            {
+                var provider = settings.MisconfiguredLiveness.ContainsKey(kvp.Key)
+                    ? (IProbeProvider)Activator.CreateInstance(typeof(MisconfiguredLivenessProvider), kvp.Key, system)
+                    : (IProbeProvider)Activator.CreateInstance(kvp.Value, system);
+                LivenessProviders = LivenessProviders.SetItem(kvp.Key, provider);
+                LivenessProbes = LivenessProbes.SetItem(
+                    kvp.Key,
+                    system.SystemActorOf(provider.ProbeProps, $"healthcheck-live-{kvp.Key}"));
+            }
+            
+            // Create readiness providers and start probes
+            ReadinessProviders = ImmutableDictionary<string, IProbeProvider>.Empty;
+            ReadinessProbes = ImmutableDictionary<string, IActorRef>.Empty;
+            foreach (var kvp in settings.ReadinessProbeProviders)
+            {
+                var provider = settings.MisconfiguredReadiness.ContainsKey(kvp.Key)
+                    ? (IProbeProvider)Activator.CreateInstance(typeof(MisconfiguredReadinessProvider), kvp.Key, system)
+                    : (IProbeProvider)Activator.CreateInstance(kvp.Value, system);
+                ReadinessProviders = ReadinessProviders.SetItem(kvp.Key, provider);
+                ReadinessProbes = ReadinessProbes.SetItem(
+                    kvp.Key,
+                    system.SystemActorOf(provider.ProbeProps, $"healthcheck-readiness-{kvp.Key}"));
+            }
 
             // Need to set up transports (possibly)
             LivenessTransportActor = StartTransportActor(Settings.LivenessTransportSettings, system, ProbeKind.Liveness,
-                LivenessProbe, Settings.LogInfoEvents);
+                LivenessProbes, Settings.LogInfoEvents);
 
             ReadinessTransportActor = StartTransportActor(Settings.ReadinessTransportSettings, system,
-                ProbeKind.Readiness, ReadinessProbe, Settings.LogInfoEvents);
+                ProbeKind.Readiness, ReadinessProbes, Settings.LogInfoEvents);
         }
 
         /// <summary>
@@ -94,33 +147,65 @@ namespace Akka.HealthCheck
         public HealthCheckSettings Settings { get; }
 
         /// <summary>
-        ///     The <see cref="IProbeProvider" /> used to create <see cref="LivenessProbe" />.
+        ///     The <see cref="IProbeProvider"/>s used to create <see cref="LivenessProbes"/>s.
         /// </summary>
-        public IProbeProvider LivenessProvider { get; }
+        public ImmutableDictionary<string, IProbeProvider> LivenessProviders { get; }
 
         /// <summary>
-        ///     The running instance of the liveness probe actor.
+        ///     The <see cref="IProbeProvider" /> used to create the default <see cref="LivenessProbes" />.
+        /// </summary>
+        public IProbeProvider LivenessProvider => LivenessProviders.ContainsKey("default")
+            ? LivenessProviders["default"]
+            : LivenessProviders.Values.First();
+
+        /// <summary>
+        ///     The running instances of the liveness probe actor.
         ///     Can be queried via a <see cref="GetCurrentLiveness" /> message,
         ///     or you can subscribe to changes in liveness via <see cref="SubscribeToLiveness" />
         ///     and unsubscribe via <see cref="UnsubscribeFromLiveness" />.
         /// </summary>
-        public IActorRef LivenessProbe { get; }
+        public ImmutableDictionary<string, IActorRef> LivenessProbes { get; }
 
         /// <summary>
-        ///     The <see cref="IProbeProvider" /> used to create <see cref="ReadinessProbe" />.
+        ///     The running default instance of the liveness probe actor or the first registered liveness probe.
+        ///     Can be queried via a <see cref="GetCurrentLiveness" /> message,
+        ///     or you can subscribe to changes in liveness via <see cref="SubscribeToLiveness" />
+        ///     and unsubscribe via <see cref="UnsubscribeFromLiveness" />.
         /// </summary>
-        public IProbeProvider ReadinessProvider { get; }
+        public IActorRef LivenessProbe =>
+            LivenessProbes.ContainsKey("default") ? LivenessProbes["default"] : LivenessProbes.Values.First();
 
         /// <summary>
-        ///     The running instance of the readiness probe actor.
+        ///     The <see cref="IProbeProvider"/>s used to create <see cref="ReadinessProbes"/>s.
+        /// </summary>
+        public ImmutableDictionary<string, IProbeProvider> ReadinessProviders { get; }
+
+        /// <summary>
+        ///     The <see cref="IProbeProvider"/>s used to create the default <see cref="ReadinessProbes"/>s.
+        /// </summary>
+        public IProbeProvider ReadinessProvider => ReadinessProviders.ContainsKey("default")
+            ? ReadinessProviders["default"]
+            : ReadinessProviders.Values.First();
+        
+        /// <summary>
+        ///     The running instances of the readiness probe actor.
         ///     Can be queried via a <see cref="GetCurrentReadiness" /> message,
         ///     or you can subscribe to changes in liveness via <see cref="SubscribeToReadiness" />
         ///     and unsubscribe via <see cref="UnsubscribeFromReadiness" />.
         /// </summary>
-        public IActorRef ReadinessProbe { get; }
+        public ImmutableDictionary<string, IActorRef> ReadinessProbes { get; }
+
+        /// <summary>
+        ///     The running default instance of the liveness probe actor or the first registered liveness probe.
+        ///     Can be queried via a <see cref="GetCurrentLiveness" /> message,
+        ///     or you can subscribe to changes in liveness via <see cref="SubscribeToLiveness" />
+        ///     and unsubscribe via <see cref="UnsubscribeFromLiveness" />.
+        /// </summary>
+        public IActorRef ReadinessProbe =>
+            ReadinessProbes.ContainsKey("default") ? ReadinessProbes["default"] : ReadinessProbes.Values.First();
 
         public static IActorRef StartTransportActor(ITransportSettings settings, ExtendedActorSystem system,
-            ProbeKind probeKind, IActorRef probe, bool log)
+            ProbeKind probeKind, ImmutableDictionary<string, IActorRef> probes, bool log)
         {
             if (settings is FileTransportSettings fileTransport)
                 switch (probeKind)
@@ -128,13 +213,13 @@ namespace Akka.HealthCheck
                     case ProbeKind.Liveness:
                         return system.ActorOf(
                             Props.Create(
-                                () => new LivenessTransportActor(new FileStatusTransport(fileTransport), probe, log)),
+                                () => new LivenessTransportActor(new FileStatusTransport(fileTransport), probes, log)),
                             "liveness-transport" + ThreadLocalRandom.Current.Next());
                     case ProbeKind.Readiness:
                     default:
                         return system.ActorOf(
                             Props.Create(
-                                () => new ReadinessTransportActor(new FileStatusTransport(fileTransport), probe, log)),
+                                () => new ReadinessTransportActor(new FileStatusTransport(fileTransport), probes, log)),
                             "readiness-transport" + ThreadLocalRandom.Current.Next());
                 }
 
@@ -144,23 +229,18 @@ namespace Akka.HealthCheck
                     case ProbeKind.Liveness:
                         return system.ActorOf(
                             Props.Create(
-                                () => new LivenessTransportActor(new SocketStatusTransport(socketTransport), probe, log)),
+                                () => new LivenessTransportActor(new SocketStatusTransport(socketTransport), probes, log)),
                             "liveness-transport" + ThreadLocalRandom.Current.Next());
                     case ProbeKind.Readiness:
                     default:
                         return system.ActorOf(
                             Props.Create(
-                                () => new ReadinessTransportActor(new SocketStatusTransport(socketTransport), probe, log)),
+                                () => new ReadinessTransportActor(new SocketStatusTransport(socketTransport), probes, log)),
                             "readiness-transport" + ThreadLocalRandom.Current.Next());
                 }
 
             // means that we don't have an automatic transport setup
             return ActorRefs.Nobody;
-        }
-
-        internal static IProbeProvider TryCreateProvider(Type providerType, ActorSystem system)
-        {
-            return (IProbeProvider)Activator.CreateInstance(providerType, system);
         }
 
         /// <summary>
