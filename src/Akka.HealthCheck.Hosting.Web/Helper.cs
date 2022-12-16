@@ -31,6 +31,9 @@ namespace Akka.HealthCheck.Hosting.Web
             public static readonly string[] PersistenceLiveness = { "akka", "live", "persistence" };
             public static readonly string[] Readiness = { "akka", "ready", "node" };
             public static readonly string[] ClusterReadiness = { "akka", "ready", "cluster" };
+            public static readonly string[] Live = { "akka", "live" };
+            public static readonly string[] Ready = { "akka", "ready" };
+            public static readonly string[] Akka = { "akka" };
         }
 
         internal static string ToPath(this string[] tags)
@@ -39,23 +42,23 @@ namespace Akka.HealthCheck.Hosting.Web
         public static class Filters
         {
             public static readonly Func<HealthCheckRegistration, bool> Liveness = healthCheck =>
-                healthCheck.Tags.IsSupersetOf(new[] { "akka", "node", "live" });
+                healthCheck.Tags.IsSupersetOf(Tags.Liveness);
             public static readonly Func<HealthCheckRegistration, bool> Readiness = healthCheck =>
-                healthCheck.Tags.IsSupersetOf(new[] { "akka", "node", "ready" });
+                healthCheck.Tags.IsSupersetOf(Tags.Readiness);
             public static readonly Func<HealthCheckRegistration, bool> ClusterLiveness = healthCheck =>
-                healthCheck.Tags.IsSupersetOf(new[] { "akka", "cluster", "live" });
+                healthCheck.Tags.IsSupersetOf(Tags.ClusterLiveness);
             public static readonly Func<HealthCheckRegistration, bool> ClusterReadiness = healthCheck =>
-                healthCheck.Tags.IsSupersetOf(new[] { "akka", "cluster", "ready" });
+                healthCheck.Tags.IsSupersetOf(Tags.ClusterReadiness);
             public static readonly Func<HealthCheckRegistration, bool> PersistenceLiveness = healthCheck =>
-                healthCheck.Tags.IsSupersetOf(new[] { "akka", "persistence", "live" });
+                healthCheck.Tags.IsSupersetOf(Tags.PersistenceLiveness);
 
             public static readonly Func<HealthCheckRegistration, bool> AllLiveness = healthCheck =>
-                healthCheck.Tags.IsSupersetOf(new[] { "akka", "live" });
+                healthCheck.Tags.IsSupersetOf(Tags.Live);
 
             public static readonly Func<HealthCheckRegistration, bool> AllReadiness = healthCheck =>
-                healthCheck.Tags.IsSupersetOf(new[] { "akka", "ready" });
+                healthCheck.Tags.IsSupersetOf(Tags.Ready);
             public static readonly Func<HealthCheckRegistration, bool> All = healthCheck =>
-                healthCheck.Tags.IsSupersetOf(new[] { "akka" }); 
+                healthCheck.Tags.IsSupersetOf(Tags.Akka); 
         }
         
         public static Task JsonResponseWriter(HttpContext context, HealthReport healthReport)

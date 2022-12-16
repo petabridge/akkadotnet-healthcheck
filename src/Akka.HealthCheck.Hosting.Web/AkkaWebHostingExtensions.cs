@@ -6,20 +6,15 @@
 
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Akka.HealthCheck.Hosting.Web.Services;
 using Akka.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Akka.HealthCheck.Hosting.Web
 {
@@ -43,25 +38,21 @@ namespace Akka.HealthCheck.Hosting.Web
 
         public static IServiceCollection WithAkkaHealthCheck(this IServiceCollection services, HealthCheckType types)
         {
+            var builder = services.AddHealthChecks();
             if((types & HealthCheckType.DefaultLiveness) > 0)
-                services.AddHealthChecks()
-                    .AddCheck<AkkaLivenessService>(Helper.Names.Liveness, HealthStatus.Unhealthy, Helper.Tags.Liveness);
+                builder.AddCheck<AkkaLivenessService>(Helper.Names.Liveness, HealthStatus.Unhealthy, Helper.Tags.Liveness);
             
             if((types & HealthCheckType.DefaultReadiness) > 0)
-                services.AddHealthChecks()
-                    .AddCheck<AkkaReadinessService>(Helper.Names.Readiness, HealthStatus.Unhealthy, Helper.Tags.Readiness);
+                builder.AddCheck<AkkaReadinessService>(Helper.Names.Readiness, HealthStatus.Unhealthy, Helper.Tags.Readiness);
             
             if((types & HealthCheckType.ClusterLiveness) > 0)
-                services.AddHealthChecks()
-                    .AddCheck<AkkaClusterLivenessService>(Helper.Names.ClusterLiveness, HealthStatus.Unhealthy, Helper.Tags.ClusterLiveness);
+                builder.AddCheck<AkkaClusterLivenessService>(Helper.Names.ClusterLiveness, HealthStatus.Unhealthy, Helper.Tags.ClusterLiveness);
             
             if((types & HealthCheckType.ClusterReadiness) > 0)
-                services.AddHealthChecks()
-                    .AddCheck<AkkaClusterReadinessService>(Helper.Names.ClusterReadiness, HealthStatus.Unhealthy, Helper.Tags.ClusterReadiness);
+                builder.AddCheck<AkkaClusterReadinessService>(Helper.Names.ClusterReadiness, HealthStatus.Unhealthy, Helper.Tags.ClusterReadiness);
             
             if((types & HealthCheckType.PersistenceLiveness) > 0)
-                services.AddHealthChecks()
-                    .AddCheck<AkkaPersistenceLivenessService>(Helper.Names.PersistenceLiveness, HealthStatus.Unhealthy, Helper.Tags.PersistenceLiveness);
+                builder.AddCheck<AkkaPersistenceLivenessService>(Helper.Names.PersistenceLiveness, HealthStatus.Unhealthy, Helper.Tags.PersistenceLiveness);
 
             return services;
         }
@@ -69,7 +60,7 @@ namespace Akka.HealthCheck.Hosting.Web
         public static IServiceCollection WithAkkaLivenessService(this IServiceCollection services)
         {
             services.AddHealthChecks()
-                .AddCheck<AkkaLivenessService>("akka-liveness", HealthStatus.Unhealthy, Helper.Tags.Liveness);
+                .AddCheck<AkkaLivenessService>(Helper.Names.Liveness, HealthStatus.Unhealthy, Helper.Tags.Liveness);
 
             return services;
         }
@@ -77,7 +68,7 @@ namespace Akka.HealthCheck.Hosting.Web
         public static IServiceCollection WithAkkaReadinessService(this IServiceCollection services)
         {
             services.AddHealthChecks()
-                .AddCheck<AkkaReadinessService>("akka-readiness", HealthStatus.Unhealthy, Helper.Tags.Readiness);
+                .AddCheck<AkkaReadinessService>(Helper.Names.Readiness, HealthStatus.Unhealthy, Helper.Tags.Readiness);
 
             return services;
         }
@@ -85,7 +76,7 @@ namespace Akka.HealthCheck.Hosting.Web
         public static IServiceCollection WithAkkaPersistenceLivenessService(this IServiceCollection services)
         {
             services.AddHealthChecks()
-                .AddCheck<AkkaPersistenceLivenessService>("akka-persistence-liveness", HealthStatus.Unhealthy, Helper.Tags.PersistenceLiveness);
+                .AddCheck<AkkaPersistenceLivenessService>(Helper.Names.PersistenceLiveness, HealthStatus.Unhealthy, Helper.Tags.PersistenceLiveness);
 
             return services;
         }
@@ -93,7 +84,7 @@ namespace Akka.HealthCheck.Hosting.Web
         public static IServiceCollection WithAkkaClusterLivenessService(this IServiceCollection services)
         {
             services.AddHealthChecks()
-                .AddCheck<AkkaClusterLivenessService>("akka-cluster-liveness", HealthStatus.Unhealthy, Helper.Tags.ClusterLiveness);
+                .AddCheck<AkkaClusterLivenessService>(Helper.Names.ClusterLiveness, HealthStatus.Unhealthy, Helper.Tags.ClusterLiveness);
 
             return services;
         }
@@ -101,7 +92,7 @@ namespace Akka.HealthCheck.Hosting.Web
         public static IServiceCollection WithAkkaClusterReadinessService(this IServiceCollection services)
         {
             services.AddHealthChecks()
-                .AddCheck<AkkaClusterReadinessService>("akka-cluster-readiness", HealthStatus.Unhealthy, Helper.Tags.ClusterReadiness);
+                .AddCheck<AkkaClusterReadinessService>(Helper.Names.ClusterReadiness, HealthStatus.Unhealthy, Helper.Tags.ClusterReadiness);
 
             return services;
         }
@@ -190,19 +181,19 @@ namespace Akka.HealthCheck.Hosting.Web
             optionConfigure?.Invoke(opt);
             if (containsLive)
             {
-                var epBuilder = builder.MapHealthChecks($"{path}/akka/live", opt.WithPredicate(Helper.Filters.AllLiveness));
+                var epBuilder = builder.MapHealthChecks($"{path}/{Helper.Tags.Live.ToPath()}", opt.WithPredicate(Helper.Filters.AllLiveness));
                 endpointConfigure?.Invoke(epBuilder);
             }
 
             if (containsReady)
             {
-                var epBuilder = builder.MapHealthChecks($"{path}/akka/ready", opt.WithPredicate(Helper.Filters.AllReadiness));
+                var epBuilder = builder.MapHealthChecks($"{path}/{Helper.Tags.Ready.ToPath()}", opt.WithPredicate(Helper.Filters.AllReadiness));
                 endpointConfigure?.Invoke(epBuilder);
             }
 
             if (containsReady || containsLive)
             {
-                var epBuilder = builder.MapHealthChecks($"{path}/akka", opt.WithPredicate(Helper.Filters.All));
+                var epBuilder = builder.MapHealthChecks($"{path}/{Helper.Tags.Akka.ToPath()}", opt.WithPredicate(Helper.Filters.All));
                 endpointConfigure?.Invoke(epBuilder);
             }
             
@@ -264,7 +255,7 @@ namespace Akka.HealthCheck.Hosting.Web
             
             builder.AddStartup((system, _) =>
             {
-                HealthCheck.AkkaHealthCheck.For(system);
+                AkkaHealthCheck.For(system);
             });
             
             return builder;
