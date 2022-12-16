@@ -53,7 +53,7 @@ namespace Akka.HealthCheck
             if (settings.LogConfigOnStart)
             {
                 var sb = new StringBuilder()
-                    .AppendLine("Liveness Prove Providers:");
+                    .AppendLine("Liveness Probe Providers:");
                 foreach (var kvp in Settings.LivenessProbeProviders)
                 {
                     sb.AppendLine($"\t{kvp.Key}: {kvp.Value}");
@@ -62,12 +62,13 @@ namespace Akka.HealthCheck
                 system.Log.Info("Liveness Transport Type: {0}", Settings.LivenessTransport.ToString());
                 system.Log.Info(Settings.LivenessTransportSettings.StartupMessage);
                 
-                sb.Clear().AppendLine("Readiness Prove Providers:");
+                sb.Clear().AppendLine("Readiness Probe Providers:");
                 foreach (var kvp in Settings.ReadinessProbeProviders)
                 {
                     sb.AppendLine($"\t{kvp.Key}: {kvp.Value}");
                 }
-                system.Log.Info("Readines Transport Type: {0}", Settings.ReadinessTransport.ToString());
+                system.Log.Info(sb.ToString());
+                system.Log.Info("Readiness Transport Type: {0}", Settings.ReadinessTransport.ToString());
                 system.Log.Info(Settings.ReadinessTransportSettings.StartupMessage);
             }
 

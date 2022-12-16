@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Akka.HealthCheck.Hosting.Web\Akka.HealthCheck.Hosting.Web.csproj" />
     <ProjectReference Include="..\Akka.HealthCheck.Cluster\Akka.HealthCheck.Cluster.csproj" />
     <ProjectReference Include="..\Akka.HealthCheck.Hosting\Akka.HealthCheck.Hosting.csproj" />
     <ProjectReference Include="..\Akka.HealthCheck.Persistence\Akka.HealthCheck.Persistence.csproj" />

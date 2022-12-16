@@ -5,9 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using Akka.Actor;
-using Akka.Cluster;
 using Akka.Event;
 using Akka.HealthCheck.Liveness;
 
@@ -28,11 +26,13 @@ namespace Akka.HealthCheck.Cluster
 
         private LivenessStatus _livenessStatus;
 
-        public ClusterLivenessProbe()
+        public ClusterLivenessProbe() : this(DefaultClusterLivenessStatus)
         {
-            var selfMember = _cluster.State.Members.FirstOrDefault(m => m.Address == _cluster.SelfAddress);
-            var isUp = selfMember is { Status: MemberStatus.Up or MemberStatus.WeaklyUp };
-            _livenessStatus = isUp ? new LivenessStatus(true) : DefaultClusterLivenessStatus;
+        }
+        
+        public ClusterLivenessProbe(LivenessStatus livenessStatus)
+        {
+            _livenessStatus = livenessStatus;
 
             Receive<LivenessStatus>(s =>
             {

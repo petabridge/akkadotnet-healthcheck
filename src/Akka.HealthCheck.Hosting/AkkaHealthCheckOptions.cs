@@ -5,8 +5,14 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using Akka.Configuration;
+using Akka.HealthCheck.Cluster;
+using Akka.HealthCheck.Persistence;
+using Akka.HealthCheck.Readiness;
+using Akka.Hosting;
 
 namespace Akka.HealthCheck.Hosting
 {
@@ -24,6 +30,36 @@ namespace Akka.HealthCheck.Hosting
         public bool? LogConfigOnStart { get; set; }
         public bool? LogInfo { get; set; }
 
+        public AkkaHealthCheckOptions AddClusterReadinessProvider()
+        {
+            Readiness.AddProvider<ClusterReadinessProbeProvider>("cluster");
+            return this;
+        }
+
+        public AkkaHealthCheckOptions AddClusterLivenessProvider()
+        {
+            Liveness.AddProvider<ClusterLivenessProbeProvider>("cluster");
+            return this;
+        }
+
+        public AkkaHealthCheckOptions AddPersistenceLivenessProvider()
+        {
+            Liveness.AddProvider<AkkaPersistenceLivenessProbeProvider>("persistence");
+            return this;
+        }
+        
+        public AkkaHealthCheckOptions AddReadinessProvider<T>(string key) where T : IProbeProvider
+        {
+            Readiness.AddProvider<T>(key);
+            return this;
+        }
+        
+        public AkkaHealthCheckOptions AddLivenessProvider<T>(string key) where T : IProbeProvider
+        {
+            Liveness.AddProvider<T>(key);
+            return this;
+        }
+        
         internal Config? ToConfig()
         {
             var sb = new StringBuilder();
@@ -62,36 +98,33 @@ namespace Akka.HealthCheck.Hosting
 
     public sealed class ProviderOptions
     {
-        public Type? Provider { get; }
+        public ImmutableDictionary<string, Type> Providers { get; private set; } = ImmutableDictionary<string, Type>.Empty;
+            
         public HealthCheckTransport? Transport { get; set; }
         public string? FilePath { get; set; }
         public int? TcpPort { get; set; }
 
-        public ProviderOptions()
+        public ProviderOptions AddProvider<T>(string key) where T : IProbeProvider
         {
-            Provider = null;
+            Providers = Providers.SetItem(key, typeof(T));
+            return this;
         }
-
-        private ProviderOptions(Type providerType)
-        {
-            Provider = providerType;
-        }
-
-        public ProviderOptions WithProvider<T>() where T : IProbeProvider
-            => new ProviderOptions(typeof(T))
-            {
-                Transport = Transport,
-                FilePath = FilePath,
-                TcpPort = TcpPort
-            };
 
         internal StringBuilder? GetStringBuilder()
         {
             var sb = new StringBuilder();
-            if (Provider is { })
-                sb.AppendLine($"provider = {Provider.AssemblyQualifiedName}");
+            if (Providers.Count > 0)
+            {
+                sb.AppendLine("providers {");
+                foreach (var kvp in Providers)
+                {
+                    sb.AppendLine($"{kvp.Key} = {kvp.Value.AssemblyQualifiedName.ToHocon()}");
+                }
+                sb.AppendLine("}");
+            }
+            
             if (Transport is { })
-                sb.AppendLine($"transport = {Transport.ToString().ToLower()}");
+                sb.AppendLine($"transport = {Transport.ToString()?.ToLower()}");
             if (FilePath is { })
                 sb.AppendLine($"file.path = {FilePath}");
             if (TcpPort is { })

@@ -9,8 +9,6 @@
 
     <ItemGroup>
       <PackageReference Include="Akka.Hosting" Version="$(AkkaHostingVersion)" />
-      <PackageReference Include="Microsoft.AspNetCore.Diagnostics.HealthChecks" Version="2.2.0" />
-      <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
