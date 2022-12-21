@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="AkkaLivenessService.cs" company="Petabridge, LLC">
+// <copyright file="AkkaClusterReadinessService.cs" company="Petabridge, LLC">
 //      Copyright (C) 2015 - 2022 Petabridge, LLC <https://petabridge.com>
 // </copyright>
 // -----------------------------------------------------------------------
@@ -10,33 +10,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Configuration;
-using Akka.HealthCheck.Liveness;
+using Akka.HealthCheck.Readiness;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace Akka.HealthCheck.Hosting.Web.Services
+namespace Akka.HealthCheck.Hosting.Web.Probes
 {
     /// <summary>
-    /// An ASP.NET <see cref="IHealthCheck"/> service implementation for checking Akka.NET node liveness status.
+    /// An ASP.NET <see cref="IHealthCheck"/> service implementation for checking Akka.NET cluster readiness status.
     /// </summary>
-    public class AkkaLivenessService : IAkkaHealthcheck
+    public class AkkaClusterReadinessProbe : IAkkaHealthcheck
     {
-        private const string Healthy = "Akka.NET node is alive";
-        private const string UnHealthy = "Akka.NET node is not alive";
+        private const string Healthy = "Akka.NET cluster is ready";
+        private const string UnHealthy = "Akka.NET cluster is not ready";
         private const string Exception = "Exception occured when processing cluster liveness";
         private const string Message = "message";
         
         private readonly IActorRef _probe;
 
         /// <summary>
-        /// Creates a new <see cref="AkkaLivenessService"/> instance.
+        /// Creates a new <see cref="AkkaClusterReadinessProbe"/> instance.
         /// Note that this constructor is meant to be called by ASP.NET and not called directly by the user.
         /// </summary>
-        /// <param name="system">The <see cref="ActorSystem"/> node</param>
-        public AkkaLivenessService(ActorSystem system)
+        /// <param name="system">The <see cref="ActorSystem"/> that hosts the cluster node</param>
+        public AkkaClusterReadinessProbe(ActorSystem system)
         {
-            if (!AkkaHealthCheck.For(system).LivenessProbes.TryGetValue("default", out _probe!))
+            if (!AkkaHealthCheck.For(system).ReadinessProbes.TryGetValue("cluster", out _probe!))
             {
-                throw new ConfigurationException("Could not find liveness actor with key 'default'. AkkaHealthCheck have failed to start properly.");
+                throw new ConfigurationException("Could not find readiness actor with key 'cluster'. Have you added cluster readiness provider in AkkaHealthCheckOptions?");
             }
         }
 
@@ -45,11 +45,11 @@ namespace Akka.HealthCheck.Hosting.Web.Services
         {
             try
             {
-                var status = await _probe.Ask<LivenessStatus>(
-                    message: GetCurrentLiveness.Instance, 
+                var status = await _probe.Ask<ReadinessStatus>(
+                    message: GetCurrentReadiness.Instance,
                     cancellationToken: cancellationToken);
                 
-                return status.IsLive 
+                return status.IsReady 
                     ? HealthCheckResult.Healthy(Healthy, new Dictionary<string, object> { [Message] = status.StatusMessage })
                     : HealthCheckResult.Unhealthy(UnHealthy, data: new Dictionary<string, object> { [Message] = status.StatusMessage });
             }

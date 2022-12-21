@@ -6,7 +6,7 @@
 
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace Akka.HealthCheck.Hosting.Web.Services
+namespace Akka.HealthCheck.Hosting.Web.Probes
 {
     public interface IAkkaHealthcheck: IHealthCheck
     { }
