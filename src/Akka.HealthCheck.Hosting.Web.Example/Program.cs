@@ -17,7 +17,7 @@ public static class Program
                 builder
                     .AddHocon("akka.cluster.min-nr-of-members = 1", HoconAddMode.Prepend)
                     .WithClustering()
-                    // Automatically detects which health checks were registered inside the DI and starts them
+                    // Automatically detects which health checks were registered inside the health check middleware and starts them
                     .WithWebHealthCheck(serviceProvider)
                     .AddStartup((system, _) =>
                     {
@@ -28,7 +28,7 @@ public static class Program
 
         var app = webBuilder.Build();
 
-        // Automatically detects which health checks were registered inside the DI and maps their routes
+        // Automatically detects which health checks were registered inside the health check middleware and maps their routes
         app.MapAkkaHealthCheckRoutes(
             prependPath:"/health",
             optionConfigure: opt =>

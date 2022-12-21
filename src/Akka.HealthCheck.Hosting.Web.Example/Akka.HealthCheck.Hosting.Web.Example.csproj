@@ -5,6 +5,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,10 +15,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Akka.HealthCheck.Hosting.Web\Akka.HealthCheck.Hosting.Web.csproj" />
-    <ProjectReference Include="..\Akka.HealthCheck.Cluster\Akka.HealthCheck.Cluster.csproj" />
-    <ProjectReference Include="..\Akka.HealthCheck.Hosting\Akka.HealthCheck.Hosting.csproj" />
-    <ProjectReference Include="..\Akka.HealthCheck.Persistence\Akka.HealthCheck.Persistence.csproj" />
-    <ProjectReference Include="..\Akka.HealthCheck\Akka.HealthCheck.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="snapshots\**" />
+    <EmbeddedResource Remove="snapshots\**" />
+    <None Remove="snapshots\**" />
+    <Content Remove="snapshots\**" />
+  </ItemGroup>
 </Project>
