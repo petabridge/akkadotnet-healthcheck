@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Configuration;
 using Akka.HealthCheck.Liveness;
+using Akka.HealthCheck.Persistence;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Akka.HealthCheck.Hosting.Web.Probes
@@ -23,7 +24,6 @@ namespace Akka.HealthCheck.Hosting.Web.Probes
         private const string Healthy = "Akka.NET persistence is alive";
         private const string UnHealthy = "Akka.NET persistence is not alive";
         private const string Exception = "Exception occured when processing cluster liveness";
-        private const string Message = "message";
         
         private readonly IActorRef _probe;
 
@@ -44,16 +44,30 @@ namespace Akka.HealthCheck.Hosting.Web.Probes
         {
             try
             {
-                var status = await _probe.Ask<LivenessStatus>(
+                var status = await _probe.Ask<PersistenceLivenessStatus>(
                     message: GetCurrentLiveness.Instance, 
                     cancellationToken: cancellationToken);
                 return status.IsLive 
-                    ? HealthCheckResult.Healthy(Healthy, new Dictionary<string, object> { [Message] = status.StatusMessage })
-                    : HealthCheckResult.Unhealthy(UnHealthy, data: new Dictionary<string, object> { [Message] = status.StatusMessage });
+                    ? HealthCheckResult.Healthy(Healthy, new Dictionary<string, object>
+                    {
+                        ["journal-recovered"] = status.JournalRecovered,
+                        ["snapshot-recovered"] = status.SnapshotRecovered,
+                        ["journal-persisted"] = status.JournalPersisted,
+                        ["snapshot-persisted"] = status.SnapshotPersisted,
+                        ["message"] = status.StatusMessage
+                    })
+                    : HealthCheckResult.Unhealthy(UnHealthy, status.Failures, new Dictionary<string, object>
+                    {
+                        ["journal-recovered"] = status.JournalRecovered,
+                        ["snapshot-recovered"] = status.SnapshotRecovered,
+                        ["journal-persisted"] = status.JournalPersisted,
+                        ["snapshot-persisted"] = status.SnapshotPersisted,
+                        ["message"] = status.StatusMessage
+                    });
             }
             catch (Exception e)
             {
-                return HealthCheckResult.Unhealthy(Exception, e, new Dictionary<string, object> { [Message] = Exception });
+                return HealthCheckResult.Unhealthy(Exception, e, new Dictionary<string, object> { ["message"] = Exception });
             }
         }
     }

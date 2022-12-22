@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>$(NetStandardLibVersion);$(NetLibVersion)</TargetFrameworks>
     <Description>Akka.NET and Akka.Persistence healthchecks for environments like K8s, AWS, Azure, Pivotal Cloud Foundry, and more.</Description>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
