@@ -315,7 +315,7 @@ namespace Akka.HealthCheck.Persistence
                 && _deletedJournal is { } 
                 && _deletedSnapshotStore is { })
             {
-                _probe.Tell(CreateStatus(_firstAttempt ? "Warming up probe. Recovery status is still undefined" : null));
+                _probe.Tell(CreateStatus());
                 Context.Stop(Self);
             }
         }
