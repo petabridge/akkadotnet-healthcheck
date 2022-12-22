@@ -53,7 +53,7 @@ namespace Akka.HealthCheck.Tests.Transports
         {
             SystemCalls.Add(TransportCall.Go);
             if (Settings.DelayTime > TimeSpan.Zero)
-                await Task.Delay(Settings.DelayTime);
+                await Task.Delay(Settings.DelayTime, token);
 
             token.ThrowIfCancellationRequested();
 
@@ -64,7 +64,7 @@ namespace Akka.HealthCheck.Tests.Transports
         {
             SystemCalls.Add(TransportCall.Stop);
             if (Settings.DelayTime > TimeSpan.Zero)
-                await Task.Delay(Settings.DelayTime);
+                await Task.Delay(Settings.DelayTime, token);
 
             token.ThrowIfCancellationRequested();
 

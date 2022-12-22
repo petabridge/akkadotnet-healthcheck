@@ -5,6 +5,9 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Akka.Actor;
 using Akka.Event;
@@ -18,55 +21,82 @@ namespace Akka.HealthCheck.Transports
     /// </summary>
     public sealed class ReadinessTransportActor : ReceiveActor
     {
-        private const int LivenessTimeout = 1000;
+        private const int ReadinessTimeout = 1000;
         private readonly ILoggingAdapter _log = Context.GetLogger();
-        private readonly IActorRef _readinessProbe;
+        private readonly List<IActorRef> _readinessProbes;
         private readonly IStatusTransport _statusTransport;
         private readonly bool _logInfo;
 
-        public ReadinessTransportActor(IStatusTransport statusTransport, IActorRef readinessProbe, bool log)
+        public ReadinessTransportActor(IStatusTransport statusTransport, ImmutableDictionary<string, IActorRef> readinessProbe, bool log)
         {
             _statusTransport = statusTransport;
-            _readinessProbe = readinessProbe;
+            var probeReverseLookup = readinessProbe.ToImmutableDictionary(kvp => kvp.Value, kvp => kvp.Key);
+            _readinessProbes = readinessProbe.Values.ToList();
             _logInfo = log;
 
             ReceiveAsync<ReadinessStatus>(async status =>
             {
+                var probeName = probeReverseLookup[Sender];
+                
                 if (_logInfo)
-                    _log.Info("Received readiness status. Ready: {0}, Message: {1}", status.IsReady,
-                    status.StatusMessage);
+                    _log.Info("Received readiness status from probe [{0}]. Ready: {1}, Message: {2}", probeName, 
+                        status.IsReady, status.StatusMessage);
 
-                var cts = new CancellationTokenSource(LivenessTimeout);
+                var cts = new CancellationTokenSource(ReadinessTimeout);
                 TransportWriteStatus writeStatus = null;
-                if (status.IsReady)
-                    writeStatus = await _statusTransport.Go(status.StatusMessage, cts.Token);
-                else
-                    writeStatus = await _statusTransport.Stop(status.StatusMessage, cts.Token);
+                try
+                {
+                    if (status.IsReady)
+                        writeStatus = await _statusTransport.Go($"[{probeName}] {status.StatusMessage}", cts.Token);
+                    else
+                        writeStatus = await _statusTransport.Stop($"[{probeName}] {status.StatusMessage}", cts.Token);
+                }
+                catch (Exception e)
+                {
+                    if (_logInfo)
+                        _log.Error(e, $"While processing status from probe [{probeName}]. Failed to write to transport.");
+
+                    throw new ProbeUpdateException(ProbeKind.Readiness,
+                        $"While processing status from probe [{probeName}]. Failed to update underlying transport {_statusTransport}", e);
+                }
+                finally
+                {
+                    cts.Dispose();
+                }
 
                 if (!writeStatus.Success)
                 {
-                    _log.Error(writeStatus.Exception, "Failed to write to transport.");
+                    if (_logInfo)
+                        _log.Error(writeStatus.Exception, $"While processing status from probe [{probeName}]. Failed to write to transport.");
+                    
                     throw new ProbeUpdateException(ProbeKind.Readiness,
-                        $"Failed to update underlying transport {_statusTransport}", writeStatus.Exception);
+                        $"While processing status from probe [{probeName}]. Failed to update underlying transport {_statusTransport}", writeStatus.Exception);
                 }
             });
 
             Receive<Terminated>(t =>
             {
-                _log.Warning("Readiness probe actor terminated! Shutting down.");
-                Context.Stop(Self);
+                _readinessProbes.Remove(t.ActorRef);
+                if (_readinessProbes.Count == 0)
+                {
+                    _log.Warning("All readiness probe actors terminated! Shutting down.");
+                    Context.Stop(Self);
+                }
             });
         }
 
         protected override void PreStart()
         {
-            _readinessProbe.Tell(new SubscribeToReadiness(Self));
-            Context.Watch(_readinessProbe);
+            foreach (var probe in _readinessProbes)
+            {
+                probe.Tell(new SubscribeToReadiness(Self));
+                Context.Watch(probe);
+            }
         }
 
         protected override void PostStop()
         {
-            var cts = new CancellationTokenSource(LivenessTimeout);
+            var cts = new CancellationTokenSource(ReadinessTimeout);
 
             try
             {
@@ -75,7 +105,7 @@ namespace Akka.HealthCheck.Transports
             catch (Exception ex)
             {
                 _log.Error(ex, "Error while attempting to stop readiness probe after [{0}] ms. Shutting down anyway.",
-                    LivenessTimeout);
+                    ReadinessTimeout);
             }
         }
     }

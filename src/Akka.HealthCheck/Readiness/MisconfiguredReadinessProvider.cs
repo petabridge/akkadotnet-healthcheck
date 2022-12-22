@@ -13,10 +13,12 @@ namespace Akka.HealthCheck.Readiness
     /// </summary>
     public sealed class MisconfiguredReadinessProvider : ProbeProviderBase
     {
-        public MisconfiguredReadinessProvider(ActorSystem system) : base(system)
+        private readonly string _key;
+        public MisconfiguredReadinessProvider(string key, ActorSystem system) : base(system)
         {
+            _key = key;
         }
 
-        public override Props ProbeProps => DefaultReadinessProbe.MisconfiguredProbeProbs();
+        public override Props ProbeProps => DefaultReadinessProbe.MisconfiguredProbeProps(_key);
     }
 }

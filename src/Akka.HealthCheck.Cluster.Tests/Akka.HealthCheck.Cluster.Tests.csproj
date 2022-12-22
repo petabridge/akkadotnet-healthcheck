@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Akka.TestKit.Xunit" Version="$(AkkaVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="xunit" Version="$(XunitVersion)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitVersion)" />
   </ItemGroup>
