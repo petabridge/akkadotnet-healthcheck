@@ -3,7 +3,7 @@ using Akka.Configuration;
 using Akka.HealthCheck;
 using System;
 
-namespace Akkka.HealthCheck.Example
+namespace Akka.HealthCheck.Example
 {
     class Program
     {

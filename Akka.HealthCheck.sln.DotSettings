@@ -7,4 +7,5 @@
      Copyright (C) 2015 - $CURRENT_YEAR$ Petabridge, LLC &lt;https://petabridge.com&gt;&#xD;
 &lt;/copyright&gt;&#xD;
 -----------------------------------------------------------------------</s:String>
-	<s:String x:Key="/Default/Environment/Hierarchy/PsiConfigurationSettingsKey/CustomLocation/@EntryValue">C:\Users\aaron\AppData\Local\JetBrains\Transient\ReSharperPlatformVs15\v11_10617ea1\SolutionCaches</s:String></wpf:ResourceDictionary>
+	<s:String x:Key="/Default/Environment/Hierarchy/PsiConfigurationSettingsKey/CustomLocation/@EntryValue">C:\Users\aaron\AppData\Local\JetBrains\Transient\ReSharperPlatformVs15\v11_10617ea1\SolutionCaches</s:String>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Liveness/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

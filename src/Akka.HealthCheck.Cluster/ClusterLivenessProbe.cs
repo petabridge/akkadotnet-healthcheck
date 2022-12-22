@@ -29,7 +29,7 @@ namespace Akka.HealthCheck.Cluster
         public ClusterLivenessProbe() : this(DefaultClusterLivenessStatus)
         {
         }
-
+        
         public ClusterLivenessProbe(LivenessStatus livenessStatus)
         {
             _livenessStatus = livenessStatus;

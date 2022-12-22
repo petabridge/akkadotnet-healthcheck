@@ -172,7 +172,7 @@ namespace Akka.HealthCheck.Persistence
         {
             _probe = probe;
             _firstAttempt = firstAttempt;
-            PersistenceId = "Akka.HealthCheck";
+            PersistenceId = $"Akka.HealthCheck";
 
             Recover<string>(str =>
             {
