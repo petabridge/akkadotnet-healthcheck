@@ -1,3 +1,8 @@
+#### 0.3.4 December 22 2022 ####
+
+This release is a patch release for a bug in the persistence liveness probe.
+* [Patch persistence id bug inside the persistence liveness probe](https://github.com/petabridge/akkadotnet-healthcheck/pull/154)
+
 #### 0.3.3 November 2 2022 ####
 * [Bumped Akka version to 1.4.45](https://github.com/akkadotnet/akka.net/releases/tag/1.4.45)
 * [Enabled dual platform targeting, binaries are now targeting netstandard2.0 and net60 platforms](https://github.com/petabridge/akkadotnet-healthcheck/pull/140)
