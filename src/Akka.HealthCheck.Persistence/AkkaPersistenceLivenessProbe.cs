@@ -23,10 +23,12 @@ namespace Akka.HealthCheck.Persistence
         private int _probeCounter;
         private bool _snapshotStoreLive;
         private readonly TimeSpan _delay;
+        private readonly string _id;
 
         public AkkaPersistenceLivenessProbe(TimeSpan delay)
         {
             _delay = delay;
+            _id = Guid.NewGuid().ToString("N");
         }
         public AkkaPersistenceLivenessProbe() : this(TimeSpan.FromSeconds(10))
         {
@@ -121,7 +123,7 @@ namespace Akka.HealthCheck.Persistence
 
         private void CreateProbe(bool firstTime)
         {
-            _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, firstTime)));
+            _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, firstTime, _id)));
             if(firstTime)
             {
                 _probe.Tell("hit" + _probeCounter++);
@@ -168,11 +170,11 @@ namespace Akka.HealthCheck.Persistence
         private bool _recoveredJournal;
         private bool _recoveredSnapshotStore;
 
-        public SuicideProbe(IActorRef probe, bool firstAttempt)
+        public SuicideProbe(IActorRef probe, bool firstAttempt, string id)
         {
             _probe = probe;
             _firstAttempt = firstAttempt;
-            PersistenceId = "Akka.HealthCheck";
+            PersistenceId = $"Akka.HealthCheck-{id}";
 
             Recover<string>(str =>
             {
@@ -202,7 +204,7 @@ namespace Akka.HealthCheck.Persistence
                 if (!_firstAttempt)
                 {
                     DeleteMessages(save.Metadata.SequenceNr - 1);
-                     DeleteSnapshots(new SnapshotSelectionCriteria(save.Metadata.SequenceNr - 1));
+                    DeleteSnapshots(new SnapshotSelectionCriteria(save.Metadata.SequenceNr - 1));
                 }
 
                 Context.Stop(Self);
