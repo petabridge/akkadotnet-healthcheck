@@ -8,6 +8,9 @@ using Akka.Actor;
 using Akka.Event;
 using Akka.HealthCheck.Liveness;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 
 namespace Akka.HealthCheck.Transports
@@ -19,50 +22,76 @@ namespace Akka.HealthCheck.Transports
     public sealed class LivenessTransportActor : ReceiveActor
     {
         private const int LivenessTimeout = 1000;
-        private readonly IActorRef _livenessProbe;
+        private readonly List<IActorRef> _livenessProbes;
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly IStatusTransport _statusTransport;
         private readonly bool _logInfo;
 
-        public LivenessTransportActor(IStatusTransport statusTransport, IActorRef livenessProbe, bool log)
+        public LivenessTransportActor(IStatusTransport statusTransport, ImmutableDictionary<string, IActorRef> livenessProbes, bool log)
         {
             _statusTransport = statusTransport;
-            _livenessProbe = livenessProbe;
+            var probeReverseLookup = livenessProbes.ToImmutableDictionary(kvp => kvp.Value, kvp => kvp.Key);
+            _livenessProbes = livenessProbes.Values.ToList();
             _logInfo = log;
 
             ReceiveAsync<LivenessStatus>(async status =>
             {
+                var probeName = probeReverseLookup[Sender];
+                
                 if (_logInfo)
-                 _log.Info("Received liveness status. Live: {0}, Message: {1}", status.IsLive, status.StatusMessage);
+                 _log.Info("Received liveness status from probe [{0}]. Live: {1}, Message: {2}", probeName, 
+                     status.IsLive, status.StatusMessage);
                
                 var cts = new CancellationTokenSource(LivenessTimeout);
                 TransportWriteStatus writeStatus = null;
-                if (status.IsLive)
-                    writeStatus = await _statusTransport.Go(status.StatusMessage, cts.Token);
-                else
-                    writeStatus = await _statusTransport.Stop(status.StatusMessage, cts.Token);
+                try
+                {
+                    if (status.IsLive)
+                        writeStatus = await _statusTransport.Go($"[{probeName}] {status.StatusMessage}", cts.Token);
+                    else
+                        writeStatus = await _statusTransport.Stop($"[{probeName}] {status.StatusMessage}", cts.Token);
+                }
+                catch (Exception e)
+                {
+                    if (_logInfo)
+                        _log.Error(e, $"While processing status from probe [{probeName}]. Failed to write to transport.");
+
+                    throw new ProbeUpdateException(ProbeKind.Liveness,
+                        $"While processing status from probe [{probeName}]. Failed to update underlying transport {_statusTransport}", e);
+                }
+                finally
+                {
+                    cts.Dispose();
+                }
 
                 if (!writeStatus.Success)
                 {
                     if (_logInfo)
-                        _log.Error(writeStatus.Exception, "Failed to write to transport.");
+                        _log.Error(writeStatus.Exception, $"While processing status from probe [{probeName}]. Failed to write to transport.");
 
                     throw new ProbeUpdateException(ProbeKind.Liveness,
-                        $"Failed to update underlying transport {_statusTransport}", writeStatus.Exception);
+                        $"While processing status from probe [{probeName}]. Failed to update underlying transport {_statusTransport}", writeStatus.Exception);
                 }
             });
 
             Receive<Terminated>(t =>
             {
-                _log.Warning("Liveness probe actor terminated! Shutting down.");
-                Context.Stop(Self);
+                _livenessProbes.Remove(t.ActorRef);
+                if (_livenessProbes.Count == 0)
+                {
+                    _log.Warning("All liveness probe actors terminated! Shutting down.");
+                    Context.Stop(Self);
+                }
             });
         }
 
         protected override void PreStart()
         {
-            _livenessProbe.Tell(new SubscribeToLiveness(Self));
-            Context.Watch(_livenessProbe);
+            foreach (var probe in _livenessProbes)
+            {
+                probe.Tell(new SubscribeToLiveness(Self));
+                Context.Watch(probe);
+            }
         }
 
         protected override void PostStop()

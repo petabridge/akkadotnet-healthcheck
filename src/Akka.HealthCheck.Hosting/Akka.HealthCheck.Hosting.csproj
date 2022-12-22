@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\common.props" />
+
+    <PropertyGroup>
+        <TargetFrameworks>$(NetStandardLibVersion);$(NetLibVersion)</TargetFrameworks>
+        <Nullable>enable</Nullable>
+        <LangVersion>9.0</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Akka.Hosting" Version="$(AkkaHostingVersion)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Akka.HealthCheck.Cluster\Akka.HealthCheck.Cluster.csproj" />
+      <ProjectReference Include="..\Akka.HealthCheck.Persistence\Akka.HealthCheck.Persistence.csproj" />
+      <ProjectReference Include="..\Akka.HealthCheck\Akka.HealthCheck.csproj" />
+    </ItemGroup>
+
+</Project>

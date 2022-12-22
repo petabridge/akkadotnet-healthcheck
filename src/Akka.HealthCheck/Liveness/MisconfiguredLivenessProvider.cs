@@ -14,10 +14,12 @@ namespace Akka.HealthCheck.Liveness
     /// </summary>
     public sealed class MisconfiguredLivenessProvider : ProbeProviderBase
     {
-        public MisconfiguredLivenessProvider(ActorSystem system) : base(system)
+        private readonly string _key;
+        public MisconfiguredLivenessProvider(string key, ActorSystem system) : base(system)
         {
+            _key = key;
         }
 
-        public override Props ProbeProps => DefaultLivenessProbe.MisconfiguredProbeProbs();
+        public override Props ProbeProps => DefaultLivenessProbe.MisconfiguredProbeProps(_key);
     }
 }
