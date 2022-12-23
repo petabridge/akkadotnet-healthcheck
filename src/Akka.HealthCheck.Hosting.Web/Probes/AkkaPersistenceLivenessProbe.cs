@@ -53,7 +53,7 @@ namespace Akka.HealthCheck.Hosting.Web.Probes
                         ["journal-recovered"] = status.JournalRecovered,
                         ["snapshot-recovered"] = status.SnapshotRecovered,
                         ["journal-persisted"] = status.JournalPersisted,
-                        ["snapshot-persisted"] = status.SnapshotPersisted,
+                        ["snapshot-persisted"] = status.SnapshotSaved,
                         ["message"] = status.StatusMessage
                     })
                     : HealthCheckResult.Unhealthy(UnHealthy, status.Failures, new Dictionary<string, object>
@@ -61,7 +61,7 @@ namespace Akka.HealthCheck.Hosting.Web.Probes
                         ["journal-recovered"] = status.JournalRecovered,
                         ["snapshot-recovered"] = status.SnapshotRecovered,
                         ["journal-persisted"] = status.JournalPersisted,
-                        ["snapshot-persisted"] = status.SnapshotPersisted,
+                        ["snapshot-persisted"] = status.SnapshotSaved,
                         ["message"] = status.StatusMessage
                     });
             }

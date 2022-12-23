@@ -26,14 +26,14 @@ namespace Akka.HealthCheck.Persistence
             bool journalRecovered,
             bool snapshotRecovered,
             bool journalPersisted,
-            bool snapshotPersisted, 
+            bool snapshotSaved, 
             IReadOnlyCollection<Exception> failures,
             string? message = null): base(false)
         {
             JournalRecovered = journalRecovered;
             SnapshotRecovered = snapshotRecovered;
             JournalPersisted = journalPersisted;
-            SnapshotPersisted = snapshotPersisted;
+            SnapshotSaved = snapshotSaved;
             Failures = failures.Count > 0 ? new AggregateException(failures) : null;
             _message = message;
         }
@@ -41,7 +41,7 @@ namespace Akka.HealthCheck.Persistence
         public override bool IsLive => JournalRecovered
                                        && SnapshotRecovered
                                        && JournalPersisted
-                                       && SnapshotPersisted
+                                       && SnapshotSaved
                                        && Failures is null;
 
         public override string StatusMessage => _message ?? ToString();
@@ -52,9 +52,9 @@ namespace Akka.HealthCheck.Persistence
             
         public bool JournalPersisted { get; }
             
-        public bool SnapshotPersisted { get; }
+        public bool SnapshotSaved { get; }
 
-        public Exception? Failures { get; }
+        public AggregateException? Failures { get; }
 
         public override string ToString()
         {
@@ -62,7 +62,7 @@ namespace Akka.HealthCheck.Persistence
                    $"{nameof(JournalRecovered)}={JournalRecovered}, " +
                    $"{nameof(SnapshotRecovered)}={SnapshotRecovered}, " +
                    $"{nameof(JournalPersisted)}={JournalPersisted}, " +
-                   $"{nameof(SnapshotPersisted)}={SnapshotPersisted}, " +
+                   $"{nameof(SnapshotSaved)}={SnapshotSaved}, " +
                    $"{nameof(Failures)}={Failures?.ToString() ?? "null"})";
         }
     }
@@ -192,14 +192,15 @@ namespace Akka.HealthCheck.Persistence
     /// <summary>
     ///     Validate that the snapshot store and the journal and both working
     /// </summary>
-    public class SuicideProbe : ReceivePersistentActor 
+    internal class SuicideProbe : ReceivePersistentActor 
     {
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly IActorRef _probe;
         private readonly bool _firstAttempt;
-        
-        private bool _recoveredJournal;
-        private bool _recoveredSnapshotStore;
+
+        private string? _message;
+        private bool? _recoveredJournal;
+        private bool? _recoveredSnapshotStore;
         private bool? _persistedJournal;
         private bool? _persistedSnapshotStore;
         private bool? _deletedJournal;
@@ -223,31 +224,25 @@ namespace Akka.HealthCheck.Persistence
 
             Command<string>(str =>
             {
+                _message = str;
                 SaveSnapshot(str);
-                Persist(str, 
-                s =>
-                {
-                    _persistedJournal = true;
-                    SendRecoveryStatusWhenFinished();
-                });
             });
             
-            Command<WriteMessageFailure>(fail =>
-            {
-                _failures.Add(fail.Cause);
-                _persistedJournal = false;
-                SendRecoveryStatusWhenFinished();
-            });
-
             Command<SaveSnapshotSuccess>(save =>
             {
                 _persistedSnapshotStore = true;
-                if (!_firstAttempt)
-                {
-                    DeleteMessages(save.Metadata.SequenceNr - 1);
-                    DeleteSnapshots(new SnapshotSelectionCriteria(save.Metadata.SequenceNr - 1));
-                }
-                SendRecoveryStatusWhenFinished();
+                Persist(_message, 
+                    s =>
+                    {
+                        _persistedJournal = true;
+                        
+                        if (!_firstAttempt)
+                        {
+                            DeleteMessages(save.Metadata.SequenceNr - 1);
+                            DeleteSnapshots(new SnapshotSelectionCriteria(save.Metadata.SequenceNr - 1));
+                        }
+                        SendRecoveryStatusWhenFinished();
+                    });
             });
             
             Command<SaveSnapshotFailure>(fail =>
@@ -256,6 +251,13 @@ namespace Akka.HealthCheck.Persistence
                 
                 _failures.Add(fail.Cause);
                 _persistedSnapshotStore = false;
+                Persist(_message, 
+                    s =>
+                    {
+                        _persistedJournal = true;
+                        SendRecoveryStatusWhenFinished();
+                    });
+                
                 SendRecoveryStatusWhenFinished();
             });
             
@@ -278,7 +280,7 @@ namespace Akka.HealthCheck.Persistence
                 SendRecoveryStatusWhenFinished();
             });
             
-            Command<DeleteSnapshotFailure>(fail =>
+            Command<DeleteSnapshotsFailure>(fail =>
             {
                 _failures.Add(fail.Cause);
                 _deletedSnapshotStore = false;
@@ -290,8 +292,8 @@ namespace Akka.HealthCheck.Persistence
 
         private void SendRecoveryStatusWhenFinished()
         {
-            // First case, snapshot failed to save, there will be no deletion
-            if(_persistedSnapshotStore is false && _persistedJournal is { })
+            // First case, snapshot failed to save or journal write was rejected, there will be no deletion.
+            if( (_persistedSnapshotStore is false && _persistedJournal is { }) || (_persistedJournal is false && _persistedSnapshotStore is { }))
             {
                 _probe.Tell(CreateStatus());
                 Context.Stop(Self);
@@ -320,6 +322,23 @@ namespace Akka.HealthCheck.Persistence
             }
         }
 
+        protected override void OnPersistFailure(Exception cause, object @event, long sequenceNr)
+        {
+            _log.Error(cause, "Journal persist failure");
+            _failures.Add(cause);
+            _persistedJournal = false;
+            _probe.Tell(CreateStatus("Journal persist failure"));
+            // Actor is automatically killed here.
+        }
+
+        protected override void OnPersistRejected(Exception cause, object @event, long sequenceNr)
+        {
+            _log.Error(cause, "Journal persist rejected");
+            _failures.Add(cause);
+            _persistedJournal = false;
+            SendRecoveryStatusWhenFinished();
+        }
+
         protected override void OnRecoveryFailure(Exception reason, object? message = null)
         {
             var msg = $"Recovery failure{(message is null ? "" : $": {message}")}";
@@ -327,16 +346,15 @@ namespace Akka.HealthCheck.Persistence
             
             _failures.Add(reason);
             _probe.Tell(CreateStatus(msg));
-            
-            throw new ApplicationException(msg, reason);
+            // Actor is automatically killed here.
         }
 
         private PersistenceLivenessStatus CreateStatus(string? message = null)
             => new PersistenceLivenessStatus(
-                journalRecovered: _recoveredJournal,
-                snapshotRecovered: _recoveredSnapshotStore,
+                journalRecovered: _recoveredJournal ?? false,
+                snapshotRecovered: _recoveredSnapshotStore ?? false,
                 journalPersisted: _persistedJournal ?? false,
-                snapshotPersisted: _persistedSnapshotStore ?? false,
+                snapshotSaved: _persistedSnapshotStore ?? false,
                 failures: _failures,
                 message: message);
     }
