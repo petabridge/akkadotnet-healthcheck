@@ -48,9 +48,9 @@ public class CustomReadinessProbe: ReceiveActor, IWithTimers
             _subscribers.Remove(t.ActorRef);
         });
 
-        ReceiveAsync<string>(
+        Receive<string>(
             s => s == "do-check", 
-            async _ =>
+            _ =>
             {
                 // TODO: insert probe check here
                 _readinessStatus = new ReadinessStatus(true);
@@ -62,5 +62,5 @@ public class CustomReadinessProbe: ReceiveActor, IWithTimers
         Timers.StartPeriodicTimer(_timerKey, _timerSignal, TimeSpan.FromSeconds(1));
     }
 
-    public ITimerScheduler Timers { get; set; }
+    public ITimerScheduler Timers { get; set; } = null!;
 }
