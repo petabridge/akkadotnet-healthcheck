@@ -1,10 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\common.props" />
-
   <PropertyGroup>
     <TargetFrameworks>$(NetStandardLibVersion);$(NetLibVersion)</TargetFrameworks>
     <Description>Akka.NET and Akka.Cluster healthchecks for environments like K8s, AWS, Azure, Pivotal Cloud Foundry, and more.</Description>
-    <LangVersion>9.0</LangVersion>
+    <PackageTags>$(AkkaPackageTags);cluster;clustering;</PackageTags>
   </PropertyGroup>
 
 

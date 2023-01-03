@@ -18,7 +18,7 @@ jobs:
   parameters:
     name: "net_tests_windows"
     displayName: ".NET Core Unit Tests (Windows)"
-    vmImage: "windows-2019"
+    vmImage: "windows-latest"
     scriptFileName: build.cmd
     scriptArgs: RunTests
     outputDirectory: "TestResults"
@@ -27,7 +27,7 @@ jobs:
   parameters:
     name: "net_6_tests_windows"
     displayName: ".NET 6 Unit Tests (Windows)"
-    vmImage: "windows-2019"
+    vmImage: "windows-latest"
     scriptFileName: build.cmd
     scriptArgs: RunTestsNet
     outputDirectory: "TestResults"
