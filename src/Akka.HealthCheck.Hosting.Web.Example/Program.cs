@@ -31,7 +31,7 @@ public static class Program
         // Automatically detects which health checks were registered inside the health check middleware and maps their routes
         app.MapAkkaHealthCheckRoutes(
             prependPath:"/health",
-            optionConfigure: opt =>
+            optionConfigure: (tags, opt) =>
             {
                 // Use a custom response writer to output a json of all reported statuses
                 opt.ResponseWriter = Helper.JsonResponseWriter;
