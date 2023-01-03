@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\common.props" />
-
     <PropertyGroup>
         <TargetFrameworks>$(NetStandardLibVersion);$(NetLibVersion)</TargetFrameworks>
-        <Nullable>enable</Nullable>
-        <LangVersion>9.0</LangVersion>
+        <PackageTags>$(AkkaPackageTags);hosting;</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
