@@ -11,7 +11,7 @@ namespace Akka.HealthCheck.Liveness
     /// </summary>
     public class LivenessStatus
     {
-        public LivenessStatus(bool isLive, string statusMessage = null)
+        public LivenessStatus(bool isLive, string? statusMessage = null)
         {
             IsLive = isLive;
             StatusMessage = statusMessage ?? string.Empty;

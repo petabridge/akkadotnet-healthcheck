@@ -35,7 +35,11 @@ namespace Akka.HealthCheck.Tests.Transports
         {
             var result = await Transport.Go("foo", CancellationToken.None);
             if (!result.Success)
-                ExceptionDispatchInfo.Capture(result.Exception).Throw();
+            {
+                result.Exception.Should().NotBeNull();
+                // !: nullable tested above
+                ExceptionDispatchInfo.Capture(result.Exception!).Throw();
+            }
             
             result.Success.Should().BeTrue();
 

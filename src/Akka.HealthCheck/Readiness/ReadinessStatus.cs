@@ -11,7 +11,7 @@ namespace Akka.HealthCheck.Readiness
     /// </summary>
     public sealed class ReadinessStatus
     {
-        public ReadinessStatus(bool isReady, string statusMessage = null)
+        public ReadinessStatus(bool isReady, string? statusMessage = null)
         {
             IsReady = isReady;
             StatusMessage = statusMessage ?? string.Empty;
