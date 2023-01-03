@@ -17,11 +17,11 @@ namespace Akka.HealthCheck.Hosting.Web
     {
         public static class Names
         {
-            public const string Liveness = "akka-liveness";
-            public const string Readiness = "akka-readiness";
-            public const string ClusterLiveness = "akka-cluster-liveness";
-            public const string ClusterReadiness = "akka-cluster-readiness";
-            public const string PersistenceLiveness = "akka-persistence-liveness";
+            public static readonly string Liveness = string.Join("-", Tags.Liveness);
+            public static readonly string Readiness = string.Join("-", Tags.Readiness);
+            public static readonly string ClusterLiveness = string.Join("-", Tags.ClusterLiveness);
+            public static readonly string ClusterReadiness = string.Join("-", Tags.ClusterReadiness);
+            public static readonly string PersistenceLiveness = string.Join("-", Tags.PersistenceLiveness);
         }
         
         public static class Tags
