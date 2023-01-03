@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\common.props" />
-
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
-        <Nullable>enable</Nullable>
+        <TargetFrameworks>$(NetCoreLibVersion);$(NetLibVersion)</TargetFrameworks>
+        <PackageTags>$(AkkaPackageTags);hosting;asp.net;asp</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
