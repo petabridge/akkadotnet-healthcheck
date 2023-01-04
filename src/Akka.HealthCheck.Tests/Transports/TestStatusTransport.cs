@@ -49,7 +49,7 @@ namespace Akka.HealthCheck.Tests.Transports
 
         public List<TransportCall> SystemCalls { get; }
 
-        public async Task<TransportWriteStatus> Go(string statusMessage, CancellationToken token)
+        public async Task<TransportWriteStatus> Go(string? statusMessage, CancellationToken token)
         {
             SystemCalls.Add(TransportCall.Go);
             if (Settings.DelayTime > TimeSpan.Zero)
@@ -60,7 +60,7 @@ namespace Akka.HealthCheck.Tests.Transports
             return new TransportWriteStatus(Settings.CanGo);
         }
 
-        public async Task<TransportWriteStatus> Stop(string statusMessage, CancellationToken token)
+        public async Task<TransportWriteStatus> Stop(string? statusMessage, CancellationToken token)
         {
             SystemCalls.Add(TransportCall.Stop);
             if (Settings.DelayTime > TimeSpan.Zero)
