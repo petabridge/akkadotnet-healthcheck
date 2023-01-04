@@ -200,8 +200,8 @@ namespace Akka.HealthCheck.Tests.Readiness
             
             // Last Stop call from PostStop
             await AwaitConditionAsync(() => 
-                testTransport.SystemCalls.Count == 15
-                && testTransport.SystemCalls[14] == TestStatusTransport.TransportCall.Stop);
+                testTransport.SystemCalls.Count == 14
+                && testTransport.SystemCalls[13] == TestStatusTransport.TransportCall.Stop);
         }        
     }
 }
