@@ -32,8 +32,8 @@ namespace Akka.HealthCheck.Hosting
 
         public AkkaHealthCheckOptions()
         {
-            Liveness.AddProvider<DefaultLivenessProvider>("default");
-            Readiness.AddProvider<DefaultReadinessProvider>("default");
+            AddDefaultReadinessProvider();
+            AddDefaultLivenessProvider();
         }
         
         public AkkaHealthCheckOptions AddProviders(HealthCheckType healthChecks)
