@@ -54,7 +54,7 @@ namespace Akka.HealthCheck.Transports
                     _statuses[probeName] = status;
                     var statusMessage = string.Join(
                         Environment.NewLine, 
-                        _statuses.Select(kvp => $"[{kvp.Key}][{(kvp.Value.IsReady ? "Ready" : "Not Ready")}] {status.StatusMessage}"));
+                        _statuses.Select(kvp => $"[{kvp.Key}][{(kvp.Value.IsReady ? "Ready" : "Not Ready")}] {kvp.Value.StatusMessage}"));
                     
                     if (_statuses.Values.All(s => s.IsReady))
                         writeStatus = await _statusTransport.Go(statusMessage, cts.Token);
@@ -90,12 +90,15 @@ namespace Akka.HealthCheck.Transports
                 if (_logInfo)
                     _log.Info("Readiness probe {0} terminated", probeName);
                 
-                _statuses[probeName] = new ReadinessStatus(false, "Probe terminated");
                 _readinessProbes.Remove(t.ActorRef);
                 if (_readinessProbes.Count == 0)
                 {
                     _log.Warning("All readiness probe actors terminated! Shutting down.");
                     Context.Stop(Self);
+                }
+                else
+                {
+                    Self.Tell(new ReadinessStatus(false, "Probe terminated"), t.ActorRef);
                 }
             });
         }
@@ -112,7 +115,6 @@ namespace Akka.HealthCheck.Transports
         protected override void PostStop()
         {
             using var cts = new CancellationTokenSource(ReadinessTimeout);
-
             try
             {
                 _statusTransport.Stop(null, cts.Token).Wait(cts.Token);

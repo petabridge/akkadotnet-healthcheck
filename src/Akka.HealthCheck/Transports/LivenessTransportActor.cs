@@ -43,8 +43,8 @@ namespace Akka.HealthCheck.Transports
             ReceiveAsync<LivenessStatus>(async status =>
             {
                 var probeName = probeReverseLookup[Sender];
-                TransportWriteStatus writeStatus;
                 using var cts = new CancellationTokenSource(LivenessTimeout);
+                TransportWriteStatus writeStatus;
                 try
                 {
                     if (_logInfo)
@@ -54,7 +54,7 @@ namespace Akka.HealthCheck.Transports
                     _statuses[probeName] = status;
                     var statusMessage = string.Join(
                         Environment.NewLine, 
-                        _statuses.Select(kvp => $"[{kvp.Key}][{(kvp.Value.IsLive ? "Live" : "Not Live")}] {status.StatusMessage}"));
+                        _statuses.Select(kvp => $"[{kvp.Key}][{(kvp.Value.IsLive ? "Live" : "Not Live")}] {kvp.Value.StatusMessage}"));
                     
                     if (_statuses.Values.All(s => s.IsLive))
                         writeStatus = await _statusTransport.Go(statusMessage, cts.Token);
@@ -90,13 +90,15 @@ namespace Akka.HealthCheck.Transports
                 if (_logInfo)
                     _log.Info("Liveness probe {0} terminated", probeName);
                 
-                _statuses[probeName] = new LivenessStatus(false, "Probe terminated");
                 _livenessProbes.Remove(t.ActorRef);
-                
                 if (_livenessProbes.Count == 0)
                 {
                     _log.Warning("All liveness probe actors terminated! Shutting down.");
                     Context.Stop(Self);
+                }
+                else
+                {
+                    Self.Tell(new LivenessStatus(false, "Probe terminated"), t.ActorRef);
                 }
             });
         }
