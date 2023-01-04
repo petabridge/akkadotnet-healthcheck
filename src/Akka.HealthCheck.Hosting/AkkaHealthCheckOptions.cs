@@ -118,7 +118,7 @@ namespace Akka.HealthCheck.Hosting
                 sb.AppendLine("providers {");
                 foreach (var kvp in Providers)
                 {
-                    sb.AppendLine($"{kvp.Key} = {kvp.Value.AssemblyQualifiedName.ToHocon()}");
+                    sb.AppendLine($"{kvp.Key} = {kvp.Value.AssemblyQualifiedName!.ToHocon()}");
                 }
                 sb.AppendLine("}");
             }
