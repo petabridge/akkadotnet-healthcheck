@@ -13,7 +13,7 @@ namespace Akka.HealthCheck.Transports
     /// </summary>
     public sealed class TransportWriteStatus
     {
-        public TransportWriteStatus(bool success, Exception exception = null)
+        public TransportWriteStatus(bool success, Exception? exception = null)
         {
             Success = success;
             Exception = exception;
@@ -27,6 +27,6 @@ namespace Akka.HealthCheck.Transports
         /// <summary>
         ///     The <see cref="Exception" /> thrown if there was an error. Can be <c>null</c>.
         /// </summary>
-        public Exception Exception { get; }
+        public Exception? Exception { get; }
     }
 }

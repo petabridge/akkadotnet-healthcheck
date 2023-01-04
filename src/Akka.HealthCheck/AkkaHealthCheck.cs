@@ -111,9 +111,10 @@ namespace Akka.HealthCheck
             LivenessProbes = ImmutableDictionary<string, IActorRef>.Empty; 
             foreach (var kvp in settings.LivenessProbeProviders)
             {
+                // !: Activator.CreateInstance only returns null for Nullable<T> instances
                 var provider = settings.MisconfiguredLiveness.ContainsKey(kvp.Key)
-                    ? (IProbeProvider)Activator.CreateInstance(typeof(MisconfiguredLivenessProvider), kvp.Key, system)
-                    : (IProbeProvider)Activator.CreateInstance(kvp.Value, system);
+                    ? (IProbeProvider) Activator.CreateInstance(typeof(MisconfiguredLivenessProvider), kvp.Key, system)!
+                    : (IProbeProvider) Activator.CreateInstance(kvp.Value, system)!;
                 LivenessProviders = LivenessProviders.SetItem(kvp.Key, provider);
                 LivenessProbes = LivenessProbes.SetItem(
                     kvp.Key,
@@ -125,9 +126,10 @@ namespace Akka.HealthCheck
             ReadinessProbes = ImmutableDictionary<string, IActorRef>.Empty;
             foreach (var kvp in settings.ReadinessProbeProviders)
             {
+                // !: Activator.CreateInstance only returns null for Nullable<T> instances
                 var provider = settings.MisconfiguredReadiness.ContainsKey(kvp.Key)
-                    ? (IProbeProvider)Activator.CreateInstance(typeof(MisconfiguredReadinessProvider), kvp.Key, system)
-                    : (IProbeProvider)Activator.CreateInstance(kvp.Value, system);
+                    ? (IProbeProvider)Activator.CreateInstance(typeof(MisconfiguredReadinessProvider), kvp.Key, system)!
+                    : (IProbeProvider)Activator.CreateInstance(kvp.Value, system)!;
                 ReadinessProviders = ReadinessProviders.SetItem(kvp.Key, provider);
                 ReadinessProbes = ReadinessProbes.SetItem(
                     kvp.Key,

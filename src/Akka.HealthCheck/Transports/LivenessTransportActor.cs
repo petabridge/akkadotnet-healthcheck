@@ -43,7 +43,7 @@ namespace Akka.HealthCheck.Transports
                      status.IsLive, status.StatusMessage);
                
                 var cts = new CancellationTokenSource(LivenessTimeout);
-                TransportWriteStatus writeStatus = null;
+                TransportWriteStatus writeStatus;
                 try
                 {
                     if (status.IsLive)
