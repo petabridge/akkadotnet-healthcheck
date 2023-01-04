@@ -64,7 +64,6 @@ namespace Akka.HealthCheck.Tests.Liveness
             });
         }
 
-
         [Fact(DisplayName =
             "LivenessTransportActor should crash and try to stop signal upon timeout during signal change")]
         public void LivenessTransportActor_should_crash_when_Timedout()
