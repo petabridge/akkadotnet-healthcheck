@@ -49,18 +49,39 @@ public class SocketHealthHostedService: ILivenessProbe, IReadinessProbe
     {
         var buffer = new byte[256];
         var endpoint = new IPEndPoint(IPAddress.Loopback, _port);
-        var clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         while (!_shutdownCts.IsCancellationRequested)
         {
+            try
+            {
+                await Task.Delay(2000, _shutdownCts.Token);
+            }
+            catch
+            {
+                // no op
+            }
+
+            if (_shutdownCts.IsCancellationRequested)
+                break;
+            
+            using var clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(_shutdownCts.Token);
-            timeoutCts.CancelAfter(TimeSpan.FromMilliseconds(250));
+            timeoutCts.CancelAfter(TimeSpan.FromMilliseconds(500));
             try
             {
                 await clientSocket.ConnectAsync(endpoint, timeoutCts.Token);
             }
-            catch (Exception)
+            catch (TaskCanceledException)
             {
-                Console.WriteLine($"{_name}: Not Healthy");
+                if (_shutdownCts.IsCancellationRequested)
+                {
+                    // Application is shutting down
+                    break;
+                }
+                Console.WriteLine($"{_name}: Not Healthy, Connection timed out");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"{_name}: Not Healthy, {e}");
                 continue;
             }
 
@@ -71,21 +92,12 @@ public class SocketHealthHostedService: ILivenessProbe, IReadinessProbe
                 if(message == "akka.net")
                     Console.WriteLine($"{_name}: Healthy");
                 else
-                    Console.WriteLine($"{_name}: Not Healthy");
-                await clientSocket.DisconnectAsync(true, timeoutCts.Token);
+                    Console.WriteLine($"{_name}: Not Healthy, invalid response: {message}");
+                await clientSocket.DisconnectAsync(true, _shutdownCts.Token);
             }
             else
             {
-                Console.WriteLine($"{_name}: Not Healthy");
-            }
-
-            try
-            {
-                await Task.Delay(2000, _shutdownCts.Token);
-            }
-            catch
-            {
-                // no op
+                Console.WriteLine($"{_name}: Not Healthy, socket connection failed");
             }
         }
     }
