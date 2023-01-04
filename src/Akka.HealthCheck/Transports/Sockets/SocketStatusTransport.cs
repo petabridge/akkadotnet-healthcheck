@@ -41,8 +41,8 @@ namespace Akka.HealthCheck.Transports.Sockets
                     _socket.Bind(new IPEndPoint(IPAddress.Any, Settings.Port));
                     _socket.Listen(10);
 
-                    // want this to run async, without waiting
 #pragma warning disable CS4014
+                    // want this to run async, without waiting
                     _socket.AcceptAsync().ContinueWith(HandleAccept, _socket, _abortSocket.Token);
 #pragma warning restore CS4014
                 }
@@ -61,14 +61,27 @@ namespace Akka.HealthCheck.Transports.Sockets
                 throw new Exception("Continuation error, state object is null");
 
             if (o is not Socket parentSocket)
-                throw new Exception("Continuation error, state object is not of type Socket");
+                throw new Exception($"Continuation error, state object is not of type Socket, was: {o.GetType()}");
             
-            var connectionSocket = tr.Result;
-            System.Diagnostics.Debug.Assert(parentSocket != connectionSocket);
-            connectionSocket.Send(Msg);
-            connectionSocket.Shutdown(SocketShutdown.Both);
-            connectionSocket.Close();
-            parentSocket.AcceptAsync().ContinueWith(HandleAccept, parentSocket, _abortSocket!.Token);
+            // Not blocking, handler delegate is called when the task completed. 
+            using var connectionSocket = tr.Result;
+            try
+            {
+                System.Diagnostics.Debug.Assert(parentSocket != connectionSocket);
+                connectionSocket.Send(Msg);
+                connectionSocket.Shutdown(SocketShutdown.Both);
+                connectionSocket.Close();
+            }
+            finally
+            {
+                connectionSocket.Dispose();
+            }
+            
+            if(_abortSocket is { })
+            {
+                _abortSocket.Token.ThrowIfCancellationRequested();
+                parentSocket.AcceptAsync().ContinueWith(HandleAccept, parentSocket, _abortSocket.Token);
+            }
         }
 
         public Task<TransportWriteStatus> Stop(string? statusMessage, CancellationToken token)
