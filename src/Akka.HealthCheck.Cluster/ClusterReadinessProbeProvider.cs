@@ -39,7 +39,7 @@ namespace Akka.HealthCheck.Cluster
         private readonly Akka.Cluster.Cluster _cluster = Akka.Cluster.Cluster.Get(Context.System);
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
-        private ICancelable _notReadyTask;
+        private ICancelable? _notReadyTask;
         private ReadinessStatus _readinessStatus;
 
         public ClusterReadinessProbe() : this(DefaultClusterReadinessStatus)
