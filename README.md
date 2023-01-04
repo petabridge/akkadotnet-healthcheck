@@ -3,10 +3,10 @@ A configurable library for exposing Akka nodes inside common healthcheck systems
 
 # Table of contents
 
-- [Akka.HealthCheck](#akkahealthcheck)
-   - [Core Plugin](#core-plugin)
-      - [Configuring Using `Akka.Hosting`](#configuring-using-akkahosting)
-      - [Configuring Using HOCON](#configuring-using-hocon)
+- [Core Plugin](#core-plugin)
+   - [Built-in Akka.NET Probes](#built-in-akkanet-probes)
+   - [Configuring Using `Akka.Hosting`](#configuring-using-akkahosting)
+   - [Configuring Using HOCON](#configuring-using-hocon)
 - [ASP.NET Integration](#aspnet-integration)
    - [Available Akka.NET Probes](#available-akkanet-probes)
    - [Installation](#installation)
@@ -22,7 +22,8 @@ A configurable library for exposing Akka nodes inside common healthcheck systems
    - [Release Notes, Version Numbers, Etc](#release-notes-version-numbers-etc)
    - [Code Signing via SignService](#code-signing-via-signservice)
 
-## Core Plugin
+# Core Plugin
+[Back To Top](#akkahealthcheck)
 
 The core plugin is designed to run as standalone health check endpoint for your actor system. Three types of transports are supported:
 1. __Custom (default)__
@@ -37,7 +38,39 @@ The core plugin is designed to run as standalone health check endpoint for your 
 
     Writes the readiness or liveness status out to disk to a specified file location. Used in combination with liveness checks such as "command line execution" checks. See the [Kubernetes documentation](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#define-a-liveness-command) for usage example.
 
-### Configuring Using `Akka.Hosting`
+## Built-in Akka.NET Probes
+[Back To Top](#akkahealthcheck)
+
+There are 5 probe providers that can be used with `Akka.HealthCheck`:
+1. `DefaultReadinessProvider` - The default readiness probe. The probe reports the time the `ActorSystem` was started.
+    * Available inside the `Akka.HealthCheck` NuGet package. 
+2. `DefaultLivenessProvider` - The default liveness probe. The probe reports the time the `ActorSystem` was started.
+    * Available inside the `Akka.HealthCheck` NuGet package.
+3. `ClusterReadinessProbeProvider` - Readiness probe for clustering.
+    * Reports healthy when:
+        * The `ActorSystem` joined a cluster.
+        * The `ActorSystem` is connected to a cluster
+    * Reports unhealthy when:
+        * The `ActorSystem` just started has not joined a cluster.
+        * All other nodes in the cluster is unreachable.
+    - Available inside the `Akka.HealthCheck.Cluster` NuGet package.
+4. `ClusterLivenessProbeProvider` - Liveness probe for clustering.
+    * Reports healthy when:
+        * The `ActorSystem` joined a cluster.
+        * The `ActorSystem` is connected to a cluster
+    * Reports unhealthy when:
+        * The `ActorSystem` just started and has not joined a cluster.
+        * The `ActorSystem` left the cluster.
+    * Available inside the `Akka.HealthCheck.Cluster` NuGet package.
+5. `AkkaPersistenceLivenessProbeProvider` - Liveness probe for persistence. It probes the persistence storage every second to check that persistence is working properly.
+    * Reports healthy when persistence successfully recover both journal and snapshot data from storage.
+    * Reports unhealthy when:
+        * Persistence just started and has not recovered.
+        * Either journal or snapshot failed recovery inside the periodic check.
+    * Available inside the `Akka.HealthCheck.Persistence` NuGet package.
+
+## Configuring Using `Akka.Hosting`
+[Back To Top](#akkahealthcheck)
 
 To use the [`Akka.Hosting`](https://github.com/akkadotnet/Akka.Hosting/) extension method, you will need to install the `Akka.HealthCheck.Hosting` package.
 
@@ -78,7 +111,8 @@ using var host = new HostBuilder()
 await host.RunAsync();
 ```
 
-### Configuring Using HOCON
+## Configuring Using HOCON
+[Back To Top](#akkahealthcheck)
 
 > **NOTE**
 >
@@ -199,10 +233,12 @@ akka.healthcheck{
 ```
 
 # ASP.NET Integration
+[Back To Top](#akkahealthcheck)
 
 `Akka.HealthCheck` and `Akka.Hosting` can be directly integrated with `Microsoft.AspNetCore.Diagnostics.HealthChecks`, allowing users to access `Akka.HealthCheck` via HTTP REST API.
 
 ## Available Akka.NET Probes
+[Back To Top](#akkahealthcheck)
 
 The package provides 5 `IHealthCheck` probes that can be registered with the health check middleware, each uniquely tagged so they can be individually filtered during mapping:
 1. `AkkaReadinessProbe` - The default readiness probe. The probe reports the time the `ActorSystem` was started.
@@ -242,6 +278,7 @@ The package provides 5 `IHealthCheck` probes that can be registered with the hea
    **Tags:** [ "akka", "live", "persistence" ]
 
 ## Installation
+[Back To Top](#akkahealthcheck)
 
 To integrate `Akka.HealthCheck` with ASP.NET, you will need to install the `Akka.HealthCheck.Hosting.Web` package.
 
@@ -256,6 +293,7 @@ There are 3 steps that needs to be done to integrate `Akka.HealthCheck` with dia
 - Map the health check probe routes.
 
 ### Register `Akka.HealthCheck` Services With HealthCheck
+[Back To Top](#akkahealthcheck)
 
 The convenience `IServiceCollection` extension method `WithAkkaHealthCheck(HealthCheckType)` can be used to register the standard probes in any combination.
 
@@ -273,6 +311,7 @@ As alternative, individual probes can be registered using these methods:
 - `WithAkkaPersistenceLivenessProbe()`
 
 ### Add `Akka.HealthCheck` To The `ActorSystem`
+[Back To Top](#akkahealthcheck)
 
 The convenience `AkkaConfigurationBuilder` extension method `WithWebHealthCheck(IServiceProvider)` automatically scans for any registered probes inside the health check middleware and adds the respective Akka.NET health check probes to the `ActorSystem`
 
@@ -289,6 +328,7 @@ webBuilder.Services
 ```
 
 ### Map The Health Check Probe Routes
+[Back To Top](#akkahealthcheck)
 
 The convenience `IEndpointRouteBuilder` extension method `MapAkkaHealthCheckRoutes` automatically scans for any registered probes inside the health check middleware and maps all the probes to a HTTP route. The HTTP route is the concatenation of the probe tags. By default:
 
@@ -324,6 +364,7 @@ app.MapAkkaHealthCheckRoutes();
 await app.RunAsync();
 ```
 ## HTTP Response
+[Back To Top](#akkahealthcheck)
 
 By default, the health check middleware outputs a simple string response of either "healthy" or "unhealthy" regardless of the number of probes being queried. To more verbose response can be gained by using `Helper.JsonResponseWriter` as the route endpoint response writer.
 
@@ -381,12 +422,15 @@ Example output when all probes are enabled:
 ```
 
 ## Manually Setup Custom Akka.NET `IProbeProvider` With Health Check Middleware
+[Back To Top](#akkahealthcheck)
 
 To manually setup a custom `IProbeProvider`, check the [custom probe example project](https://github.com/petabridge/akkadotnet-healthcheck/tree/dev/src/Akka.HealthCheck.Hosting.Web.Custom.Example).
 
 Documentation on how to set up ASP.NET Core health check can be read [here](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks)
 
 # Building this solution
+[Back To Top](#akkahealthcheck)
+
 To run the build script associated with this solution, execute the following:
 
 **Windows**
@@ -404,6 +448,8 @@ If you need any information on the supported commands, please execute the `build
 This build script is powered by [FAKE](https://fake.build/); please see their API documentation should you need to make any changes to the [`build.fsx`](build.fsx) file.
 
 ## Conventions
+[Back To Top](#akkahealthcheck)
+
 The attached build script will automatically do the following based on the conventions of the project names added to this project:
 
 * Any project name ending with `.Tests` will automatically be treated as a [XUnit2](https://xunit.github.io/) project and will be included during the test stages of this build script;
@@ -411,6 +457,8 @@ The attached build script will automatically do the following based on the conve
 * Any project meeting neither of these conventions will be treated as a NuGet packaging target and its `.nupkg` file will automatically be placed in the `bin\nuget` folder upon running the `build.[cmd|sh] all` command.
 
 ## DocFx for Documentation
+[Back To Top](#akkahealthcheck)
+
 This solution also supports [DocFx](http://dotnet.github.io/docfx/) for generating both API documentation and articles to describe the behavior, output, and usages of your project. 
 
 All of the relevant articles you wish to write should be added to the `/docs/articles/` folder and any API documentation you might need will also appear there.
@@ -418,6 +466,8 @@ All of the relevant articles you wish to write should be added to the `/docs/art
 All of the documentation will be statically generated and the output will be placed in the `/docs/_site/` folder. 
 
 ### Previewing Documentation
+[Back To Top](#akkahealthcheck)
+
 To preview the documentation for this project, execute the following command at the root of this folder:
 
 ```
@@ -427,15 +477,15 @@ C:\> serve-docs.cmd
 This will use the built-in `docfx.console` binary that is installed as part of the NuGet restore process from executing any of the usual `build.cmd` or `build.sh` steps to preview the fully-rendered documentation. For best results, do this immediately after calling `build.cmd buildRelease`.
 
 ## Release Notes, Version Numbers, Etc
-This project will automatically populate its release notes in all of its modules via the entries written inside [`RELEASE_NOTES.md`](RELEASE_NOTES.md) and will automatically update the versions of all assemblies and NuGet packages via the metadata included inside [`common.props`](src/common.props).
+[Back To Top](#akkahealthcheck)
 
-If you add any new projects to the solution created with this template, be sure to add the following line to each one of them in order to ensure that you can take advantage of `common.props` for standardization purposes:
+This project will automatically populate its release notes in all of its modules via the entries written inside [`RELEASE_NOTES.md`](RELEASE_NOTES.md) and will automatically update the versions of all assemblies and NuGet packages via the metadata included inside [`Directory.Build.props`](src/Directory.Build.props).
 
-```
-<Import Project="..\common.props" />
-```
+All new projects added into the solution will automatically picks up all the settings set inside `Directory.Build.props`.
 
 ## Code Signing via SignService
+[Back To Top](#akkahealthcheck)
+
 This project uses [SignService](https://github.com/onovotny/SignService) to code-sign NuGet packages prior to publication. The `build.cmd` and `build.sh` scripts will automatically download the `SignClient` needed to execute code signing locally on the build agent, but it's still your responsibility to set up the SignService server per the instructions at the linked repository.
 
 Once you've gone through the ropes of setting up a code-signing server, you'll need to set a few configuration options in your project in order to use the `SignClient`:
