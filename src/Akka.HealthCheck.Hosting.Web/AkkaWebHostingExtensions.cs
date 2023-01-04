@@ -19,20 +19,6 @@ using Microsoft.Extensions.Options;
 
 namespace Akka.HealthCheck.Hosting.Web
 {
-    [Flags]
-    public enum HealthCheckType
-    {
-        DefaultLiveness = 1,
-        DefaultReadiness = 2,
-        Default = DefaultLiveness | DefaultReadiness,
-        ClusterLiveness = 4,
-        ClusterReadiness = 8,
-        Cluster = ClusterLiveness | ClusterReadiness,
-        PersistenceLiveness = 16,
-        Persistence = PersistenceLiveness,
-        All = Default | Cluster | Persistence
-    }
-    
     public static class AkkaWebHostingExtensions
     {
         #region IServiceCollection extension methods
