@@ -5,11 +5,11 @@
 // -----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using Akka.Configuration;
 using Akka.HealthCheck.Cluster;
+using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Persistence;
 using Akka.HealthCheck.Readiness;
 using Akka.Hosting;
@@ -25,17 +25,74 @@ namespace Akka.HealthCheck.Hosting
     
     public sealed class AkkaHealthCheckOptions
     {
-        public ProviderOptions Liveness { get; } = new ProviderOptions();
-        public ProviderOptions Readiness { get; } = new ProviderOptions();
+        public ProviderOptions Liveness { get; } = new ();
+        public ProviderOptions Readiness { get; } = new ();
         public bool? LogConfigOnStart { get; set; }
         public bool? LogInfo { get; set; }
 
+        public AkkaHealthCheckOptions()
+        {
+            AddDefaultReadinessProvider();
+            AddDefaultLivenessProvider();
+        }
+        
+        public AkkaHealthCheckOptions AddProviders(HealthCheckType healthChecks)
+        {
+            if ((healthChecks & HealthCheckType.DefaultReadiness) != 0)
+                AddDefaultReadinessProvider();
+
+            if ((healthChecks & HealthCheckType.ClusterReadiness) != 0)
+                AddClusterReadinessProvider();
+
+            if ((healthChecks & HealthCheckType.DefaultLiveness) != 0)
+                AddDefaultLivenessProvider();
+
+            if ((healthChecks & HealthCheckType.ClusterLiveness) != 0)
+                AddClusterLivenessProvider();
+
+            if ((healthChecks & HealthCheckType.PersistenceLiveness) != 0)
+                AddPersistenceLivenessProvider();
+            
+            return this;
+        }
+        
+        public AkkaHealthCheckOptions ClearReadinessProviders()
+        {
+            Readiness.ClearProviders();
+            return this;
+        }
+        
+        public AkkaHealthCheckOptions ClearLivenessProviders()
+        {
+            Liveness.ClearProviders();
+            return this;
+        }
+        
+        public AkkaHealthCheckOptions ClearAllProviders()
+        {
+            Readiness.ClearProviders();
+            Liveness.ClearProviders();
+            return this;
+        }
+
+        public AkkaHealthCheckOptions AddDefaultReadinessProvider()
+        {
+            Readiness.AddProvider<DefaultReadinessProvider>("default");
+            return this;
+        }
+        
         public AkkaHealthCheckOptions AddClusterReadinessProvider()
         {
             Readiness.AddProvider<ClusterReadinessProbeProvider>("cluster");
             return this;
         }
 
+        public AkkaHealthCheckOptions AddDefaultLivenessProvider()
+        {
+            Liveness.AddProvider<DefaultLivenessProvider>("default");
+            return this;
+        }
+        
         public AkkaHealthCheckOptions AddClusterLivenessProvider()
         {
             Liveness.AddProvider<ClusterLivenessProbeProvider>("cluster");
@@ -104,6 +161,12 @@ namespace Akka.HealthCheck.Hosting
         public string? FilePath { get; set; }
         public int? TcpPort { get; set; }
 
+        public ProviderOptions ClearProviders()
+        {
+            Providers = ImmutableDictionary<string, Type>.Empty;
+            return this;
+        }
+        
         public ProviderOptions AddProvider<T>(string key) where T : IProbeProvider
         {
             Providers = Providers.SetItem(key, typeof(T));

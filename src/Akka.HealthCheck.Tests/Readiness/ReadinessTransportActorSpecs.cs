@@ -192,10 +192,11 @@ namespace Akka.HealthCheck.Tests.Readiness
                 && testTransport.SystemCalls[12] == TestStatusTransport.TransportCall.Stop);
             
             // transport actor should stop when all probe died
-            Watch(fakeReadiness2);
+            var deathProbe = CreateTestProbe();
+            deathProbe.Watch(fakeReadiness2);
             Watch(transportActor);
             fakeReadiness2.Tell(PoisonPill.Instance);
-            ExpectTerminated(fakeReadiness2);
+            deathProbe.ExpectTerminated(fakeReadiness2);
             ExpectTerminated(transportActor);
             
             // Last Stop call from PostStop
