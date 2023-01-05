@@ -17,6 +17,6 @@ namespace Akka.HealthCheck.Transports
         public ProbeTransport TransportType => ProbeTransport.Custom;
 
         public string StartupMessage =>
-            "No built-in probe transport configured. Relying on user-definted tools to suppply status data.";
+            "No built-in probe transport configured. Relying on user-defined tools to suppply status data.";
     }
 }
