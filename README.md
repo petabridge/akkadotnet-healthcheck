@@ -370,7 +370,7 @@ By default, the health check middleware outputs a simple string response of eith
 
 ```csharp
 app.MapAkkaHealthCheckRoutes(
-    optionConfigure: opt =>
+    optionConfigure: (_, opt) =>
     {
         // Use a custom response writer to output a json of all reported statuses
         opt.ResponseWriter = Helper.JsonResponseWriter;
@@ -382,35 +382,35 @@ Example output when all probes are enabled:
 {
   "status": "Healthy",
   "results": {
-    "akka-liveness": {
+    "akka-live-node": {
       "status": "Healthy",
       "description": "Akka.NET node is alive",
       "data": {
         "message": "Live: 12/16/2022 9:54:28 PM +00:00"
       }
     },
-    "akka-readiness": {
+    "akka-ready-node": {
       "status": "Healthy",
       "description": "Akka.NET node is ready",
       "data": {
         "message": "Live: 12/16/2022 9:54:28 PM +00:00"
       }
     },
-    "akka-cluster-liveness": {
+    "akka-live-cluster": {
       "status": "Healthy",
       "description": "Akka.NET cluster is alive",
       "data": {
         "message": ""
       }
     },
-    "akka-cluster-readiness": {
+    "akka-ready-cluster": {
       "status": "Healthy",
       "description": "Akka.NET cluster is ready",
       "data": {
         "message": ""
       }
     },
-    "akka-persistence-liveness": {
+    "akka-live-persistence": {
       "status": "Healthy",
       "description": "Akka.NET persistence is alive",
       "data": {
