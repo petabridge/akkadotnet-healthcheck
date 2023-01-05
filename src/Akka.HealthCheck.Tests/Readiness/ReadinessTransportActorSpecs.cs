@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.HealthCheck.Readiness;
 using Akka.HealthCheck.Tests.Transports;
@@ -116,7 +117,7 @@ namespace Akka.HealthCheck.Tests.Readiness
         {
             var testTransport = new TestStatusTransport(new TestStatusTransportSettings(true, true, TimeSpan.Zero));
             var fakeReadiness = CreateTestProbe("readiness");
-            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeReadiness }.ToImmutableDictionary();;
+            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeReadiness }.ToImmutableDictionary();
 
             var transportActor =
                 Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, dict, true)));
@@ -129,5 +130,79 @@ namespace Akka.HealthCheck.Tests.Readiness
             AwaitCondition(() => testTransport.SystemCalls.Count == 1
                                  && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Stop);
         }
+        
+        [Fact(DisplayName = "ReadinessTransportActor with multiple probes should report correctly based on probe responses")]
+        public async Task ReadinessTransportActorMultiProbeTest()
+        {
+            var testTransport = new TestStatusTransport(new TestStatusTransportSettings(true, true, TimeSpan.Zero));
+            var fakeReadiness1 = CreateTestProbe("readiness_1");
+            var fakeReadiness2 = CreateTestProbe("readiness_2");
+            var dict = new Dictionary<string, IActorRef>
+            {
+                ["first"] = fakeReadiness1,
+                ["second"] = fakeReadiness2
+            }.ToImmutableDictionary();
+
+            var transportActor =
+                Sys.ActorOf(Props.Create(() => new ReadinessTransportActor(testTransport, dict, true)));
+
+            fakeReadiness1.ExpectMsg<SubscribeToReadiness>();
+            fakeReadiness2.ExpectMsg<SubscribeToReadiness>();
+
+            // "second" status should still be false because it has not reported in yet
+            transportActor.Tell(new ReadinessStatus(true), fakeReadiness1);
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 1 
+                && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Stop);
+            
+            // both probe status is true, Go should be called
+            transportActor.Tell(new ReadinessStatus(true), fakeReadiness2);
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 2 
+                && testTransport.SystemCalls[1] == TestStatusTransport.TransportCall.Go);
+            
+            // probes reported true, Go should be called all the time
+            foreach (var i in Enumerable.Range(2, 8))
+            {
+                transportActor.Tell(new ReadinessStatus(true), i % 2 == 0 ? fakeReadiness1 : fakeReadiness2);
+                await AwaitConditionAsync(() => 
+                    testTransport.SystemCalls.Count == i + 1
+                    && testTransport.SystemCalls[i] == TestStatusTransport.TransportCall.Go);
+            }
+            
+            // Stop should be called as soon as one of the probe failed
+            transportActor.Tell(new ReadinessStatus(false), fakeReadiness1);
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 11
+                && testTransport.SystemCalls[10] == TestStatusTransport.TransportCall.Stop);
+            
+            // Go should be called again as soon as the failing probe reports true
+            transportActor.Tell(new ReadinessStatus(true), fakeReadiness1);
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 12
+                && testTransport.SystemCalls[11] == TestStatusTransport.TransportCall.Go);
+
+            // Stop should be called when a probe died
+            Watch(fakeReadiness1);
+            fakeReadiness1.Tell(PoisonPill.Instance);
+            ExpectTerminated(fakeReadiness1);
+            Unwatch(fakeReadiness1);
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 13
+                && testTransport.SystemCalls[12] == TestStatusTransport.TransportCall.Stop);
+            
+            // transport actor should stop when all probe died
+            var deathProbe = CreateTestProbe();
+            deathProbe.Watch(fakeReadiness2);
+            Watch(transportActor);
+            fakeReadiness2.Tell(PoisonPill.Instance);
+            deathProbe.ExpectTerminated(fakeReadiness2);
+            ExpectTerminated(transportActor);
+            
+            // Last Stop call from PostStop
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 14
+                && testTransport.SystemCalls[13] == TestStatusTransport.TransportCall.Stop);
+        }        
     }
 }

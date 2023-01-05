@@ -14,7 +14,7 @@ namespace Akka.HealthCheck
     /// </summary>
     public sealed class ProbeUpdateException : Exception
     {
-        public ProbeUpdateException(ProbeKind probeKind, string message, Exception innerException)
+        public ProbeUpdateException(ProbeKind probeKind, string message, Exception? innerException)
             : base(message, innerException)
         {
             ProbeKind = probeKind;

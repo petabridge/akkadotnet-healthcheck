@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\common.props" />
   <PropertyGroup>
     <TargetFrameworks>$(NetCoreTestVersion);$(NetTestVersion)</TargetFrameworks>
     <IsPackable>false</IsPackable>
@@ -10,11 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="akka.persistence.sqlite" Version="$(AkkaVersion)" />
+    <PackageReference Include="Akka.Persistence.TestKit.Xunit2" Version="$(AkkaVersion)" />
     <PackageReference Include="Akka.TestKit.Xunit" Version="$(AkkaVersion)" />
-    <PackageReference Include="FluentAssertions" Version="5.10.3" />
+    <PackageReference Include="FluentAssertions" Version="$(FluentAssertionVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
     <PackageReference Include="xunit" Version="$(XunitVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVersion)" />
   </ItemGroup>
 
   <ItemGroup>

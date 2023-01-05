@@ -6,6 +6,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Akka.HealthCheck.Hosting.Web.Probes;
 using Akka.Hosting;
@@ -18,20 +19,6 @@ using Microsoft.Extensions.Options;
 
 namespace Akka.HealthCheck.Hosting.Web
 {
-    [Flags]
-    public enum HealthCheckType
-    {
-        DefaultLiveness = 1,
-        DefaultReadiness = 2,
-        Default = DefaultLiveness | DefaultReadiness,
-        ClusterLiveness = 4,
-        ClusterReadiness = 8,
-        Cluster = ClusterLiveness | ClusterReadiness,
-        PersistenceLiveness = 16,
-        Persistence = PersistenceLiveness,
-        All = Default | Cluster | Persistence
-    }
-    
     public static class AkkaWebHostingExtensions
     {
         #region IServiceCollection extension methods
@@ -101,14 +88,15 @@ namespace Akka.HealthCheck.Hosting.Web
 
         #region WebApplication extension methods
 
-        public static IEndpointConventionBuilder MapAkkaHealthCheckService<T>(
+        private static IEndpointConventionBuilder MapAkkaHealthCheckService<T>(
             this IEndpointRouteBuilder builder,
+            ISet<string> tags,
             string prependPath = "/healthz",
-            Action<HealthCheckOptions>? optionConfigure = null) where T: IAkkaHealthcheck
+            Action<ISet<string>, HealthCheckOptions>? optionConfigure = null) where T: IAkkaHealthcheck
         {
             var path = prependPath.SanitizePath();
             var opt = new HealthCheckOptions();
-            optionConfigure?.Invoke(opt);
+            optionConfigure?.Invoke(tags, opt);
 
             var type = typeof(T);
             return type switch
@@ -130,8 +118,8 @@ namespace Akka.HealthCheck.Hosting.Web
         public static IEndpointRouteBuilder MapAkkaHealthCheckRoutes(
             this IEndpointRouteBuilder builder, 
             string prependPath = "/healthz",
-            Action<HealthCheckOptions>? optionConfigure = null,
-            Action<IEndpointConventionBuilder>? endpointConfigure = null)
+            Action<ISet<string>, HealthCheckOptions>? optionConfigure = null,
+            Action<ISet<string>, IEndpointConventionBuilder>? endpointConfigure = null)
         {
             var services = builder.ServiceProvider;
             var hcOpt = services.GetService<IOptions<HealthCheckServiceOptions>>();
@@ -141,60 +129,70 @@ namespace Akka.HealthCheck.Hosting.Web
             var containsLive = false;
             var containsReady = false;
             var regs = hcOpt.Value.Registrations.ToHashSet();
-            if (regs.Any(r => r.Name == Helper.Names.Liveness))
+            
+            var reg = regs.FirstOrDefault(r => r.Name == Helper.Names.Liveness);
+            if (reg is { })
             {
                 containsLive = true;
-                var epBuilder = builder.MapAkkaHealthCheckService<AkkaLivenessProbe>(prependPath, optionConfigure);
-                endpointConfigure?.Invoke(epBuilder);
+                var epBuilder = builder.MapAkkaHealthCheckService<AkkaLivenessProbe>(reg.Tags, prependPath, optionConfigure);
+                endpointConfigure?.Invoke(reg.Tags, epBuilder);
             }
             
-            if (regs.Any(r => r.Name == Helper.Names.ClusterLiveness))
+            reg = regs.FirstOrDefault(r => r.Name == Helper.Names.ClusterLiveness);
+            if (reg is { })
             {
                 containsLive = true;
-                var epBuilder = builder.MapAkkaHealthCheckService<AkkaClusterLivenessProbe>(prependPath, optionConfigure);
-                endpointConfigure?.Invoke(epBuilder);
+                var epBuilder = builder.MapAkkaHealthCheckService<AkkaClusterLivenessProbe>(reg.Tags, prependPath, optionConfigure);
+                endpointConfigure?.Invoke(reg.Tags, epBuilder);
             }
             
-            if (regs.Any(r => r.Name == Helper.Names.PersistenceLiveness))
+            reg = regs.FirstOrDefault(r => r.Name == Helper.Names.PersistenceLiveness);
+            if (reg is { })
             {
                 containsLive = true;
-                var epBuilder = builder.MapAkkaHealthCheckService<AkkaPersistenceLivenessProbe>(prependPath, optionConfigure);
-                endpointConfigure?.Invoke(epBuilder);
+                var epBuilder = builder.MapAkkaHealthCheckService<AkkaPersistenceLivenessProbe>(reg.Tags, prependPath, optionConfigure);
+                endpointConfigure?.Invoke(reg.Tags, epBuilder);
             }
 
-            if (regs.Any(r => r.Name == Helper.Names.Readiness))
+            reg = regs.FirstOrDefault(r => r.Name == Helper.Names.Readiness);
+            if (reg is { })
             {
                 containsReady = true;
-                var epBuilder = builder.MapAkkaHealthCheckService<AkkaReadinessProbe>(prependPath, optionConfigure);
-                endpointConfigure?.Invoke(epBuilder);
+                var epBuilder = builder.MapAkkaHealthCheckService<AkkaReadinessProbe>(reg.Tags, prependPath, optionConfigure);
+                endpointConfigure?.Invoke(reg.Tags, epBuilder);
             }
 
-            if (regs.Any(r => r.Name == Helper.Names.ClusterReadiness))
+            reg = regs.FirstOrDefault(r => r.Name == Helper.Names.ClusterReadiness);
+            if (reg is { })
             {
                 containsReady = true;
-                var epBuilder = builder.MapAkkaHealthCheckService<AkkaClusterReadinessProbe>(prependPath, optionConfigure);
-                endpointConfigure?.Invoke(epBuilder);
+                var epBuilder = builder.MapAkkaHealthCheckService<AkkaClusterReadinessProbe>(reg.Tags, prependPath, optionConfigure);
+                endpointConfigure?.Invoke(reg.Tags, epBuilder);
             }
 
             var path = prependPath.SanitizePath();
-            var opt = new HealthCheckOptions();
-            optionConfigure?.Invoke(opt);
             if (containsLive)
             {
+                var opt = new HealthCheckOptions();
+                optionConfigure?.Invoke(Helper.Tags.Live.ToHashSet(), opt);
                 var epBuilder = builder.MapHealthChecks($"{path}/{Helper.Tags.Live.ToPath()}", opt.WithPredicate(Helper.Filters.AllLiveness));
-                endpointConfigure?.Invoke(epBuilder);
+                endpointConfigure?.Invoke(Helper.Tags.Live.ToHashSet(), epBuilder);
             }
 
             if (containsReady)
             {
+                var opt = new HealthCheckOptions();
+                optionConfigure?.Invoke(Helper.Tags.Ready.ToHashSet(), opt);
                 var epBuilder = builder.MapHealthChecks($"{path}/{Helper.Tags.Ready.ToPath()}", opt.WithPredicate(Helper.Filters.AllReadiness));
-                endpointConfigure?.Invoke(epBuilder);
+                endpointConfigure?.Invoke(Helper.Tags.Ready.ToHashSet(), epBuilder);
             }
 
             if (containsReady || containsLive)
             {
+                var opt = new HealthCheckOptions();
+                optionConfigure?.Invoke(Helper.Tags.Akka.ToHashSet(), opt);
                 var epBuilder = builder.MapHealthChecks($"{path}/{Helper.Tags.Akka.ToPath()}", opt.WithPredicate(Helper.Filters.All));
-                endpointConfigure?.Invoke(epBuilder);
+                endpointConfigure?.Invoke(Helper.Tags.Akka.ToHashSet(), epBuilder);
             }
             
             return builder;

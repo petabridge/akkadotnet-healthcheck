@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.HealthCheck.Liveness;
 using Akka.HealthCheck.Tests.Transports;
@@ -63,7 +64,6 @@ namespace Akka.HealthCheck.Tests.Liveness
             });
         }
 
-
         [Fact(DisplayName =
             "LivenessTransportActor should crash and try to stop signal upon timeout during signal change")]
         public void LivenessTransportActor_should_crash_when_Timedout()
@@ -116,7 +116,7 @@ namespace Akka.HealthCheck.Tests.Liveness
         {
             var testTransport = new TestStatusTransport(new TestStatusTransportSettings(true, true, TimeSpan.Zero));
             var fakeLiveness = CreateTestProbe("liveness");
-            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeLiveness }.ToImmutableDictionary();;
+            var dict = new Dictionary<string, IActorRef> { ["default"] = fakeLiveness }.ToImmutableDictionary();
 
             var transportActor =
                 Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, dict, true)));
@@ -129,5 +129,80 @@ namespace Akka.HealthCheck.Tests.Liveness
             AwaitCondition(() => testTransport.SystemCalls.Count == 1
                                  && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Stop);
         }
+        
+        [Fact(DisplayName = "LivenessTransportActor with multiple probes should report correctly based on probe responses")]
+        public async Task LivenessTransportActorMultiProbeTest()
+        {
+            var testTransport = new TestStatusTransport(new TestStatusTransportSettings(true, true, TimeSpan.Zero));
+            var fakeLiveness1 = CreateTestProbe("liveness_1");
+            var fakeLiveness2 = CreateTestProbe("liveness_2");
+            var dict = new Dictionary<string, IActorRef>
+            {
+                ["first"] = fakeLiveness1,
+                ["second"] = fakeLiveness2
+            }.ToImmutableDictionary();
+
+            var transportActor =
+                Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, dict, true)));
+
+            fakeLiveness1.ExpectMsg<SubscribeToLiveness>();
+            fakeLiveness2.ExpectMsg<SubscribeToLiveness>();
+
+            // "second" status should still be false because it has not reported in yet
+            transportActor.Tell(new LivenessStatus(true), fakeLiveness1);
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 1 
+                && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Stop);
+            
+            // both probe status is true, Go should be called
+            transportActor.Tell(new LivenessStatus(true), fakeLiveness2);
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 2 
+                && testTransport.SystemCalls[1] == TestStatusTransport.TransportCall.Go);
+            
+            // probes reported true, Go should be called all the time
+            foreach (var i in Enumerable.Range(2, 8))
+            {
+                transportActor.Tell(new LivenessStatus(true), i % 2 == 0 ? fakeLiveness1 : fakeLiveness2);
+                await AwaitConditionAsync(() => 
+                    testTransport.SystemCalls.Count == i + 1
+                    && testTransport.SystemCalls[i] == TestStatusTransport.TransportCall.Go);
+            }
+            
+            // Stop should be called as soon as one of the probe failed
+            transportActor.Tell(new LivenessStatus(false), fakeLiveness1);
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 11
+                && testTransport.SystemCalls[10] == TestStatusTransport.TransportCall.Stop);
+            
+            // Go should be called again as soon as the failing probe reports true
+            transportActor.Tell(new LivenessStatus(true), fakeLiveness1);
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 12
+                && testTransport.SystemCalls[11] == TestStatusTransport.TransportCall.Go);
+
+            // Stop should be called when a probe died
+            Watch(fakeLiveness1);
+            fakeLiveness1.Tell(PoisonPill.Instance);
+            ExpectTerminated(fakeLiveness1);
+            Unwatch(fakeLiveness1);
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 13
+                && testTransport.SystemCalls[12] == TestStatusTransport.TransportCall.Stop);
+            
+            // transport actor should stop when all probe died
+            var deathProbe = CreateTestProbe();
+            deathProbe.Watch(fakeLiveness2);
+            Watch(transportActor);
+            fakeLiveness2.Tell(PoisonPill.Instance);
+            deathProbe.ExpectTerminated(fakeLiveness2);
+            ExpectTerminated(transportActor);
+            
+            // Last Stop call from PostStop
+            await AwaitConditionAsync(() => 
+                testTransport.SystemCalls.Count == 14
+                && testTransport.SystemCalls[13] == TestStatusTransport.TransportCall.Stop);
+        }
+        
     }
 }

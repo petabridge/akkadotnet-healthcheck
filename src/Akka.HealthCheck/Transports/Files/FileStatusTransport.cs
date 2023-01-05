@@ -24,32 +24,32 @@ namespace Akka.HealthCheck.Transports.Files
 
         public FileTransportSettings Settings { get; }
 
-        public async Task<TransportWriteStatus> Go(string statusMessage, CancellationToken token)
+        public Task<TransportWriteStatus> Go(string? statusMessage, CancellationToken token)
         {
             try
             {
                 var data = statusMessage ?? string.Empty;
                 File.WriteAllText(Settings.FilePath, data);
 
-                return new TransportWriteStatus(true);
+                return Task.FromResult(new TransportWriteStatus(true));
             }
             catch (Exception ex)
             {
-                return new TransportWriteStatus(false, ex);
+                return Task.FromResult(new TransportWriteStatus(false, ex));
             }
         }
 
-        public async Task<TransportWriteStatus> Stop(string statusMessage, CancellationToken token)
+        public Task<TransportWriteStatus> Stop(string? statusMessage, CancellationToken token)
         {
             try
             {
                 if (File.Exists(Settings.FilePath)) // check first
                     File.Delete(Settings.FilePath);
-                return new TransportWriteStatus(true);
+                return Task.FromResult(new TransportWriteStatus(true));
             }
             catch (Exception ex)
             {
-                return new TransportWriteStatus(false, ex);
+                return Task.FromResult(new TransportWriteStatus(false, ex));
             }
         }
     }

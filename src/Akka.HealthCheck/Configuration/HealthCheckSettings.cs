@@ -192,11 +192,9 @@ namespace Akka.HealthCheck.Configuration
 
         private static bool TryValidateProbeType(string probeType, out Type livenessType)
         {
-            livenessType = null;
-            if (!string.IsNullOrEmpty(probeType))
-                livenessType = Type.GetType(probeType, false);
-
-            return livenessType != null;
+            var type = !string.IsNullOrEmpty(probeType) ? Type.GetType(probeType, false) : null;
+            livenessType = type ?? InvalidType.Type;
+            return type != null;
         }
 
         public static ProbeTransport MapToTransport(string transportName)
@@ -233,6 +231,15 @@ namespace Akka.HealthCheck.Configuration
         {
             return ConfigurationFactory.FromResource<HealthCheckSettings>(
                 "Akka.HealthCheck.Configuration.akka.healthcheck.conf");
+        }
+        
+        // Marker type for invalid types
+        private sealed class InvalidType
+        {
+            public static readonly Type Type = typeof(InvalidType);
+            
+            private InvalidType()
+            { }
         }
     }
 }

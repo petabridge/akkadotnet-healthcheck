@@ -18,6 +18,7 @@ using Akka.Util;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
+using static FluentAssertions.FluentActions;
 
 namespace Akka.HealthCheck.Tests
 {
@@ -68,7 +69,7 @@ namespace Akka.HealthCheck.Tests
             var tcpPort = healthCheck.Settings.LivenessTransportSettings.As<SocketTransportSettings>().Port;
 
             // check to see that our probes are up and running using the supplied transports
-            AwaitCondition(() => File.Exists(filePath));
+            await AwaitConditionAsync(() => File.Exists(filePath));
             var tcpClient = new TcpClient(AddressFamily.InterNetwork);
             await tcpClient.ConnectAsync(IPAddress.Loopback, tcpPort);
 
@@ -76,17 +77,17 @@ namespace Akka.HealthCheck.Tests
             await Sys.Terminate();
 
             // Readiness probe should not exist
-            AwaitCondition(() => !File.Exists(filePath));
+            await AwaitConditionAsync(() => !File.Exists(filePath));
 
             //Created a new client to see if it would be able to connect. 
             var tcpClient2 = new TcpClient(AddressFamily.InterNetwork);
 
             // liveness probe should be disconnected
-            tcpClient2.Awaiting(client => client.ConnectAsync(IPAddress.Loopback, tcpPort))
-                .Should().Throw<SocketException>();
+            await Awaiting(() => tcpClient2.ConnectAsync(IPAddress.Loopback, tcpPort))
+                .Should().ThrowAsync<SocketException>();
             
             //Second client should not be able to connect as socket has been closed
-            AwaitCondition(()=> !tcpClient2.Connected);
+            await AwaitConditionAsync(()=> !tcpClient2.Connected);
         }
     }
 }

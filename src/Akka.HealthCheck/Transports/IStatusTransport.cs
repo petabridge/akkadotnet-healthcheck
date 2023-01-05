@@ -26,7 +26,7 @@ namespace Akka.HealthCheck.Transports
         ///     A task with a status of <c>true</c> or <c>false</c>. If
         ///     <c>false</c>, we failed to write the updated status to the transport.
         /// </returns>
-        Task<TransportWriteStatus> Go(string statusMessage, CancellationToken token);
+        Task<TransportWriteStatus> Go(string? statusMessage, CancellationToken token);
 
         /// <summary>
         ///     Signal that we are NOT live / ready.
@@ -37,6 +37,6 @@ namespace Akka.HealthCheck.Transports
         ///     A task with a status of <c>true</c> or <c>false</c>. If
         ///     <c>false</c>, we failed to close the transport.
         /// </returns>
-        Task<TransportWriteStatus> Stop(string statusMessage, CancellationToken token);
+        Task<TransportWriteStatus> Stop(string? statusMessage, CancellationToken token);
     }
 }
