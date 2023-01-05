@@ -174,7 +174,7 @@ akka.healthcheck{
       # Persistence liveness check provider.
       # To use, install the Akka.HealthCheck.Persistence NuGet package and uncomment this line.
       #
-      #persistence = "Akka.HealthCheck.Cluster.AkkaPersistenceLivenessProbeProvider, Akka.HealthCheck.Persistence"
+      #persistence = "Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbeProvider, Akka.HealthCheck.Persistence"
     }
 
     # Defines the signaling mechanism used to communicate with K8s, AWS, Azure,
