@@ -111,6 +111,23 @@ using var host = new HostBuilder()
 await host.RunAsync();
 ```
 
+`HealthCheckType` is a bit flag enum that consists of these choices:
+```csharp
+[Flags]
+public enum HealthCheckType
+{
+    DefaultLiveness = 1,
+    DefaultReadiness = 2,
+    Default = DefaultLiveness | DefaultReadiness,
+    ClusterLiveness = 4,
+    ClusterReadiness = 8,
+    Cluster = ClusterLiveness | ClusterReadiness,
+    PersistenceLiveness = 16,
+    Persistence = PersistenceLiveness,
+    All = Default | Cluster | Persistence
+}
+```
+
 ## Configuring Using HOCON
 [Back To Top](#akkahealthcheck)
 
@@ -124,19 +141,29 @@ await host.RunAsync();
 `Akka.HealthCheck` can be added manually through HOCON configuration:
 
 ```csharp
-var hocon = @"{
-    akka{
-        healthcheck{
-            log-config-on-start = on
-            log-info = on
-            liveness{
-                transport = tcp
-                tcp.port = 8080}
-            readiness{
-                transport = file
-                file.path = ""snapshot.txt""}
-    
-     }}";
+var hocon = @"
+akka.healthcheck {
+  log-config-on-start = on
+  log-info = on
+  liveness {
+    providers {
+      default = "Akka.HealthCheck.Liveness.DefaultLivenessProvider, Akka.HealthCheck"
+      cluster = "Akka.HealthCheck.Cluster.ClusterLivenessProbeProvider, Akka.HealthCheck.Cluster"
+    }
+            
+    transport = tcp
+    tcp.port = 8080
+  }
+  
+  readiness {
+    providers {
+      default = "Akka.HealthCheck.Readiness.DefaultReadinessProvider, Akka.HealthCheck"
+      custom = "MyAssembly.CustomReadinessProvider, MyAssembly"
+    }
+    transport = file
+    file.path = ""snapshot.txt""
+  }    
+}";
 var config = ConfigurationFactory.ParseString(hocon);
 var actorSystem = ActorSystem.Create("Probe", config);
 var healthCheck = AkkaHealthCheck.For(actorSystem);
@@ -363,6 +390,7 @@ app.MapAkkaHealthCheckRoutes();
 
 await app.RunAsync();
 ```
+
 ## HTTP Response
 [Back To Top](#akkahealthcheck)
 
