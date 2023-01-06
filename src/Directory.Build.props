@@ -9,6 +9,7 @@ Bumped Akka version to 1.4.1</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/petabridge/akkadotnet-healthcheck</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <PropertyGroup>
     <LangVersion>10.0</LangVersion>
@@ -46,4 +47,7 @@ Bumped Akka version to 1.4.1</PackageReleaseNotes>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>
