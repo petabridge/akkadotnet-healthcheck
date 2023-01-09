@@ -13,7 +13,7 @@
 
     <ItemGroup>
       <PackageReference Include="Akka.Cluster.Hosting" Version="1.0.0" />
-      <PackageReference Include="Akka.Persistence.Hosting" Version="1.0.0" />
+      <PackageReference Include="Akka.Persistence.Hosting" Version="1.0.1" />
     </ItemGroup>
 
 </Project>
