@@ -1,3 +1,17 @@
+#### 1.0.0 January 18 2023 ####
+
+This version 1.0.0 release is the RTM release for `Akka.HealthCheck`; the public API will be frozen from this point forward and backed with our backward compatibility promise.
+
+* [Bump Akka.Hosting from 1.0.0 to 1.0.1](https://github.com/petabridge/akkadotnet-healthcheck/pull/182)
+* [Bumped Akka version to 1.4.47](https://github.com/akkadotnet/akka.net/releases/tag/1.4.47)
+* [Add multi probe provider support](https://github.com/petabridge/akkadotnet-healthcheck/pull/151)
+* [Add `Akka.Hosting` support and ASP.NET IHealthCheck integration](https://github.com/petabridge/akkadotnet-healthcheck/pull/148)
+* [Expanded persistence health check reporting](https://github.com/petabridge/akkadotnet-healthcheck/pull/154)
+* [Bump Akka.Hosting from 0.5.1 to 1.0.0](https://github.com/petabridge/akkadotnet-healthcheck/pull/163)
+* [Improve ASP.NET health check route configuration callback](https://github.com/petabridge/akkadotnet-healthcheck/pull/165)
+* [Fix probe status reporting to account for all provider statuses](https://github.com/petabridge/akkadotnet-healthcheck/pull/171)
+* [Add documentation](https://github.com/petabridge/akkadotnet-healthcheck/pull/173)
+
 #### 1.0.0-beta1 January 5 2023 ####
 This release is a beta release of the new `Akka.Hosting` API and the ASP.NET integration API. We would love to hear your input on these new APIs.
 
