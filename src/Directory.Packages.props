@@ -4,7 +4,6 @@
   </PropertyGroup>
   <!-- App dependencies -->
   <ItemGroup>
-	  
 	  <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
 	  <PackageVersion Include="Akka.Cluster" Version="$(AkkaVersion)" />
 	  <PackageVersion Include="Akka.Hosting" Version="$(AkkaHostingVersion)" />

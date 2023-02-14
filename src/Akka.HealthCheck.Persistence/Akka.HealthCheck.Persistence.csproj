@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(NetLibVersion)</TargetFrameworks>
+    <TargetFrameworks>$(NetStandardLibVersion);$(NetLibVersion)</TargetFrameworks>
     <Description>Akka.NET and Akka.Persistence healthchecks for environments like K8s, AWS, Azure, Pivotal Cloud Foundry, and more.</Description>
     <PackageTags>$(AkkaPackageTags);persistence;</PackageTags>
   </PropertyGroup>

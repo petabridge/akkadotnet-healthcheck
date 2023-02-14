@@ -25,8 +25,11 @@ Bumped Akka version to 1.4.1</PackageReleaseNotes>
     <FluentAssertionVersion>6.9.0</FluentAssertionVersion>
     <AkkaVersion>1.4.49</AkkaVersion>
     <AkkaHostingVersion>1.0.2</AkkaHostingVersion>
-    <NetTestVersion>net6.0</NetTestVersion>
-    <NetLibVersion>net6.0</NetLibVersion>
+	<NetCoreTestVersion>netcoreapp3.1</NetCoreTestVersion>
+	<NetTestVersion>net6.0</NetTestVersion>
+	<NetStandardLibVersion>netstandard2.0</NetStandardLibVersion>
+	<NetLibVersion>net6.0</NetLibVersion>
+	<NetCoreLibVersion>netcoreapp3.1</NetCoreLibVersion>
     <PbmVersion>1.2.1</PbmVersion>
     <BootstrapDockerVersion>0.5.3</BootstrapDockerVersion>
     <KubernetesClientVersion>4.0.26</KubernetesClientVersion>
