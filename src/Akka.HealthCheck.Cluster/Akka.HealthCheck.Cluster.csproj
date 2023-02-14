@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(NetStandardLibVersion);$(NetLibVersion)</TargetFrameworks>
+    <TargetFrameworks>$(NetLibVersion)</TargetFrameworks>
     <Description>Akka.NET and Akka.Cluster healthchecks for environments like K8s, AWS, Azure, Pivotal Cloud Foundry, and more.</Description>
     <PackageTags>$(AkkaPackageTags);cluster;clustering;</PackageTags>
   </PropertyGroup>
 
 
   <ItemGroup>
-    <PackageReference Include="Akka.Cluster" Version="$(AkkaVersion)" />
+    <PackageReference Include="Akka.Cluster" />
   </ItemGroup>
 
 

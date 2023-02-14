@@ -1,0 +1,32 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <!-- App dependencies -->
+  <ItemGroup>
+	  
+	  <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
+	  <PackageVersion Include="Akka.Cluster" Version="$(AkkaVersion)" />
+	  <PackageVersion Include="Akka.Hosting" Version="$(AkkaHostingVersion)" />
+	  <PackageVersion Include="Akka.Cluster.Hosting" Version="$(AkkaHostingVersion)" />
+	  <PackageVersion Include="Akka.Persistence" Version="$(AkkaVersion)" />
+	  <PackageVersion Include="Akka.Persistence.Hosting" Version="$(AkkaHostingVersion)" />
+	  <PackageVersion Include="akka.persistence.sqlite" Version="$(AkkaVersion)" />
+	  <PackageVersion Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+  </ItemGroup>
+  <!-- Test dependencies -->
+  <ItemGroup>
+	  
+	  <PackageVersion Include="Akka.Persistence.TestKit.Xunit2" Version="$(AkkaVersion)" />
+	  <PackageVersion Include="Akka.TestKit.Xunit" Version="$(AkkaVersion)" />
+	  <PackageVersion Include="FluentAssertions" Version="$(FluentAssertionVersion)" />
+	  <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
+	  <PackageVersion Include="xunit" Version="$(XunitVersion)" />
+	  <PackageVersion Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVersion)"  />
+   
+  </ItemGroup>
+	<!-- SourceLink support for all Akka.NET projects -->
+	<ItemGroup>
+		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
+	</ItemGroup>
+</Project>

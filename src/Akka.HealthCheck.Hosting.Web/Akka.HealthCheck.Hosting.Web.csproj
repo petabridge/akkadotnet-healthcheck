@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>$(NetCoreLibVersion);$(NetLibVersion)</TargetFrameworks>
+        <TargetFrameworks>$(NetLibVersion)</TargetFrameworks>
         <PackageTags>$(AkkaPackageTags);hosting;asp.net;asp</PackageTags>
     </PropertyGroup>
 
