@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -12,8 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Akka.Cluster.Hosting" Version="$(AkkaHostingVersion)" />
-      <PackageReference Include="Akka.Persistence.Hosting" Version="$(AkkaHostingVersion)" />
+      <PackageReference Include="Akka.Cluster.Hosting" />
+      <PackageReference Include="Akka.Persistence.Hosting" />
     </ItemGroup>
 
 </Project>

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.Persistence" Version="$(AkkaVersion)" />
+    <PackageReference Include="Akka.Persistence"/>
   </ItemGroup>
 
   <ItemGroup>

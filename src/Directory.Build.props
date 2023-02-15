@@ -25,11 +25,11 @@ Bumped Akka version to 1.4.1</PackageReleaseNotes>
     <FluentAssertionVersion>6.9.0</FluentAssertionVersion>
     <AkkaVersion>1.4.49</AkkaVersion>
     <AkkaHostingVersion>1.0.2</AkkaHostingVersion>
-    <NetCoreTestVersion>netcoreapp3.1</NetCoreTestVersion>
-    <NetTestVersion>net6.0</NetTestVersion>
-    <NetStandardLibVersion>netstandard2.0</NetStandardLibVersion>
-    <NetLibVersion>net6.0</NetLibVersion>
-    <NetCoreLibVersion>netcoreapp3.1</NetCoreLibVersion>
+	<NetCoreTestVersion>netcoreapp3.1</NetCoreTestVersion>
+	<NetTestVersion>net6.0</NetTestVersion>
+	<NetStandardLibVersion>netstandard2.0</NetStandardLibVersion>
+	<NetLibVersion>net6.0</NetLibVersion>
+	<NetCoreLibVersion>netcoreapp3.1</NetCoreLibVersion>
     <PbmVersion>1.2.1</PbmVersion>
     <BootstrapDockerVersion>0.5.3</BootstrapDockerVersion>
     <KubernetesClientVersion>4.0.26</KubernetesClientVersion>
@@ -37,7 +37,7 @@ Bumped Akka version to 1.4.1</PackageReleaseNotes>
   </PropertyGroup>
   <!-- SourceLink support for all Akka.NET projects -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
   </ItemGroup>
   <PropertyGroup>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

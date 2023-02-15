@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka" Version="$(AkkaVersion)" />
+    <PackageReference Include="Akka" />
   </ItemGroup>
 
   <ItemGroup>
