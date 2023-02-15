@@ -359,14 +359,14 @@ webBuilder.Services
 
 The convenience `IEndpointRouteBuilder` extension method `MapAkkaHealthCheckRoutes` automatically scans for any registered probes inside the health check middleware and maps all the probes to a HTTP route. The HTTP route is the concatenation of the probe tags. By default:
 
-- `AkkaReadinessProbe` is mapped to "/{prefix}/akka/ready/node"
-- `AkkaLivenessProbe` is mapped to "/{prefix}/akka/live/node"
-- `AkkaClusterReadinessProbe` is mapped to "/{prefix}/akka/ready/cluster"
-- `AkkaClusterLivenessProbe` is mapped to "/{prefix}/akka/live/cluster"
-- `AkkaPersistenceLivenessProbe` is mapped to "/{prefix}/akka/live/persistence"
-- All liveness probes can be queried all at once at "/{prefix}/akka/live"
-- All readiness probes can be queried all at once at "/{prefix}/akka/ready"
-- All Akka.NET probes can be queried all at once at ""/{prefix}/akka"
+- `AkkaReadinessProbe` is mapped to "/healthz/akka/ready/node"
+- `AkkaLivenessProbe` is mapped to "/healthz/akka/live/node"
+- `AkkaClusterReadinessProbe` is mapped to "/healthz/akka/ready/cluster"
+- `AkkaClusterLivenessProbe` is mapped to "/healthz/akka/live/cluster"
+- `AkkaPersistenceLivenessProbe` is mapped to "/healthz/akka/live/persistence"
+- All liveness probes can be queried all at once at "/healthz/akka/live"
+- All readiness probes can be queried all at once at "/healthz/akka/ready"
+- All Akka.NET probes can be queried all at once at "/healthz/akka"
 
 ```csharp
 var webBuilder = WebApplication.CreateBuilder(args);
