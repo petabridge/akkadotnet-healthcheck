@@ -4,19 +4,19 @@
   </PropertyGroup>
   <!-- App dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Akka" Version="1.5.0-beta3" />
-    <PackageVersion Include="Akka.Cluster" Version="1.5.0-beta3" />
-    <PackageVersion Include="Akka.Hosting" Version="1.5.0-beta3" />
-    <PackageVersion Include="Akka.Cluster.Hosting" Version="1.5.0-beta3" />
-    <PackageVersion Include="Akka.Persistence" Version="1.5.0-beta3" />
-    <PackageVersion Include="Akka.Persistence.Hosting" Version="1.5.0-beta3" />
-    <PackageVersion Include="akka.persistence.sqlite" Version="1.5.0-beta3" />
+    <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Cluster" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Hosting" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Cluster.Hosting" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Persistence" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Persistence.Hosting" Version="$(AkkaVersion)" />
+    <PackageVersion Include="akka.persistence.sqlite" Version="$(AkkaVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
   </ItemGroup>
   <!-- Test dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Akka.Persistence.TestKit.Xunit2" Version="1.5.0-beta3" />
-    <PackageVersion Include="Akka.TestKit.Xunit" Version="1.5.0-beta3" />
+    <PackageVersion Include="Akka.Persistence.TestKit.Xunit2" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.TestKit.Xunit" Version="$(AkkaVersion)" />
     <PackageVersion Include="FluentAssertions" Version="$(FluentAssertionVersion)" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
     <PackageVersion Include="xunit" Version="$(XunitVersion)" />
