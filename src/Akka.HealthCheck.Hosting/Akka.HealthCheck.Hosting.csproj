@@ -3,11 +3,9 @@
         <TargetFrameworks>$(NetStandardLibVersion);$(NetLibVersion)</TargetFrameworks>
         <PackageTags>$(AkkaPackageTags);hosting;</PackageTags>
     </PropertyGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Akka.Hosting"/>
-    </ItemGroup>
-
+	<ItemGroup>
+		<PackageReference Include="Akka.Hosting"/>
+	</ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Akka.HealthCheck.Cluster\Akka.HealthCheck.Cluster.csproj" />
       <ProjectReference Include="..\Akka.HealthCheck.Persistence\Akka.HealthCheck.Persistence.csproj" />

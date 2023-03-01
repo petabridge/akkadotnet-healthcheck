@@ -9,9 +9,9 @@
 
   <ItemGroup>
     <PackageReference Include="akka.persistence.sqlite" />
-    <PackageReference Include="Akka.Persistence.TestKit.Xunit2"/>
+    <PackageReference Include="Akka.Persistence.TestKit.Xunit2" />
     <PackageReference Include="Akka.TestKit.Xunit" />
-    <PackageReference Include="FluentAssertions"/>
+    <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
