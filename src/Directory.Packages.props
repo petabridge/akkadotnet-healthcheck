@@ -6,10 +6,10 @@
   <ItemGroup>
     <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.Cluster" Version="$(AkkaVersion)" />
-    <PackageVersion Include="Akka.Hosting" Version="$(AkkaVersion)" />
-    <PackageVersion Include="Akka.Cluster.Hosting" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Hosting" Version="$(AkkaHostingVersion)" />
+    <PackageVersion Include="Akka.Cluster.Hosting" Version="$(AkkaHostingVersion)" />
     <PackageVersion Include="Akka.Persistence" Version="$(AkkaVersion)" />
-    <PackageVersion Include="Akka.Persistence.Hosting" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Persistence.Hosting" Version="$(AkkaHostingVersion)" />
     <PackageVersion Include="akka.persistence.sqlite" Version="$(AkkaVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
   </ItemGroup>
