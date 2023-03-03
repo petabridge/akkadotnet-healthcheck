@@ -1,3 +1,11 @@
+#### 1.5.0 March 3 2023 ####
+
+Version 1.5.0 integrates Akka.Management and Akka.NET v1.5.0 RTM.
+
+* [Bump Akka version to 1.5.0](https://github.com/akkadotnet/akka.net/releases/tag/1.4.47)
+* [Bump Akka.Hosting from 1.0.1 to 1.5.0](https://github.com/petabridge/akkadotnet-healthcheck/pull/199)
+* [Bump Microsoft.Extensions.Hosting to 7.0.1](https://github.com/petabridge/akkadotnet-healthcheck/pull/197)
+ 
 #### 1.0.0 January 18 2023 ####
 
 This version 1.0.0 release is the RTM release for `Akka.HealthCheck`; the public API will be frozen from this point forward and backed with our backward compatibility promise.

@@ -23,8 +23,8 @@ Bumped Akka version to 1.4.1</PackageReleaseNotes>
     <TestSdkVersion>17.5.0</TestSdkVersion>
     <CoverletVersion>3.2.0</CoverletVersion>
     <FluentAssertionVersion>6.9.0</FluentAssertionVersion>
-    <AkkaVersion>1.5.0-beta6</AkkaVersion>
-    <AkkaHostingVersion>1.5.0-beta6</AkkaHostingVersion>
+    <AkkaVersion>1.5.0</AkkaVersion>
+    <AkkaHostingVersion>1.5.0</AkkaHostingVersion>
     <FluentAssertionVersion>6.10.0</FluentAssertionVersion>
 	<NetCoreTestVersion>netcoreapp3.1</NetCoreTestVersion>
 	<NetTestVersion>net6.0</NetTestVersion>
