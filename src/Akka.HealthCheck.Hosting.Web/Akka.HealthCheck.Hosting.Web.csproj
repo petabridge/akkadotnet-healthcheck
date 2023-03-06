@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFrameworks>$(NetCoreLibVersion);$(NetLibVersion)</TargetFrameworks>
         <PackageTags>$(AkkaPackageTags);hosting;asp.net;asp</PackageTags>
+        <PackageReadmeFile>WEB.README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,5 +12,8 @@
     <ItemGroup>
       <ProjectReference Include="..\Akka.HealthCheck.Hosting\Akka.HealthCheck.Hosting.csproj" />
     </ItemGroup>
-    
+
+    <ItemGroup>
+        <None Include="WEB.README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
 </Project>
