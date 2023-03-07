@@ -71,16 +71,18 @@ namespace Akka.HealthCheck.Persistence
     {
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
-        private PersistenceLivenessStatus _currentLivenessStatus = new PersistenceLivenessStatus(message: "Persistence is still starting up");
+        private PersistenceLivenessStatus _currentLivenessStatus = new(message: "Warming up probe. Recovery status is still undefined");
         private IActorRef? _probe;
         private int _probeCounter;
         private readonly TimeSpan _delay;
         private readonly string _id;
+        private readonly Cancelable _shutdownCancellable;
 
         public AkkaPersistenceLivenessProbe(TimeSpan delay)
         {
             _delay = delay;
             _id = Guid.NewGuid().ToString("N");
+            _shutdownCancellable = new Cancelable(Context.System.Scheduler);
         }
         public AkkaPersistenceLivenessProbe() : this(TimeSpan.FromSeconds(10))
         {
@@ -91,6 +93,13 @@ namespace Akka.HealthCheck.Persistence
             // need to use the stopping strategy in case things blow up right away
             return Props.Create(() => new AkkaPersistenceLivenessProbe())
                 .WithSupervisorStrategy(Actor.SupervisorStrategy.StoppingStrategy);
+        }
+
+        protected override void PostStop()
+        {
+            _shutdownCancellable.Cancel();
+            _shutdownCancellable.Dispose();
+            base.PostStop();
         }
 
         private bool HandleSubscriptions(object msg)
@@ -124,8 +133,9 @@ namespace Akka.HealthCheck.Persistence
             switch (message)
             {
                 case Terminated t when t.ActorRef.Equals(_probe):
+                    Context.Unwatch(_probe);
                     _log.Info("Persistence probe terminated. Recreating...");
-                    CreateProbe(false);
+                    CreateProbe();
                     Become(obj => Recreating(obj) || HandleSubscriptions(obj));
                     return true;
                 case PersistenceLivenessStatus status:
@@ -148,8 +158,9 @@ namespace Akka.HealthCheck.Persistence
             switch (message)
             {
                 case Terminated t when t.ActorRef.Equals(_probe):
+                    Context.Unwatch(_probe);
                     _log.Debug("Persistence probe terminated. Recreating...");
-                    CreateProbe(false);
+                    CreateProbe();
                     return true;
                 case PersistenceLivenessStatus status:
                     HandleRecoveryStatus(status);
@@ -166,19 +177,22 @@ namespace Akka.HealthCheck.Persistence
 
         protected override void PreStart()
         {
-            CreateProbe(true);
+            CreateProbe();
         }
 
-        private void CreateProbe(bool firstTime)
+        private void CreateProbe()
         {
-            _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, firstTime, _id)));
-            if(firstTime)
+            var isEven = _probeCounter % 2 == 0;
+            _probeCounter++;
+            _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, isEven, _id)));
+            
+            if(isEven)
             {
-                _probe.Tell("hit" + _probeCounter++);
+                _probe.Tell("hit");
             }
             else
             {
-                Context.System.Scheduler.ScheduleTellOnce(_delay, _probe, "hit" + _probeCounter++, Self);
+                Context.System.Scheduler.ScheduleTellOnce(_delay, _probe, "hit", Self, _shutdownCancellable);
             }
             Context.Watch(_probe);
         }
@@ -238,8 +252,8 @@ namespace Akka.HealthCheck.Persistence
                         
                         if (!_firstAttempt)
                         {
-                            DeleteMessages(save.Metadata.SequenceNr - 1);
-                            DeleteSnapshots(new SnapshotSelectionCriteria(save.Metadata.SequenceNr - 1));
+                            DeleteMessages(long.MaxValue);
+                            DeleteSnapshots(new SnapshotSelectionCriteria(long.MaxValue));
                         }
                         SendRecoveryStatusWhenFinished();
                     });
@@ -305,9 +319,8 @@ namespace Akka.HealthCheck.Persistence
                 && _persistedJournal is { }
                 && _persistedSnapshotStore is { })
             {
-                var msg = _persistedJournal == true && _persistedSnapshotStore == true
-                    ? "Warming up probe. Recovery status is still undefined" : null;
-                _probe.Tell(CreateStatus(msg));
+                if(_persistedJournal == false || _persistedSnapshotStore == false)
+                    _probe.Tell(CreateStatus());
                 Context.Stop(Self);
             }
             
@@ -328,7 +341,7 @@ namespace Akka.HealthCheck.Persistence
             _failures.Add(cause);
             _persistedJournal = false;
             _probe.Tell(CreateStatus("Journal persist failure"));
-            // Actor is automatically killed here.
+            Context.Stop(Self);
         }
 
         protected override void OnPersistRejected(Exception cause, object @event, long sequenceNr)
@@ -336,7 +349,8 @@ namespace Akka.HealthCheck.Persistence
             _log.Error(cause, "Journal persist rejected");
             _failures.Add(cause);
             _persistedJournal = false;
-            SendRecoveryStatusWhenFinished();
+            _probe.Tell(CreateStatus("Journal persist rejected"));
+            Context.Stop(Self);
         }
 
         protected override void OnRecoveryFailure(Exception reason, object? message = null)
@@ -346,7 +360,7 @@ namespace Akka.HealthCheck.Persistence
             
             _failures.Add(reason);
             _probe.Tell(CreateStatus(msg));
-            // Actor is automatically killed here.
+            Context.Stop(Self);
         }
 
         private PersistenceLivenessStatus CreateStatus(string? message = null)
