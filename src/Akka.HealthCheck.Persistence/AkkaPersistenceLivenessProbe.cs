@@ -182,11 +182,12 @@ namespace Akka.HealthCheck.Persistence
 
         private void CreateProbe()
         {
-            var isEven = _probeCounter % 2 == 0;
+            var first = _probeCounter == 0;
+            _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, first, _id)));
             _probeCounter++;
-            _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, isEven, _id)));
+            Context.Watch(_probe);
             
-            if(isEven)
+            if(first)
             {
                 _probe.Tell("hit");
             }
@@ -194,7 +195,6 @@ namespace Akka.HealthCheck.Persistence
             {
                 Context.System.Scheduler.ScheduleTellOnce(_delay, _probe, "hit", Self, _shutdownCancellable);
             }
-            Context.Watch(_probe);
         }
 
         private void PublishStatusUpdates()
@@ -235,6 +235,11 @@ namespace Akka.HealthCheck.Persistence
             {
                 _recoveredSnapshotStore = true;
             });
+            Recover<RecoveryCompleted>(_ =>
+            {
+                DeleteMessages(long.MaxValue);
+                DeleteSnapshots(new SnapshotSelectionCriteria(long.MaxValue));
+            });
 
             Command<string>(str =>
             {
@@ -249,12 +254,6 @@ namespace Akka.HealthCheck.Persistence
                     s =>
                     {
                         _persistedJournal = true;
-                        
-                        if (!_firstAttempt)
-                        {
-                            DeleteMessages(long.MaxValue);
-                            DeleteSnapshots(new SnapshotSelectionCriteria(long.MaxValue));
-                        }
                         SendRecoveryStatusWhenFinished();
                     });
             });
@@ -271,8 +270,6 @@ namespace Akka.HealthCheck.Persistence
                         _persistedJournal = true;
                         SendRecoveryStatusWhenFinished();
                     });
-                
-                SendRecoveryStatusWhenFinished();
             });
             
             Command<DeleteMessagesSuccess>(_ =>
@@ -319,13 +316,17 @@ namespace Akka.HealthCheck.Persistence
                 && _persistedJournal is { }
                 && _persistedSnapshotStore is { })
             {
-                if(_persistedJournal == false || _persistedSnapshotStore == false)
-                    _probe.Tell(CreateStatus());
+                var msg = _persistedJournal == true && _persistedSnapshotStore == true
+                    ? "Warming up probe. Recovery status is still undefined"
+                    : null;
+                _probe.Tell(CreateStatus(msg));
                 Context.Stop(Self);
             }
             
             // Third case, all fields should be populated
-            if (_persistedJournal is { } 
+            if (_recoveredJournal is { }
+                && _recoveredSnapshotStore is { }
+                && _persistedJournal is { } 
                 && _persistedSnapshotStore is { } 
                 && _deletedJournal is { } 
                 && _deletedSnapshotStore is { })
