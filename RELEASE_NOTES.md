@@ -1,3 +1,10 @@
+#### 1.5.0.1 March 8 2023 ####
+
+Version 1.5.0.1 contains a patch that fixes `Akka.HealthCheck.Persistence` database problems.
+
+* [Change all Microsoft.Extensions versions to ranged version with v3.0.0 lower bound](https://github.com/petabridge/akkadotnet-healthcheck/pull/205)
+* [Fix HealthCheck.Persistence database littering bug](https://github.com/petabridge/akkadotnet-healthcheck/pull/206)
+
 #### 1.5.0 March 3 2023 ####
 
 Version 1.5.0 integrates Akka.Management and Akka.NET v1.5.0 RTM.
