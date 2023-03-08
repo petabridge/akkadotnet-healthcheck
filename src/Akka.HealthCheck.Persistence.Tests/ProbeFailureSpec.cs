@@ -16,6 +16,7 @@ namespace Akka.HealthCheck.Persistence.Tests
 {
     public class ProbeFailureSpec: PersistenceTestKit
     {
+        
         private readonly string _id = Guid.NewGuid().ToString("N");
         private int _count;
         
@@ -224,14 +225,15 @@ namespace Akka.HealthCheck.Persistence.Tests
 
         private PersistenceLivenessStatus PerformProbe()
         {
+            var first = _count == 0;
             _count++;
-            var liveProbe = ActorOf(() => new SuicideProbe(TestActor, _count == 1, _id));
+            var liveProbe = ActorOf(() => new SuicideProbe(TestActor, first, _id));
             Watch(liveProbe);
-            liveProbe.Tell($"hit-{_count}");
+            liveProbe.Tell("hit");
             var status = ExpectMsg<PersistenceLivenessStatus>();
             ExpectTerminated(liveProbe);
             Unwatch(liveProbe);
-
+            
             return status;
         }
         
