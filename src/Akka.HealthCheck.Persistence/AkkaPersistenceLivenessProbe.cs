@@ -182,19 +182,18 @@ namespace Akka.HealthCheck.Persistence
 
         private void CreateProbe()
         {
-            var first = _probeCounter == 0;
-            _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, first, _id)));
-            _probeCounter++;
+            _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, _probeCounter == 0, _id)));
             Context.Watch(_probe);
             
-            if(first)
+            if(_probeCounter == 0)
             {
-                _probe.Tell("hit");
+                _probe.Tell("hit" + _probeCounter);
             }
             else
             {
-                Context.System.Scheduler.ScheduleTellOnce(_delay, _probe, "hit", Self, _shutdownCancellable);
+                Context.System.Scheduler.ScheduleTellOnce(_delay, _probe, "hit" + _probeCounter, Self, _shutdownCancellable);
             }
+            _probeCounter++;
         }
 
         private void PublishStatusUpdates()
