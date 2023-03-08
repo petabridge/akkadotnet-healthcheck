@@ -5,14 +5,12 @@
 // -----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Persistence.TestKit;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Akka.HealthCheck.Persistence.Tests
 {
@@ -29,7 +27,7 @@ namespace Akka.HealthCheck.Persistence.Tests
         [Fact(DisplayName = "First probe should report that probe is still warming up")]
         public void SuccessfulFirstProbeTest()
         {
-            var status = PerformProbe();
+            var status = PerformProbe(); 
             status.IsLive.Should().BeFalse();
             status.JournalRecovered.Should().BeFalse();
             status.JournalPersisted.Should().BeTrue();
@@ -107,7 +105,6 @@ namespace Akka.HealthCheck.Persistence.Tests
         public async Task JournalRecoverFailTest()
         {
             AssertFirstProbe();
-            
             await WithJournalRecovery(recover => recover.Fail(), () =>
             {
                 var status = PerformProbe();
@@ -236,6 +233,7 @@ namespace Akka.HealthCheck.Persistence.Tests
             var status = ExpectMsg<PersistenceLivenessStatus>();
             ExpectTerminated(liveProbe);
             Unwatch(liveProbe);
+            
             return status;
         }
         
@@ -244,7 +242,7 @@ namespace Akka.HealthCheck.Persistence.Tests
             if (_count != 0)
                 throw new Exception("Must be called as the first probe!");
             
-            var status = PerformProbe();
+            var status = PerformProbe(); 
             status.JournalRecovered.Should().BeFalse();
             status.JournalPersisted.Should().BeTrue();
             status.SnapshotRecovered.Should().BeFalse();
