@@ -48,7 +48,7 @@ namespace Akka.HealthCheck.Transports
                 try
                 {
                     if (_logInfo)
-                        _log.Info("Received liveness status from probe [{0}]. Live: {1}, Message: {2}", probeName, 
+                        _log.Debug("Received liveness status from probe [{0}]. Live: {1}, Message: {2}", probeName, 
                             status.IsLive, status.StatusMessage);
                     
                     _statuses[probeName] = status;
@@ -93,7 +93,7 @@ namespace Akka.HealthCheck.Transports
                 _livenessProbes.Remove(t.ActorRef);
                 if (_livenessProbes.Count == 0)
                 {
-                    _log.Warning("All liveness probe actors terminated! Shutting down.");
+                    _log.Info("All liveness probe actors terminated! Shutting down.");
                     Context.Stop(Self);
                 }
                 else

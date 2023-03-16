@@ -48,7 +48,7 @@ namespace Akka.HealthCheck.Transports
                 try
                 {
                     if (_logInfo)
-                        _log.Info("Received readiness status from probe [{0}]. Ready: {1}, Message: {2}", probeName, 
+                        _log.Debug("Received readiness status from probe [{0}]. Ready: {1}, Message: {2}", probeName, 
                             status.IsReady, status.StatusMessage);
 
                     _statuses[probeName] = status;
