@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using Akka.Actor;
+using Akka.HealthCheck.Configuration;
 
 namespace Akka.HealthCheck
 {
@@ -16,6 +17,8 @@ namespace Akka.HealthCheck
     /// </summary>
     public abstract class ProbeProviderBase : IProbeProvider
     {
+        protected HealthCheckSettings Settings { get; }
+        
         /// <summary>
         ///     Constructor takes the <see cref="ActorSystem" /> on which this
         ///     healthcheck will run as a current argument. Designed to allow
@@ -25,6 +28,7 @@ namespace Akka.HealthCheck
         /// <param name="system">The current actor system.</param>
         protected ProbeProviderBase(ActorSystem system)
         {
+            Settings = new HealthCheckSettings(system);
         }
 
         /// <inheritdoc cref="IProbeProvider.ProbeProps" />

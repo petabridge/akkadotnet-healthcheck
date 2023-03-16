@@ -17,6 +17,6 @@ namespace Akka.HealthCheck.Cluster
         {
         }
 
-        public override Props ProbeProps => Props.Create(() => new ClusterLivenessProbe());
+        public override Props ProbeProps => Props.Create(() => new ClusterLivenessProbe(Settings.LogInfoEvents));
     }
 }

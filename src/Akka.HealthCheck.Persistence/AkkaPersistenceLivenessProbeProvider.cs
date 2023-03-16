@@ -17,6 +17,6 @@ namespace Akka.HealthCheck.Persistence
         {
         }
 
-        public override Props ProbeProps => AkkaPersistenceLivenessProbe.PersistentHealthCheckProps();
+        public override Props ProbeProps => AkkaPersistenceLivenessProbe.PersistentHealthCheckProps(Settings.LogInfoEvents);
     }
 }

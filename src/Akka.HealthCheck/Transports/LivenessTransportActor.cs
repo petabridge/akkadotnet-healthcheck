@@ -88,7 +88,7 @@ namespace Akka.HealthCheck.Transports
             {
                 var probeName = probeReverseLookup[t.ActorRef];
                 if (_logInfo)
-                    _log.Info("Liveness probe {0} terminated", probeName);
+                    _log.Debug("Liveness probe {0} terminated", probeName);
                 
                 _livenessProbes.Remove(t.ActorRef);
                 if (_livenessProbes.Count == 0)
