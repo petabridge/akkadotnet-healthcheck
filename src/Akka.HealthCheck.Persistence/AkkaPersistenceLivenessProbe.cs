@@ -77,21 +77,23 @@ namespace Akka.HealthCheck.Persistence
         private readonly TimeSpan _delay;
         private readonly string _id;
         private readonly Cancelable _shutdownCancellable;
+        private readonly bool _logInfo;
 
-        public AkkaPersistenceLivenessProbe(TimeSpan delay)
+        public AkkaPersistenceLivenessProbe(bool logInfo, TimeSpan delay)
         {
             _delay = delay;
             _id = Guid.NewGuid().ToString("N");
             _shutdownCancellable = new Cancelable(Context.System.Scheduler);
+            _logInfo = logInfo;
         }
-        public AkkaPersistenceLivenessProbe() : this(TimeSpan.FromSeconds(10))
+        public AkkaPersistenceLivenessProbe(bool logInfo) : this(logInfo, TimeSpan.FromSeconds(10))
         {
         }
 
-        public static Props PersistentHealthCheckProps()
+        public static Props PersistentHealthCheckProps(bool logInfo)
         {
             // need to use the stopping strategy in case things blow up right away
-            return Props.Create(() => new AkkaPersistenceLivenessProbe())
+            return Props.Create(() => new AkkaPersistenceLivenessProbe(logInfo))
                 .WithSupervisorStrategy(Actor.SupervisorStrategy.StoppingStrategy);
         }
 
@@ -134,7 +136,8 @@ namespace Akka.HealthCheck.Persistence
             {
                 case Terminated t when t.ActorRef.Equals(_probe):
                     Context.Unwatch(_probe);
-                    _log.Info("Persistence probe terminated. Recreating...");
+                    if(_logInfo)
+                        _log.Debug("Persistence probe terminated. Recreating...");
                     CreateProbe();
                     Become(obj => Recreating(obj) || HandleSubscriptions(obj));
                     return true;
@@ -148,7 +151,8 @@ namespace Akka.HealthCheck.Persistence
 
         private void HandleRecoveryStatus(PersistenceLivenessStatus livenessStatus)
         {
-            _log.Info("Received recovery status {0} from probe.", livenessStatus);
+            if(_logInfo)
+                _log.Debug("Received recovery status {0} from probe.", livenessStatus);
             _currentLivenessStatus = livenessStatus;
             PublishStatusUpdates();
         }
@@ -159,7 +163,8 @@ namespace Akka.HealthCheck.Persistence
             {
                 case Terminated t when t.ActorRef.Equals(_probe):
                     Context.Unwatch(_probe);
-                    _log.Debug("Persistence probe terminated. Recreating...");
+                    if(_logInfo)
+                        _log.Debug("Persistence probe terminated. Recreating...");
                     CreateProbe();
                     return true;
                 case PersistenceLivenessStatus status:

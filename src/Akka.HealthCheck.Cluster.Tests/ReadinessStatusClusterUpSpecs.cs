@@ -42,7 +42,7 @@ namespace Akka.HealthCheck.Cluster.Tests
 
             // step2 - create probe
 
-            var probe = Sys.ActorOf(Props.Create(() => new ClusterReadinessProbe()));
+            var probe = Sys.ActorOf(Props.Create(() => new ClusterReadinessProbe(true)));
             probe.Tell(new SubscribeToReadiness(TestActor));
 
             // step3 - wait for ready status
@@ -58,7 +58,7 @@ namespace Akka.HealthCheck.Cluster.Tests
 
             // step2 - create probe
 
-            var probe = Sys.ActorOf(Props.Create(() => new ClusterReadinessProbe()));
+            var probe = Sys.ActorOf(Props.Create(() => new ClusterReadinessProbe(true)));
             probe.Tell(new SubscribeToReadiness(TestActor));
 
             // step3 - wait for ready status

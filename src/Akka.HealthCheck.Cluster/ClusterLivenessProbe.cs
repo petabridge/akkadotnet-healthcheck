@@ -23,15 +23,17 @@ namespace Akka.HealthCheck.Cluster
         private readonly Akka.Cluster.Cluster _cluster = Akka.Cluster.Cluster.Get(Context.System);
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
+        private readonly bool _logInfo;
 
         private LivenessStatus _livenessStatus;
 
-        public ClusterLivenessProbe() : this(DefaultClusterLivenessStatus)
+        public ClusterLivenessProbe(bool logInfo) : this(logInfo, DefaultClusterLivenessStatus)
         {
         }
         
-        public ClusterLivenessProbe(LivenessStatus livenessStatus)
+        public ClusterLivenessProbe(bool logInfo, LivenessStatus livenessStatus)
         {
+            _logInfo = logInfo;
             _livenessStatus = livenessStatus;
 
             Receive<LivenessStatus>(s =>

@@ -26,9 +26,8 @@ namespace Akka.HealthCheck.Transports
         private readonly List<IActorRef> _readinessProbes;
         private readonly Dictionary<string, ReadinessStatus> _statuses = new ();
         private readonly IStatusTransport _statusTransport;
-        private readonly bool _logInfo;
 
-        public ReadinessTransportActor(IStatusTransport statusTransport, ImmutableDictionary<string, IActorRef> readinessProbe, bool log)
+        public ReadinessTransportActor(IStatusTransport statusTransport, ImmutableDictionary<string, IActorRef> readinessProbe, bool logInfo)
         {
             _statusTransport = statusTransport;
             var probeReverseLookup = readinessProbe.ToImmutableDictionary(kvp => kvp.Value, kvp => kvp.Key);
@@ -38,7 +37,6 @@ namespace Akka.HealthCheck.Transports
                 _statuses[kvp.Key] = new ReadinessStatus(false, $"Probe {kvp.Key} starting up.");
             }
             _readinessProbes = readinessProbe.Values.ToList();
-            _logInfo = log;
 
             ReceiveAsync<ReadinessStatus>(async status =>
             {
@@ -47,8 +45,8 @@ namespace Akka.HealthCheck.Transports
                 TransportWriteStatus writeStatus;
                 try
                 {
-                    if (_logInfo)
-                        _log.Info("Received readiness status from probe [{0}]. Ready: {1}, Message: {2}", probeName, 
+                    if (logInfo)
+                        _log.Debug("Received readiness status from probe [{0}]. Ready: {1}, Message: {2}", probeName, 
                             status.IsReady, status.StatusMessage);
 
                     _statuses[probeName] = status;
@@ -63,7 +61,7 @@ namespace Akka.HealthCheck.Transports
                 }
                 catch (Exception e)
                 {
-                    if (_logInfo)
+                    if (logInfo)
                         _log.Error(e, $"While processing status from probe [{probeName}]. Failed to write to transport.");
 
                     throw new ProbeUpdateException(ProbeKind.Readiness,
@@ -76,7 +74,7 @@ namespace Akka.HealthCheck.Transports
 
                 if (!writeStatus.Success)
                 {
-                    if (_logInfo)
+                    if (logInfo)
                         _log.Error(writeStatus.Exception, $"While processing status from probe [{probeName}]. Failed to write to transport.");
                     
                     throw new ProbeUpdateException(ProbeKind.Readiness,
@@ -87,13 +85,14 @@ namespace Akka.HealthCheck.Transports
             Receive<Terminated>(t =>
             {
                 var probeName = probeReverseLookup[t.ActorRef];
-                if (_logInfo)
-                    _log.Info("Readiness probe {0} terminated", probeName);
+                if (logInfo)
+                    _log.Debug("Readiness probe {0} terminated", probeName);
                 
                 _readinessProbes.Remove(t.ActorRef);
                 if (_readinessProbes.Count == 0)
                 {
-                    _log.Warning("All readiness probe actors terminated! Shutting down.");
+                    if (logInfo)
+                        _log.Info("All readiness probe actors terminated! Shutting down.");
                     Context.Stop(Self);
                 }
                 else

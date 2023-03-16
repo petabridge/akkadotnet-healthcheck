@@ -27,7 +27,7 @@ namespace Akka.HealthCheck.Persistence.Tests
         public void AkkaPersistenceLivenessProbeProvidert_Should_Report_Akka_Persistance_Is_Unavailable_With_Bad_Snapshot_Store_Setup()
         {
 
-            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(TimeSpan.FromMilliseconds(250))));
+            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, TimeSpan.FromMilliseconds(250))));
             ProbActor.Tell(new SubscribeToLiveness(TestActor));
             ExpectMsg<LivenessStatus>().IsLive.Should().BeFalse("System should not be live");
             ExpectMsg<LivenessStatus>(TimeSpan.FromMinutes(1)).IsLive.Should().BeFalse("System should not be live");

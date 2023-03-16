@@ -35,8 +35,8 @@ namespace Akka.HealthCheck.Tests.Configuration
             settings.ReadinessTransport.Should().Be(ProbeTransport.Custom);
             settings.LivenessTransportSettings.Should().BeOfType<CustomTransportSettings>();
             settings.ReadinessTransportSettings.Should().BeOfType<CustomTransportSettings>();
-            settings.LogConfigOnStart.Should().BeTrue();
-            settings.LogInfoEvents.Should().BeTrue();
+            settings.LogConfigOnStart.Should().BeFalse();
+            settings.LogInfoEvents.Should().BeFalse();
         }
 
         [Fact(DisplayName = "Should be able load non-default log options")]
@@ -44,14 +44,14 @@ namespace Akka.HealthCheck.Tests.Configuration
         {
             var hocon = ConfigurationFactory.ParseString(@"
                 akka.healthcheck{         
-                                 log-config-on-start = off
-                                 log-info = off
+                                 log-config-on-start = on
+                                 log-info = on
             }");
 
             var settings = new HealthCheckSettings(hocon.WithFallback(HealthCheckSettings.DefaultConfig())
                 .GetConfig("akka.healthcheck"));
-            settings.LogConfigOnStart.Should().BeFalse();
-            settings.LogInfoEvents.Should().BeFalse();
+            settings.LogConfigOnStart.Should().BeTrue();
+            settings.LogInfoEvents.Should().BeTrue();
         }
 
         [Fact(DisplayName = "HealthCheckSettings should load non-default transport values")]

@@ -22,7 +22,7 @@ namespace Akka.HealthCheck.Cluster
         {
         }
 
-        public override Props ProbeProps => Props.Create(() => new ClusterReadinessProbe());
+        public override Props ProbeProps => Props.Create(() => new ClusterReadinessProbe(Settings.LogInfoEvents));
     }
 
     /// <summary>
@@ -39,15 +39,17 @@ namespace Akka.HealthCheck.Cluster
         private readonly Akka.Cluster.Cluster _cluster = Akka.Cluster.Cluster.Get(Context.System);
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
+        private readonly bool _logInfo;
         private ICancelable? _notReadyTask;
         private ReadinessStatus _readinessStatus;
 
-        public ClusterReadinessProbe() : this(DefaultClusterReadinessStatus)
+        public ClusterReadinessProbe(bool logInfo) : this(logInfo, DefaultClusterReadinessStatus)
         {
         }
 
-        public ClusterReadinessProbe(ReadinessStatus readinessStatus)
+        public ClusterReadinessProbe(bool logInfo, ReadinessStatus readinessStatus)
         {
+            _logInfo = logInfo;
             _readinessStatus = readinessStatus;
 
             Receive<ReadinessStatus>(s =>
