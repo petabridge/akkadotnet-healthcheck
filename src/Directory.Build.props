@@ -26,7 +26,7 @@
     <CoverletVersion>3.2.0</CoverletVersion>
     <FluentAssertionVersion>6.10.0</FluentAssertionVersion>
     <AkkaVersion>1.5.1</AkkaVersion>
-    <AkkaHostingVersion>1.5.0</AkkaHostingVersion>
+    <AkkaHostingVersion>1.5.1</AkkaHostingVersion>
     <FluentAssertionVersion>6.10.0</FluentAssertionVersion>
     <NetCoreTestVersion>netcoreapp3.1</NetCoreTestVersion>
     <NetTestVersion>net6.0</NetTestVersion>
