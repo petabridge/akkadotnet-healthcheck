@@ -1,3 +1,9 @@
+#### 1.5.2 April 19 2023 ####
+
+* [Bump Akka version to 1.5.2](https://github.com/akkadotnet/akka.net/releases/tag/1.5.2) 
+* [Bump Akka.Hosting from 1.5.0 to 1.5.2](https://github.com/petabridge/akkadotnet-healthcheck/pull/213)
+* [Lower logging verbosity](https://github.com/petabridge/akkadotnet-healthcheck/pull/209)
+
 #### 1.5.0.1 March 8 2023 ####
 
 Version 1.5.0.1 contains a patch that fixes `Akka.HealthCheck.Persistence` database problems.
@@ -9,7 +15,7 @@ Version 1.5.0.1 contains a patch that fixes `Akka.HealthCheck.Persistence` datab
 
 Version 1.5.0 integrates Akka.Management and Akka.NET v1.5.0 RTM.
 
-* [Bump Akka version to 1.5.0](https://github.com/akkadotnet/akka.net/releases/tag/1.4.47)
+* [Bump Akka version to 1.5.0](https://github.com/akkadotnet/akka.net/releases/tag/1.5.0)
 * [Bump Akka.Hosting from 1.0.1 to 1.5.0](https://github.com/petabridge/akkadotnet-healthcheck/pull/199)
 * [Bump Microsoft.Extensions.Hosting to 7.0.1](https://github.com/petabridge/akkadotnet-healthcheck/pull/197)
  
