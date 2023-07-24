@@ -47,19 +47,11 @@ There are 5 probe providers that can be used with `Akka.HealthCheck`:
 2. `DefaultLivenessProvider` - The default liveness probe. The probe reports the time the `ActorSystem` was started.
     * Available inside the `Akka.HealthCheck` NuGet package.
 3. `ClusterReadinessProbeProvider` - Readiness probe for clustering.
-    * Reports healthy when:
-        * The `ActorSystem` joined a cluster.
-        * The `ActorSystem` is connected to a cluster
     * Reports unhealthy when:
-        * The `ActorSystem` just started has not joined a cluster.
         * All other nodes in the cluster is unreachable.
     - Available inside the `Akka.HealthCheck.Cluster` NuGet package.
 4. `ClusterLivenessProbeProvider` - Liveness probe for clustering.
-    * Reports healthy when:
-        * The `ActorSystem` joined a cluster.
-        * The `ActorSystem` is connected to a cluster
     * Reports unhealthy when:
-        * The `ActorSystem` just started and has not joined a cluster.
         * The `ActorSystem` left the cluster.
     * Available inside the `Akka.HealthCheck.Cluster` NuGet package.
 5. `AkkaPersistenceLivenessProbeProvider` - Liveness probe for persistence. It probes the persistence storage every second to check that persistence is working properly.

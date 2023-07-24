@@ -18,7 +18,7 @@ namespace Akka.HealthCheck.Cluster
     public sealed class ClusterLivenessProbe : ReceiveActor
     {
         public static readonly LivenessStatus DefaultClusterLivenessStatus =
-            new LivenessStatus(false, "not yet joined cluster");
+            new LivenessStatus(true, "not yet joined cluster");
 
         private readonly Akka.Cluster.Cluster _cluster = Akka.Cluster.Cluster.Get(Context.System);
         private readonly ILoggingAdapter _log = Context.GetLogger();
