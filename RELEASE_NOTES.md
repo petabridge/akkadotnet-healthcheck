@@ -1,3 +1,9 @@
+#### 1.5.9 July 25 2023 ####
+
+* [Bump Akka version to 1.5.9](https://github.com/akkadotnet/akka.net/releases/tag/1.5.9)
+* [Bump Akka.Hosting to 1.5.8.1](https://github.com/petabridge/akkadotnet-healthcheck/pull/227)
+* [Relax Akka.Cluster.HealthCheck probe requirements](https://github.com/petabridge/akkadotnet-healthcheck/pull/238)
+
 #### 1.5.2 April 19 2023 ####
 
 * [Bump Akka version to 1.5.2](https://github.com/akkadotnet/akka.net/releases/tag/1.5.2) 
