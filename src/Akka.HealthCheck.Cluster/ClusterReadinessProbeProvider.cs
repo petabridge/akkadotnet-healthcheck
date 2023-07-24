@@ -34,7 +34,7 @@ namespace Akka.HealthCheck.Cluster
     public sealed class ClusterReadinessProbe : ReceiveActor
     {
         public static readonly ReadinessStatus DefaultClusterReadinessStatus =
-            new ReadinessStatus(false, "not yet joined cluster");
+            new ReadinessStatus(true, "not yet joined cluster");
 
         private readonly Akka.Cluster.Cluster _cluster = Akka.Cluster.Cluster.Get(Context.System);
         private readonly ILoggingAdapter _log = Context.GetLogger();
