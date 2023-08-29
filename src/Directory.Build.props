@@ -22,7 +22,7 @@
     <NBenchVersion>1.2.2</NBenchVersion>
     <XunitVersion>2.5.0</XunitVersion>
     <XUnitRunnerVersion>2.5.0</XUnitRunnerVersion>
-    <TestSdkVersion>17.7.0</TestSdkVersion>
+    <TestSdkVersion>17.7.2</TestSdkVersion>
     <CoverletVersion>3.2.0</CoverletVersion>
     <FluentAssertionVersion>6.11.0</FluentAssertionVersion>
     <AkkaVersion>1.5.12</AkkaVersion>
