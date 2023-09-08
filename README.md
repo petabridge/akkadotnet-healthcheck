@@ -120,6 +120,19 @@ public enum HealthCheckType
 }
 ```
 
+### Configuring Persistence Liveness Probe Interval
+
+To change the persistence liveness probe interval, configure the health check options:
+```csharp
+// Add Akka.HealthCheck
+builder.WithHealthCheck(options =>
+{
+    options.AddProviders(HealthCheckType.All);
+    // change the persistence liveness probe interval to 5 seconds
+    options.Liveness.PersistenceProbeInterval = TimeSpan.FromSeconds(5);
+});
+```
+
 ## Configuring Using HOCON
 [Back To Top](#akkahealthcheck)
 
@@ -196,8 +209,8 @@ akka.healthcheck{
       #persistence = "Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbeProvider, Akka.HealthCheck.Persistence"
     }
 
-	# Defines the interval for each persistence health check probe refresh
-	persistence.probe-interval = 10s
+    # Defines the interval for each persistence health check probe refresh
+    persistence.probe-interval = 10s
 	
     # Defines the signaling mechanism used to communicate with K8s, AWS, Azure,
     # or whatever the hosting environment is for the Akka.NET application. The
