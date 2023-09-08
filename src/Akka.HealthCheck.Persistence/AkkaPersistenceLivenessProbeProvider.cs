@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using Akka.Actor;
 
 namespace Akka.HealthCheck.Persistence
@@ -13,10 +14,16 @@ namespace Akka.HealthCheck.Persistence
     /// </summary>
     public sealed class AkkaPersistenceLivenessProbeProvider : ProbeProviderBase
     {
+        private readonly TimeSpan _interval;
+        
         public AkkaPersistenceLivenessProbeProvider(ActorSystem system) : base(system)
         {
+            _interval = system.Settings.Config.GetTimeSpan(
+                path: "akka.healthcheck.liveness.persistence.probe-interval",
+                @default: TimeSpan.FromSeconds(10));
         }
 
-        public override Props ProbeProps => AkkaPersistenceLivenessProbe.PersistentHealthCheckProps(Settings.LogInfoEvents);
+        public override Props ProbeProps => 
+            AkkaPersistenceLivenessProbe.PersistentHealthCheckProps(Settings.LogInfoEvents, _interval);
     }
 }

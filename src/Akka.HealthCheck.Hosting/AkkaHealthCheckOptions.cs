@@ -160,6 +160,12 @@ namespace Akka.HealthCheck.Hosting
         public HealthCheckTransport? Transport { get; set; }
         public string? FilePath { get; set; }
         public int? TcpPort { get; set; }
+        
+        /// <summary>
+        /// Defines the interval for each persistence liveness health check probe refresh.
+        /// Does not have any effect on readiness options.
+        /// </summary>
+        public TimeSpan? PersistenceProbeInterval { get; set; }
 
         public ProviderOptions ClearProviders()
         {
@@ -192,6 +198,8 @@ namespace Akka.HealthCheck.Hosting
                 sb.AppendLine($"file.path = {FilePath}");
             if (TcpPort is { })
                 sb.AppendLine($"tcp.port = {TcpPort}");
+            if(PersistenceProbeInterval is not null)
+                sb.AppendLine($"persistence.probe-interval = {PersistenceProbeInterval.ToHocon()}");
 
             return sb.Length > 0 ? sb : null;
         }

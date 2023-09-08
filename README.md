@@ -196,6 +196,9 @@ akka.healthcheck{
       #persistence = "Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbeProvider, Akka.HealthCheck.Persistence"
     }
 
+	# Defines the interval for each persistence health check probe refresh
+	persistence.probe-interval = 10s
+	
     # Defines the signaling mechanism used to communicate with K8s, AWS, Azure,
     # or whatever the hosting environment is for the Akka.NET application. The
     # accepted values are 'file', 'tcp', and 'custom'.

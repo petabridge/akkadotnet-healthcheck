@@ -86,14 +86,11 @@ namespace Akka.HealthCheck.Persistence
             _shutdownCancellable = new Cancelable(Context.System.Scheduler);
             _logInfo = logInfo;
         }
-        public AkkaPersistenceLivenessProbe(bool logInfo) : this(logInfo, TimeSpan.FromSeconds(10))
-        {
-        }
 
-        public static Props PersistentHealthCheckProps(bool logInfo)
+        public static Props PersistentHealthCheckProps(bool logInfo, TimeSpan delay)
         {
             // need to use the stopping strategy in case things blow up right away
-            return Props.Create(() => new AkkaPersistenceLivenessProbe(logInfo))
+            return Props.Create(() => new AkkaPersistenceLivenessProbe(logInfo, delay))
                 .WithSupervisorStrategy(Actor.SupervisorStrategy.StoppingStrategy);
         }
 
