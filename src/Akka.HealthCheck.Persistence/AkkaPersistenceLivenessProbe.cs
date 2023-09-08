@@ -66,6 +66,15 @@ namespace Akka.HealthCheck.Persistence
                    $"{nameof(Failures)}={Failures?.ToString() ?? "null"})";
         }
     }
+
+    internal sealed class CreateProbe
+    {
+        public static readonly CreateProbe Instance = new();
+
+        private CreateProbe()
+        {
+        }
+    }
     
     public class AkkaPersistenceLivenessProbe : ActorBase
     {
@@ -85,6 +94,8 @@ namespace Akka.HealthCheck.Persistence
             _id = Guid.NewGuid().ToString("N");
             _shutdownCancellable = new Cancelable(Context.System.Scheduler);
             _logInfo = logInfo;
+            
+            Become(obj => HandleMessages(obj) || HandleSubscriptions(obj));
         }
         public AkkaPersistenceLivenessProbe(bool logInfo) : this(logInfo, TimeSpan.FromSeconds(10))
         {
@@ -99,6 +110,7 @@ namespace Akka.HealthCheck.Persistence
 
         protected override void PostStop()
         {
+            _probe?.Tell(PoisonPill.Instance);
             _shutdownCancellable.Cancel();
             _shutdownCancellable.Dispose();
             base.PostStop();
@@ -130,25 +142,6 @@ namespace Akka.HealthCheck.Persistence
             return true;
         }
 
-        private bool Started(object message)
-        {
-            switch (message)
-            {
-                case Terminated t when t.ActorRef.Equals(_probe):
-                    Context.Unwatch(_probe);
-                    if(_logInfo)
-                        _log.Debug("Persistence probe terminated. Recreating...");
-                    CreateProbe();
-                    Become(obj => Recreating(obj) || HandleSubscriptions(obj));
-                    return true;
-                case PersistenceLivenessStatus status:
-                    HandleRecoveryStatus(status);
-                    return true;
-            }
-
-            return false;
-        }
-
         private void HandleRecoveryStatus(PersistenceLivenessStatus livenessStatus)
         {
             if(_logInfo)
@@ -157,16 +150,28 @@ namespace Akka.HealthCheck.Persistence
             PublishStatusUpdates();
         }
 
-        private bool Recreating(object message)
+        private bool HandleMessages(object message)
         {
             switch (message)
             {
                 case Terminated t when t.ActorRef.Equals(_probe):
                     Context.Unwatch(_probe);
+                    _probe = null;
                     if(_logInfo)
-                        _log.Debug("Persistence probe terminated. Recreating...");
-                    CreateProbe();
+                        _log.Debug($"Persistence probe terminated. Recreating in {_delay.TotalSeconds} seconds.");
+                    ScheduleProbeRestart();
                     return true;
+                
+                case CreateProbe:
+                    if(_logInfo)
+                        _log.Debug("Recreating persistence probe.");
+                    
+                    _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, _probeCounter == 0, _id)));
+                    Context.Watch(_probe);
+                    _probe.Tell("hit" + _probeCounter);
+                    _probeCounter++;
+                    return true;
+                
                 case PersistenceLivenessStatus status:
                     HandleRecoveryStatus(status);
                     return true;
@@ -177,30 +182,19 @@ namespace Akka.HealthCheck.Persistence
 
         protected override bool Receive(object message)
         {
-            return Started(message) || HandleSubscriptions(message);
+            throw new NotImplementedException("Should never hit this line");
         }
 
         protected override void PreStart()
         {
-            CreateProbe();
+            Self.Tell(CreateProbe.Instance);
         }
 
-        private void CreateProbe()
+        private void ScheduleProbeRestart()
         {
-            _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, _probeCounter == 0, _id)));
-            Context.Watch(_probe);
-            
-            if(_probeCounter == 0)
-            {
-                _probe.Tell("hit" + _probeCounter);
-            }
-            else
-            {
-                Context.System.Scheduler.ScheduleTellOnce(_delay, _probe, "hit" + _probeCounter, Self, _shutdownCancellable);
-            }
-            _probeCounter++;
+            Context.System.Scheduler.ScheduleTellOnce(_delay, Self, CreateProbe.Instance, Self, _shutdownCancellable);
         }
-
+        
         private void PublishStatusUpdates()
         {
             foreach (var sub in _subscribers) sub.Tell(_currentLivenessStatus);
@@ -223,7 +217,7 @@ namespace Akka.HealthCheck.Persistence
         private bool? _persistedSnapshotStore;
         private bool? _deletedJournal;
         private bool? _deletedSnapshotStore;
-        private readonly List<Exception> _failures = new List<Exception>();
+        private readonly List<Exception> _failures = new ();
         
         public SuicideProbe(IActorRef probe, bool firstAttempt, string id)
         {
@@ -231,11 +225,11 @@ namespace Akka.HealthCheck.Persistence
             _firstAttempt = firstAttempt;
             PersistenceId = $"Akka.HealthCheck-{id}";
 
-            Recover<string>(str =>
+            Recover<string>(_ =>
             {
                 _recoveredJournal = true;
             });
-            Recover<SnapshotOffer>(offer =>
+            Recover<SnapshotOffer>(_ =>
             {
                 _recoveredSnapshotStore = true;
             });
@@ -251,11 +245,11 @@ namespace Akka.HealthCheck.Persistence
                 SaveSnapshot(str);
             });
             
-            Command<SaveSnapshotSuccess>(save =>
+            Command<SaveSnapshotSuccess>(_ =>
             {
                 _persistedSnapshotStore = true;
                 Persist(_message, 
-                    s =>
+                    _ =>
                     {
                         _persistedJournal = true;
                         SendRecoveryStatusWhenFinished();
@@ -269,7 +263,7 @@ namespace Akka.HealthCheck.Persistence
                 _failures.Add(fail.Cause);
                 _persistedSnapshotStore = false;
                 Persist(_message, 
-                    s =>
+                    _ =>
                     {
                         _persistedJournal = true;
                         SendRecoveryStatusWhenFinished();
