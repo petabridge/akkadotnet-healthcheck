@@ -22,11 +22,11 @@
     <NBenchVersion>1.2.2</NBenchVersion>
     <XunitVersion>2.5.0</XunitVersion>
     <XUnitRunnerVersion>2.5.0</XUnitRunnerVersion>
-    <TestSdkVersion>17.7.0</TestSdkVersion>
+    <TestSdkVersion>17.7.2</TestSdkVersion>
     <CoverletVersion>3.2.0</CoverletVersion>
     <FluentAssertionVersion>6.11.0</FluentAssertionVersion>
     <AkkaVersion>1.5.12</AkkaVersion>
-    <AkkaHostingVersion>1.5.12</AkkaHostingVersion>
+    <AkkaHostingVersion>1.5.12.1</AkkaHostingVersion>
     <FluentAssertionVersion>6.10.0</FluentAssertionVersion>
     <NetCoreTestVersion>netcoreapp3.1</NetCoreTestVersion>
     <NetTestVersion>net6.0</NetTestVersion>
