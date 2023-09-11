@@ -1,3 +1,10 @@
+#### 1.5.12 September 11 2023 ####
+
+* [Bump Akka version to 1.5.12](https://github.com/akkadotnet/akka.net/releases/tag/1.5.12)
+* [Bump Akka.Hosting to 1.5.12.1](https://github.com/akkadotnet/Akka.Hosting/releases/tag/1.5.12.1)
+* [Hosting: Add options property to configure persistence probe interval](https://github.com/petabridge/akkadotnet-healthcheck/pull/249)
+* [Fix persistence probe bug where it would go into infinite loop when the snapshot store circuit breaker trips](https://github.com/petabridge/akkadotnet-healthcheck/pull/250)
+
 #### 1.5.9 July 25 2023 ####
 
 * [Bump Akka version to 1.5.9](https://github.com/akkadotnet/akka.net/releases/tag/1.5.9)
