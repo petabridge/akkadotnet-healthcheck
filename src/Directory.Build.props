@@ -20,7 +20,7 @@
   <PropertyGroup>
     <AkkaPackageTags>akka;actors;actor model;Akka;concurrency;health check;</AkkaPackageTags>
     <NBenchVersion>1.2.2</NBenchVersion>
-    <XunitVersion>2.5.1</XunitVersion>
+    <XunitVersion>2.6.0</XunitVersion>
     <XUnitRunnerVersion>2.5.1</XUnitRunnerVersion>
     <TestSdkVersion>17.7.2</TestSdkVersion>
     <CoverletVersion>3.2.0</CoverletVersion>
