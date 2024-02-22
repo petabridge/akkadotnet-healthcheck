@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Akka.HealthCheck.Persistence.Tests
 {
-    public class AkkaPersistenceLivenessProbeSubscriptionTest : TestKit.Xunit.TestKit
+    public class AkkaPersistenceLivenessProbeSubscriptionTest : TestKit.Xunit2.TestKit
     {
 
         public AkkaPersistenceLivenessProbeSubscriptionTest(ITestOutputHelper helper)

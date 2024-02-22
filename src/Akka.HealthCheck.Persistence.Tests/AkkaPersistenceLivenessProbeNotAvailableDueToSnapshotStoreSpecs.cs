@@ -16,7 +16,7 @@ using static Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbe;
 
 namespace Akka.HealthCheck.Persistence.Tests
 {
-    public class AkkaPersistenceLivenessProbeNotAvailableDueToSnapshotStoreSpecs : TestKit.Xunit.TestKit
+    public class AkkaPersistenceLivenessProbeNotAvailableDueToSnapshotStoreSpecs : TestKit.Xunit2.TestKit
     {
         public AkkaPersistenceLivenessProbeNotAvailableDueToSnapshotStoreSpecs(ITestOutputHelper helper)
                     : base(TestConfig.BadSnapshotConfig, output: helper)

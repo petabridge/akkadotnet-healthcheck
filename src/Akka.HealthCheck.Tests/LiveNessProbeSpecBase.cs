@@ -17,7 +17,7 @@ namespace Akka.HealthCheck.Tests
     /// <summary>
     ///     Base class for testing the ability for various probe implementations
     /// </summary>
-    public abstract class LivenessProbeSpecBase : TestKit.Xunit.TestKit
+    public abstract class LivenessProbeSpecBase : TestKit.Xunit2.TestKit
     {
         protected LivenessProbeSpecBase(ITestOutputHelper helper) : this(helper, Config.Empty)
         {

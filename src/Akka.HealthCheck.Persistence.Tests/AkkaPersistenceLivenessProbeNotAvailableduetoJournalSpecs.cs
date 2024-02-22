@@ -14,7 +14,7 @@ using static Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbe;
 
 namespace Akka.HealthCheck.Persistence.Tests
 {
-    public class AkkaPersistenceLivenessProbeNotAvailableDueToJournalSpecs : TestKit.Xunit.TestKit
+    public class AkkaPersistenceLivenessProbeNotAvailableDueToJournalSpecs : TestKit.Xunit2.TestKit
     {
         public AkkaPersistenceLivenessProbeNotAvailableDueToJournalSpecs(ITestOutputHelper helper)
                     : base(TestConfig.BadJournalConfig, output: helper)

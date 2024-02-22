@@ -19,24 +19,11 @@
   </PropertyGroup>
   <PropertyGroup>
     <AkkaPackageTags>akka;actors;actor model;Akka;concurrency;health check;</AkkaPackageTags>
-    <NBenchVersion>1.2.2</NBenchVersion>
-    <XunitVersion>2.5.0</XunitVersion>
-    <XUnitRunnerVersion>2.5.0</XUnitRunnerVersion>
-    <TestSdkVersion>17.7.2</TestSdkVersion>
-    <CoverletVersion>3.2.0</CoverletVersion>
-    <FluentAssertionVersion>6.11.0</FluentAssertionVersion>
-    <AkkaVersion>1.5.12</AkkaVersion>
-    <AkkaHostingVersion>1.5.12.1</AkkaHostingVersion>
-    <FluentAssertionVersion>6.10.0</FluentAssertionVersion>
     <NetCoreTestVersion>netcoreapp3.1</NetCoreTestVersion>
     <NetTestVersion>net6.0</NetTestVersion>
     <NetStandardLibVersion>netstandard2.0</NetStandardLibVersion>
     <NetLibVersion>net6.0</NetLibVersion>
     <NetCoreLibVersion>netcoreapp3.1</NetCoreLibVersion>
-    <PbmVersion>1.2.1</PbmVersion>
-    <BootstrapDockerVersion>0.5.3</BootstrapDockerVersion>
-    <KubernetesClientVersion>4.0.26</KubernetesClientVersion>
-    <MicrosoftExtensionsVersion>[3.0.0,)</MicrosoftExtensionsVersion>
   </PropertyGroup>
   <!-- SourceLink support for all Akka.NET projects -->
   <ItemGroup>

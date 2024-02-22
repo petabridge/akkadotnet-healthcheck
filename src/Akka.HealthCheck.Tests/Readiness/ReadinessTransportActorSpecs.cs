@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 
 namespace Akka.HealthCheck.Tests.Readiness
 {
-    public class ReadinessTransportActorSpecs : TestKit.Xunit.TestKit
+    public class ReadinessTransportActorSpecs : TestKit.Xunit2.TestKit
     {
         public ReadinessTransportActorSpecs(ITestOutputHelper helper)
             : base(output: helper)
