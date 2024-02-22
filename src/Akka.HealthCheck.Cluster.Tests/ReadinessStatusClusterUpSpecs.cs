@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace Akka.HealthCheck.Cluster.Tests
 {
-    public class ReadinessStatusClusterUpSpecs : TestKit.Xunit.TestKit
+    public class ReadinessStatusClusterUpSpecs : TestKit.Xunit2.TestKit
     {
         public ReadinessStatusClusterUpSpecs(ITestOutputHelper helper)
                     : base(Config, "ClusterServer", output: helper)

@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Akka.HealthCheck.Tests.Transports
 {
-    public class SocketStatusTransportSpecs : TestKit.Xunit.TestKit
+    public class SocketStatusTransportSpecs : TestKit.Xunit2.TestKit
     {
         public SocketStatusTransportSpecs()
         {

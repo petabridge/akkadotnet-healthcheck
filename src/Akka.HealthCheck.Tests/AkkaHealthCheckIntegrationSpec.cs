@@ -22,7 +22,7 @@ using static FluentAssertions.FluentActions;
 
 namespace Akka.HealthCheck.Tests
 {
-    public class AkkaHealthCheckIntegrationSpec : TestKit.Xunit.TestKit
+    public class AkkaHealthCheckIntegrationSpec : TestKit.Xunit2.TestKit
     {
         public AkkaHealthCheckIntegrationSpec(ITestOutputHelper helper)
             : base(GetConfig(), output: helper)

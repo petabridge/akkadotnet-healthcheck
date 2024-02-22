@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 
 namespace Akka.HealthCheck.Tests.Liveness
 {
-    public class LivenessTransportActorSpecs : TestKit.Xunit.TestKit
+    public class LivenessTransportActorSpecs : TestKit.Xunit2.TestKit
     {
         public LivenessTransportActorSpecs(ITestOutputHelper helper)
             : base(output: helper)
