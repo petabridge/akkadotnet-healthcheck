@@ -75,41 +75,53 @@ namespace Akka.HealthCheck.Persistence
         {
         }
     }
-    
-    public class AkkaPersistenceLivenessProbe : ActorBase
+
+    internal sealed class CheckTimeout
     {
+        public static readonly CheckTimeout Instance = new();
+
+        private CheckTimeout()
+        {
+        }
+    }
+    
+    public class AkkaPersistenceLivenessProbe : ActorBase, IWithTimers
+    {
+        private const string TimeoutTimerKey = nameof(TimeoutTimerKey);
+        private const string CreateProbeTimerKey = nameof(CreateProbeTimerKey);
+        
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
         private PersistenceLivenessStatus _currentLivenessStatus = new(message: "Warming up probe. Recovery status is still undefined");
         private IActorRef? _probe;
         private int _probeCounter;
         private readonly TimeSpan _delay;
+        private readonly TimeSpan _timeout;
         private readonly string _id;
-        private readonly Cancelable _shutdownCancellable;
         private readonly bool _logInfo;
 
-        public AkkaPersistenceLivenessProbe(bool logInfo, TimeSpan delay)
+        public AkkaPersistenceLivenessProbe(bool logInfo, TimeSpan delay, TimeSpan timeout)
         {
             _delay = delay;
+            _timeout = timeout;
             _id = Guid.NewGuid().ToString("N");
-            _shutdownCancellable = new Cancelable(Context.System.Scheduler);
             _logInfo = logInfo;
             
             Become(obj => HandleMessages(obj) || HandleSubscriptions(obj));
         }
 
-        public static Props PersistentHealthCheckProps(bool logInfo, TimeSpan delay)
+        public ITimerScheduler Timers { get; set; } = null!;
+
+        public static Props PersistentHealthCheckProps(bool logInfo, TimeSpan delay, TimeSpan timeout)
         {
             // need to use the stopping strategy in case things blow up right away
-            return Props.Create(() => new AkkaPersistenceLivenessProbe(logInfo, delay))
+            return Props.Create(() => new AkkaPersistenceLivenessProbe(logInfo, delay, timeout))
                 .WithSupervisorStrategy(Actor.SupervisorStrategy.StoppingStrategy);
         }
 
         protected override void PostStop()
         {
             _probe?.Tell(PoisonPill.Instance);
-            _shutdownCancellable.Cancel();
-            _shutdownCancellable.Dispose();
             base.PostStop();
         }
 
@@ -156,6 +168,8 @@ namespace Akka.HealthCheck.Persistence
                     _probe = null;
                     if(_logInfo)
                         _log.Debug($"Persistence probe terminated. Recreating in {_delay.TotalSeconds} seconds.");
+                    
+                    Timers.CancelAll();
                     ScheduleProbeRestart();
                     return true;
                 
@@ -163,13 +177,26 @@ namespace Akka.HealthCheck.Persistence
                     if(_logInfo)
                         _log.Debug("Recreating persistence probe.");
                     
+                    Timers.StartSingleTimer(TimeoutTimerKey, CheckTimeout.Instance, _timeout);
                     _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, _probeCounter == 0, _id)));
                     Context.Watch(_probe);
                     _probe.Tell("hit" + _probeCounter);
                     _probeCounter++;
                     return true;
                 
+                case CheckTimeout:
+                    const string errMsg = "Timeout while checking persistence liveness. Recovery status is undefined.";
+                    _log.Warning(errMsg);
+                    _currentLivenessStatus = new PersistenceLivenessStatus(errMsg);
+                    PublishStatusUpdates();
+                    
+                    if(_probe is not null)
+                        Context.Stop(_probe);
+                    
+                    return true;
+                
                 case PersistenceLivenessStatus status:
+                    Timers.CancelAll();
                     HandleRecoveryStatus(status);
                     return true;
             }
@@ -189,7 +216,7 @@ namespace Akka.HealthCheck.Persistence
 
         private void ScheduleProbeRestart()
         {
-            Context.System.Scheduler.ScheduleTellOnce(_delay, Self, CreateProbe.Instance, Self, _shutdownCancellable);
+            Timers.StartSingleTimer(CreateProbeTimerKey, CreateProbe.Instance, _delay);
         }
         
         private void PublishStatusUpdates()

@@ -8,6 +8,7 @@ using Akka.HealthCheck.Liveness;
 using Akka.Util.Internal;
 using FluentAssertions;
 using System;
+using FluentAssertions.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 using static Akka.HealthCheck.Persistence.AkkaPersistenceLivenessProbe;
@@ -26,7 +27,7 @@ namespace Akka.HealthCheck.Persistence.Tests
         public void AkkaPersistenceLivenessProbeProvidert_Should_Report_Akka_Persistance_Is_Unavailable_With_Bad_Journal_Setup()
         {
             
-            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, TimeSpan.FromMilliseconds(250))));
+            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 3.Seconds())));
             ProbActor.Tell(new SubscribeToLiveness(TestActor));
             ExpectMsg<LivenessStatus>().IsLive.Should().BeFalse("System should not be live");
             ExpectMsg<LivenessStatus>(TimeSpan.FromMinutes(1)).IsLive.Should().BeFalse("System should not be live");

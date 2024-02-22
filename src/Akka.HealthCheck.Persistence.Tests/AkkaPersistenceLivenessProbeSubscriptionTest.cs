@@ -9,6 +9,7 @@ using Akka.Util;
 using Akka.Util.Internal;
 using FluentAssertions;
 using System;
+using FluentAssertions.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,7 +28,7 @@ namespace Akka.HealthCheck.Persistence.Tests
         [Fact(DisplayName = "AkkaPersistenceLivenessProbe should correctly handle subscription requests")]
         public void AkkaPersistenceLivenessProbe_Should_Handle_Subscriptions_In_Any_State()
         {
-            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, TimeSpan.FromMilliseconds(250))));
+            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 3.Seconds())));
             ProbActor.Tell(new SubscribeToLiveness(TestActor));
             ExpectMsg<LivenessStatus>().IsLive.Should().BeFalse();
             AwaitAssert(() => ExpectMsg<LivenessStatus>().IsLive.Should().BeTrue(),TimeSpan.FromSeconds(10));
