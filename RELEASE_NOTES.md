@@ -1,3 +1,9 @@
+#### 1.5.16 February 23 2024 ####
+
+* [Bump Akka version to 1.5.16](https://github.com/akkadotnet/akka.net/releases/tag/1.5.16)
+* [Bump Akka.Hosting to 1.5.16](https://github.com/akkadotnet/Akka.Hosting/releases/tag/1.5.16)
+* [Fix Akka.HealthCheck.Persistence probe deadlock](https://github.com/petabridge/akkadotnet-healthcheck/pull/269)
+
 #### 1.5.12 September 11 2023 ####
 
 * [Bump Akka version to 1.5.12](https://github.com/akkadotnet/akka.net/releases/tag/1.5.12)
