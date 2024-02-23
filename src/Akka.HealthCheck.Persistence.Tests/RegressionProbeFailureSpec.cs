@@ -31,7 +31,7 @@ public class RegressionProbeFailureSpec: PersistenceTestKit
         {
             Sys.EventStream.Subscribe(TestActor, typeof(LogEvent));
             var probe = Sys.ActorOf(Props.Create(() =>
-                new AkkaPersistenceLivenessProbe(true, TimeSpan.FromMilliseconds(400))));
+                new AkkaPersistenceLivenessProbe(true, 400.Milliseconds(), 3.Seconds())));
             await FishForMessageAsync<LogEvent>(e => e.Message.ToString() is "Recreating persistence probe.");
 
             var stopwatch = Stopwatch.StartNew();

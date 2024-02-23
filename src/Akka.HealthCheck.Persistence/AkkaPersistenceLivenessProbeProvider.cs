@@ -15,15 +15,16 @@ namespace Akka.HealthCheck.Persistence
     public sealed class AkkaPersistenceLivenessProbeProvider : ProbeProviderBase
     {
         private readonly TimeSpan _interval;
+        private readonly TimeSpan _timeout;
         
         public AkkaPersistenceLivenessProbeProvider(ActorSystem system) : base(system)
         {
-            _interval = system.Settings.Config.GetTimeSpan(
-                path: "akka.healthcheck.liveness.persistence.probe-interval",
-                @default: TimeSpan.FromSeconds(10));
+            var config = system.Settings.Config.GetConfig("akka.healthcheck.liveness.persistence");
+            _interval = config.GetTimeSpan("probe-interval", TimeSpan.FromSeconds(10));
+            _timeout = config.GetTimeSpan("timeout", TimeSpan.FromSeconds(3));
         }
 
         public override Props ProbeProps => 
-            AkkaPersistenceLivenessProbe.PersistentHealthCheckProps(Settings.LogInfoEvents, _interval);
+            AkkaPersistenceLivenessProbe.PersistentHealthCheckProps(Settings.LogInfoEvents, _interval, _timeout);
     }
 }
