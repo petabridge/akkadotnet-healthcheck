@@ -18,14 +18,13 @@ namespace Akka.HealthCheck.Persistence
     {
         private readonly string? _message;
         
-        public PersistenceLivenessStatus(string message): this(false, false, false, false, false, Array.Empty<Exception>(), message)
+        public PersistenceLivenessStatus(string message): this(null, null, false, false, Array.Empty<Exception>(), message)
         {
         }
 
         public PersistenceLivenessStatus(
-            bool warmup,
-            bool journalRecovered,
-            bool snapshotRecovered,
+            bool? journalRecovered,
+            bool? snapshotRecovered,
             bool journalPersisted,
             bool snapshotSaved, 
             IReadOnlyCollection<Exception> failures, 
@@ -35,24 +34,21 @@ namespace Akka.HealthCheck.Persistence
             SnapshotRecovered = snapshotRecovered;
             JournalPersisted = journalPersisted;
             SnapshotSaved = snapshotSaved;
-            Warmup = warmup;
             Failures = failures.Count > 0 ? new AggregateException(failures) : null;
             _message = message;
         }
 
-        public override bool IsLive => JournalRecovered
-                                       && SnapshotRecovered
+        public override bool IsLive => JournalRecovered is true
+                                       && SnapshotRecovered is true
                                        && JournalPersisted
                                        && SnapshotSaved
                                        && Failures is null;
 
         public override string StatusMessage => _message ?? ToString();
 
-        public bool Warmup { get; }
-        
-        public bool JournalRecovered { get; }
+        public bool? JournalRecovered { get; }
 
-        public bool SnapshotRecovered { get; }
+        public bool? SnapshotRecovered { get; }
             
         public bool JournalPersisted { get; }
             
@@ -63,8 +59,8 @@ namespace Akka.HealthCheck.Persistence
         public override string ToString()
         {
             return $"{nameof(PersistenceLivenessStatus)}(" +
-                   $"{nameof(JournalRecovered)}={JournalRecovered}, " +
-                   $"{nameof(SnapshotRecovered)}={SnapshotRecovered}, " +
+                   $"{nameof(JournalRecovered)}={JournalRecovered?.ToString() ?? "undefined"}, " +
+                   $"{nameof(SnapshotRecovered)}={SnapshotRecovered?.ToString() ?? "undefined"}, " +
                    $"{nameof(JournalPersisted)}={JournalPersisted}, " +
                    $"{nameof(SnapshotSaved)}={SnapshotSaved}, " +
                    $"{nameof(Failures)}={Failures?.ToString() ?? "null"})";
@@ -99,7 +95,7 @@ namespace Akka.HealthCheck.Persistence
         private PersistenceLivenessStatus _currentLivenessStatus = new(message: "Warming up probe. Recovery status is still undefined");
         private IActorRef? _probe;
         private int _probeCounter;
-        private int _firstIndex;
+        private bool _warmup = true;
         private readonly TimeSpan _delay;
         private readonly TimeSpan _timeout;
         private readonly string _id;
@@ -159,11 +155,11 @@ namespace Akka.HealthCheck.Persistence
         private void HandleRecoveryStatus(PersistenceLivenessStatus livenessStatus)
         {
             if(_logInfo)
-                _log.Debug("Received recovery status {0} from probe. First attempt? {1}", livenessStatus, livenessStatus.Warmup);
+                _log.Debug("Received recovery status {0} from probe", livenessStatus);
             
             _currentLivenessStatus = livenessStatus;
-            if (livenessStatus.Warmup && (!livenessStatus.SnapshotSaved || !livenessStatus.JournalPersisted))
-                _firstIndex++;
+            if (livenessStatus.SnapshotRecovered is not null && livenessStatus.JournalRecovered is not null)
+                _warmup = false;
             
             PublishStatusUpdates();
         }
@@ -187,14 +183,14 @@ namespace Akka.HealthCheck.Persistence
                         _log.Debug("Recreating persistence probe.");
                     
                     Timers.StartSingleTimer(TimeoutTimerKey, CheckTimeout.Instance, _timeout);
-                    _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, _probeCounter <= _firstIndex, _id, _logInfo)));
+                    _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, _warmup, _id, _logInfo)));
                     Context.Watch(_probe);
                     _probe.Tell("hit" + _probeCounter);
                     _probeCounter++;
                     return true;
                 
                 case CheckTimeout:
-                    const string errMsg = "Timeout while checking persistence liveness. Recovery status is undefined.";
+                    const string errMsg = "Timeout while checking persistence liveness. Persistence liveness status is undefined.";
                     _log.Warning(errMsg);
                     _currentLivenessStatus = new PersistenceLivenessStatus(errMsg);
                     PublishStatusUpdates();
@@ -468,13 +464,20 @@ namespace Akka.HealthCheck.Persistence
         }
 
         private PersistenceLivenessStatus CreateStatus(string? message = null)
-            => new PersistenceLivenessStatus(
-                warmup: _firstAttempt,
-                journalRecovered: _recoveredJournal ?? false,
-                snapshotRecovered: _recoveredSnapshotStore ?? false,
-                journalPersisted: _persistedJournal ?? false,
-                snapshotSaved: _persistedSnapshotStore ?? false,
-                failures: _failures,
-                message: message);
+            => _firstAttempt
+                ? new PersistenceLivenessStatus(
+                    journalRecovered: _recoveredJournal,
+                    snapshotRecovered: _recoveredSnapshotStore,
+                    journalPersisted: _persistedJournal ?? false,
+                    snapshotSaved: _persistedSnapshotStore ?? false,
+                    failures: _failures,
+                    message: message)
+                : new PersistenceLivenessStatus(
+                    journalRecovered: _recoveredJournal ?? false,
+                    snapshotRecovered: _recoveredSnapshotStore ?? false,
+                    journalPersisted: _persistedJournal ?? false,
+                    snapshotSaved: _persistedSnapshotStore ?? false,
+                    failures: _failures,
+                    message: message);
     }
 }
