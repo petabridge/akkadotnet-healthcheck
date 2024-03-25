@@ -406,7 +406,9 @@ namespace Akka.HealthCheck.Persistence
                 && _persistedJournal is { }
                 && _persistedSnapshotStore is { })
             {
-                var msg = _persistedJournal == true && _persistedSnapshotStore == true
+                var msg = _persistedJournal == true && 
+                          _persistedSnapshotStore == true && 
+                          (_recoveredJournal is null || _recoveredSnapshotStore is null)
                     ? "Warming up probe. Recovery status is still undefined"
                     : null;
                 _probe.Tell(CreateStatus(msg));
