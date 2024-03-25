@@ -158,7 +158,7 @@ namespace Akka.HealthCheck.Persistence
                 _log.Debug("Received recovery status {0} from probe", livenessStatus);
             
             _currentLivenessStatus = livenessStatus;
-            if (livenessStatus.SnapshotRecovered is not null && livenessStatus.JournalRecovered is not null)
+            if (_warmup && livenessStatus.SnapshotRecovered is not null && livenessStatus.JournalRecovered is not null)
                 _warmup = false;
             
             PublishStatusUpdates();
