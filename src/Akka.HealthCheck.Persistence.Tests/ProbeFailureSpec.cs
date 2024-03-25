@@ -7,8 +7,10 @@
 using System;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.HealthCheck.Liveness;
 using Akka.Persistence.TestKit;
 using FluentAssertions;
+using FluentAssertions.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -20,7 +22,7 @@ namespace Akka.HealthCheck.Persistence.Tests
         private readonly string _id = Guid.NewGuid().ToString("N");
         private int _count;
         
-        public ProbeFailureSpec(ITestOutputHelper output) : base(nameof(ProbeFailureSpec), output)
+        public ProbeFailureSpec(ITestOutputHelper output) : base("akka.loglevel = DEBUG", nameof(ProbeFailureSpec), output)
         {
         }
 
@@ -29,9 +31,9 @@ namespace Akka.HealthCheck.Persistence.Tests
         {
             var status = PerformProbe(); 
             status.IsLive.Should().BeFalse();
-            status.JournalRecovered.Should().BeFalse();
+            status.JournalRecovered.Should().BeNull();
             status.JournalPersisted.Should().BeTrue();
-            status.SnapshotRecovered.Should().BeFalse();
+            status.SnapshotRecovered.Should().BeNull();
             status.SnapshotSaved.Should().BeTrue();
             status.StatusMessage.Should().StartWith("Warming up probe.");
             status.Failures.Should().BeNull();
@@ -57,9 +59,9 @@ namespace Akka.HealthCheck.Persistence.Tests
             {
                 var status = PerformProbe();
                 status.IsLive.Should().BeFalse();
-                status.JournalRecovered.Should().BeFalse();
+                status.JournalRecovered.Should().BeNull();
                 status.JournalPersisted.Should().BeFalse();
-                status.SnapshotRecovered.Should().BeFalse();
+                status.SnapshotRecovered.Should().BeNull();
                 status.SnapshotSaved.Should().BeTrue();
                 var e = status.Failures!.Flatten().InnerExceptions[0];
                 e.Should().BeOfType<TestJournalFailureException>();
@@ -74,9 +76,9 @@ namespace Akka.HealthCheck.Persistence.Tests
             {
                 var status = PerformProbe();
                 status.IsLive.Should().BeFalse();
-                status.JournalRecovered.Should().BeFalse();
+                status.JournalRecovered.Should().BeNull();
                 status.JournalPersisted.Should().BeFalse();
-                status.SnapshotRecovered.Should().BeFalse();
+                status.SnapshotRecovered.Should().BeNull();
                 status.SnapshotSaved.Should().BeTrue();
                 var e = status.Failures!.Flatten().InnerExceptions[0];
                 e.Should().BeOfType<TestJournalRejectionException>();
@@ -91,9 +93,9 @@ namespace Akka.HealthCheck.Persistence.Tests
             {
                 var status = PerformProbe();
                 status.IsLive.Should().BeFalse();
-                status.JournalRecovered.Should().BeFalse();
+                status.JournalRecovered.Should().BeNull();
                 status.JournalPersisted.Should().BeTrue();
-                status.SnapshotRecovered.Should().BeFalse();
+                status.SnapshotRecovered.Should().BeNull();
                 status.SnapshotSaved.Should().BeFalse();
                 var e = status.Failures!.Flatten().InnerExceptions[0];
                 e.Should().BeOfType<TestSnapshotStoreFailureException>();
@@ -223,11 +225,49 @@ namespace Akka.HealthCheck.Persistence.Tests
         }
         */
 
+        [Fact(DisplayName = "AkkaPersistenceLivenessProbe should retry probe if SaveSnapshot failed")]
+        public async Task SaveSnapshotFailTest()
+        {
+            await WithSnapshotSave(
+                save => save.SetInterceptorAsync(new SnapshotInterceptors.DelayOnce(1.Seconds(), new SnapshotInterceptors.Failure(1))),
+                async () =>
+                {
+                    var probeActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 500.Seconds())));
+                    probeActor.Tell(new SubscribeToLiveness(TestActor));
+                
+                    probeActor.Tell(GetCurrentLiveness.Instance);
+                    var status = ExpectMsg<LivenessStatus>();
+                    status.IsLive.Should().BeFalse();
+                    status.StatusMessage.Should().StartWith("Warming up probe.");
+
+                    var failStatus = await FishForMessageAsync<PersistenceLivenessStatus>(
+                        msg => !msg.StatusMessage.StartsWith("Warming up probe."), 
+                        6.Seconds());
+
+                    failStatus.IsLive.Should().BeFalse();
+                    failStatus.JournalPersisted.Should().BeTrue();
+                    failStatus.JournalRecovered.Should().BeNull();
+                    failStatus.SnapshotSaved.Should().BeFalse();
+                    failStatus.SnapshotRecovered.Should().BeNull();
+                
+                    failStatus = await ExpectMsgAsync<PersistenceLivenessStatus>(6.Seconds());
+                
+                    failStatus.IsLive.Should().BeFalse();
+                    failStatus.JournalPersisted.Should().BeTrue();
+                    failStatus.JournalRecovered.Should().BeTrue();
+                    failStatus.SnapshotSaved.Should().BeTrue();
+                    failStatus.SnapshotRecovered.Should().BeNull();
+                
+                    var successStatus = await ExpectMsgAsync<PersistenceLivenessStatus>(6.Seconds());
+                    successStatus.IsLive.Should().BeTrue();
+                });
+        }
+        
         private PersistenceLivenessStatus PerformProbe()
         {
             var first = _count == 0;
             _count++;
-            var liveProbe = ActorOf(() => new SuicideProbe(TestActor, first, _id));
+            var liveProbe = ActorOf(() => new SuicideProbe(TestActor, first, _id, true));
             Watch(liveProbe);
             liveProbe.Tell("hit");
             var status = ExpectMsg<PersistenceLivenessStatus>();
@@ -243,9 +283,9 @@ namespace Akka.HealthCheck.Persistence.Tests
                 throw new Exception("Must be called as the first probe!");
             
             var status = PerformProbe(); 
-            status.JournalRecovered.Should().BeFalse();
+            status.JournalRecovered.Should().BeNull();
             status.JournalPersisted.Should().BeTrue();
-            status.SnapshotRecovered.Should().BeFalse();
+            status.SnapshotRecovered.Should().BeNull();
             status.SnapshotSaved.Should().BeTrue();
             status.StatusMessage.Should().StartWith("Warming up probe.");
             status.Failures.Should().BeNull();
