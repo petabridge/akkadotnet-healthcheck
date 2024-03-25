@@ -54,5 +54,54 @@ public static class SnapshotInterceptors
             }
             await _next.InterceptAsync(persistenceId, criteria);
         }
-    }    
+    }
+
+    public class DelayOnce: ISnapshotStoreInterceptor
+    {
+        public DelayOnce(TimeSpan delay, ISnapshotStoreInterceptor next)
+        {
+            _delay = delay;
+            _next = next;
+        }
+
+        private readonly TimeSpan _delay;
+        private readonly ISnapshotStoreInterceptor _next;
+        private bool _delayed;
+
+        public async Task InterceptAsync(string persistenceId, SnapshotSelectionCriteria criteria)
+        {
+            if (!_delayed)
+            {
+                _delayed = true;
+                await Task.Delay(_delay);
+            }
+            await _next.InterceptAsync(persistenceId, criteria);
+        }
+    }
+    
+    
+    public class Failure : ISnapshotStoreInterceptor
+    {
+        public Failure(int times, ISnapshotStoreInterceptor? next = null)
+        {
+            _times = times;
+            _next = next ?? Noop.Instance;
+        }
+
+        private readonly int _times;
+        private readonly ISnapshotStoreInterceptor _next;
+        private int _count;
+        
+        public Task InterceptAsync(string persistenceId, SnapshotSelectionCriteria criteria)
+        {
+            if (_count >= _times)
+            {
+                _next.InterceptAsync(persistenceId, criteria);
+                return Task.CompletedTask;
+            }
+
+            _count++;
+            throw new TestSnapshotStoreFailureException($"Failing snapshot {_count}/{_times}");
+        }
+    }
 }
