@@ -23,6 +23,7 @@ namespace Akka.HealthCheck.Hosting.Web.Probes
     {
         private const string Healthy = "Akka.NET persistence is alive";
         private const string UnHealthy = "Akka.NET persistence is not alive";
+        private const string Degraded = "Akka.NET persistence liveness is degraded";
         private const string Exception = "Exception occured when processing cluster liveness";
         
         private readonly IActorRef _probe;
@@ -47,23 +48,35 @@ namespace Akka.HealthCheck.Hosting.Web.Probes
                 var status = await _probe.Ask<PersistenceLivenessStatus>(
                     message: GetCurrentLiveness.Instance, 
                     cancellationToken: cancellationToken);
-                return status.IsLive 
-                    ? HealthCheckResult.Healthy(Healthy, new Dictionary<string, object>
-                    {
-                        ["journal-recovered"] = status.JournalRecovered,
-                        ["snapshot-recovered"] = status.SnapshotRecovered,
-                        ["journal-persisted"] = status.JournalPersisted,
-                        ["snapshot-persisted"] = status.SnapshotSaved,
-                        ["message"] = status.StatusMessage
-                    })
-                    : HealthCheckResult.Unhealthy(UnHealthy, status.Failures, new Dictionary<string, object>
-                    {
-                        ["journal-recovered"] = status.JournalRecovered,
-                        ["snapshot-recovered"] = status.SnapshotRecovered,
-                        ["journal-persisted"] = status.JournalPersisted,
-                        ["snapshot-persisted"] = status.SnapshotSaved,
-                        ["message"] = status.StatusMessage
-                    });
+                return status.Status switch
+                {
+                    AkkaHealthStatus.Healthy => HealthCheckResult.Healthy(Healthy, new Dictionary<string, object>
+                        {
+                            ["journal-recovered"] = status.JournalRecovered,
+                            ["snapshot-recovered"] = status.SnapshotRecovered,
+                            ["journal-persisted"] = status.JournalPersisted,
+                            ["snapshot-persisted"] = status.SnapshotSaved,
+                            ["message"] = status.StatusMessage
+                        }),
+                    AkkaHealthStatus.Unhealthy => HealthCheckResult.Unhealthy(UnHealthy, status.Failures,
+                        new Dictionary<string, object>
+                        {
+                            ["journal-recovered"] = status.JournalRecovered,
+                            ["snapshot-recovered"] = status.SnapshotRecovered,
+                            ["journal-persisted"] = status.JournalPersisted,
+                            ["snapshot-persisted"] = status.SnapshotSaved,
+                            ["message"] = status.StatusMessage
+                        }),
+                    _ => HealthCheckResult.Degraded(Degraded, status.Failures,
+                        new Dictionary<string, object>
+                        {
+                            ["journal-recovered"] = status.JournalRecovered,
+                            ["snapshot-recovered"] = status.SnapshotRecovered,
+                            ["journal-persisted"] = status.JournalPersisted,
+                            ["snapshot-persisted"] = status.SnapshotSaved,
+                            ["message"] = status.StatusMessage
+                        })
+                };
             }
             catch (Exception e)
             {

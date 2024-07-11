@@ -35,7 +35,7 @@ namespace Akka.HealthCheck.Transports
             foreach (var kvp in livenessProbes)
             {
                 Context.Watch(kvp.Value);
-                _statuses[kvp.Key] = new LivenessStatus(false, $"Probe {kvp.Key} starting up.");
+                _statuses[kvp.Key] = LivenessStatus.Degraded($"Probe {kvp.Key} starting up.");
             }
             _livenessProbes = livenessProbes.Values.ToList();
             _logInfo = log;
@@ -43,35 +43,33 @@ namespace Akka.HealthCheck.Transports
             ReceiveAsync<LivenessStatus>(async status =>
             {
                 var probeName = probeReverseLookup[Sender];
-                using var cts = new CancellationTokenSource(LivenessTimeout);
                 TransportWriteStatus writeStatus;
-                try
+                using(var cts = new CancellationTokenSource(LivenessTimeout))
                 {
-                    if (_logInfo)
-                        _log.Debug("Received liveness status from probe [{0}]. Live: {1}, Message: {2}", probeName, 
-                            status.IsLive, status.StatusMessage);
+                    try
+                    {
+                        if (_logInfo)
+                            _log.Debug("Received liveness status from probe [{0}]. Status: {1}, Message: {2}", probeName, 
+                                status.Status, status.StatusMessage);
                     
-                    _statuses[probeName] = status;
-                    var statusMessage = string.Join(
-                        Environment.NewLine, 
-                        _statuses.Select(kvp => $"[{kvp.Key}][{(kvp.Value.IsLive ? "Live" : "Not Live")}] {kvp.Value.StatusMessage}"));
+                        _statuses[probeName] = status;
+                        var statusMessage = string.Join(
+                            Environment.NewLine, 
+                            _statuses.Select(kvp => $"[{kvp.Key}][{ToStatusString(kvp.Value.Status)}] {kvp.Value.StatusMessage}"));
                     
-                    if (_statuses.Values.All(s => s.IsLive))
-                        writeStatus = await _statusTransport.Go(statusMessage, cts.Token);
-                    else
-                        writeStatus = await _statusTransport.Stop(statusMessage, cts.Token);
-                }
-                catch (Exception e)
-                {
-                    if (_logInfo)
-                        _log.Error(e, $"While processing status from probe [{probeName}]. Failed to write to transport.");
+                        if (_statuses.Values.All(s => s.Status is AkkaHealthStatus.Healthy))
+                            writeStatus = await _statusTransport.Go(statusMessage, cts.Token);
+                        else
+                            writeStatus = await _statusTransport.Stop(statusMessage, cts.Token);
+                    }
+                    catch (Exception e)
+                    {
+                        if (_logInfo)
+                            _log.Error(e, $"While processing status from probe [{probeName}]. Failed to write to transport.");
 
-                    throw new ProbeUpdateException(ProbeKind.Liveness,
-                        $"While processing status from probe [{probeName}]. Failed to update underlying transport {_statusTransport}", e);
-                }
-                finally
-                {
-                    cts.Dispose();
+                        throw new ProbeUpdateException(ProbeKind.Liveness,
+                            $"While processing status from probe [{probeName}]. Failed to update underlying transport {_statusTransport}", e);
+                    }
                 }
 
                 if (!writeStatus.Success)
@@ -82,6 +80,16 @@ namespace Akka.HealthCheck.Transports
                     throw new ProbeUpdateException(ProbeKind.Liveness,
                         $"While processing status from probe [{probeName}]. Failed to update underlying transport {_statusTransport}", writeStatus.Exception);
                 }
+
+                return;
+
+                string ToStatusString(AkkaHealthStatus s)
+                    => s switch
+                    {
+                        AkkaHealthStatus.Healthy => "Live",
+                        AkkaHealthStatus.Unhealthy => "Not Live",
+                        _ => "Degraded"
+                    };
             });
 
             Receive<Terminated>(t =>
@@ -98,7 +106,7 @@ namespace Akka.HealthCheck.Transports
                 }
                 else
                 {
-                    Self.Tell(new LivenessStatus(false, "Probe terminated"), t.ActorRef);
+                    Self.Tell(LivenessStatus.Unhealthy("Probe terminated"), t.ActorRef);
                 }
             });
         }

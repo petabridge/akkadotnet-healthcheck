@@ -11,22 +11,34 @@ namespace Akka.HealthCheck.Liveness
     /// </summary>
     public class LivenessStatus
     {
-        public LivenessStatus(bool isLive, string? statusMessage = null)
+        public LivenessStatus(AkkaHealthStatus status, string? statusMessage = null)
         {
-            IsLive = isLive;
+            Status = status;
             StatusMessage = statusMessage ?? string.Empty;
         }
 
+        public virtual bool IsLive => Status is AkkaHealthStatus.Healthy or AkkaHealthStatus.Degraded;
+        
         /// <summary>
-        ///     If <c>true</c>, the current node is live. If <c>false</c>, the current node's
+        ///     Contains the health status of the current node, either Healthy, Degraded, or Unhealthy.
+        ///     If <c>Healthy</c>, the current node is live. If <c>Unhealthy</c>, the current node's
         ///     health is compromised and will likely need to be restarted.
         /// </summary>
-        public virtual bool IsLive { get; }
+        public virtual AkkaHealthStatus Status { get; }
 
         /// <summary>
         ///     An optional status message that will be written out to the
         ///     target (if it supports text) as part of the liveness check.
         /// </summary>
         public virtual string StatusMessage { get; }
+
+        public static LivenessStatus Healthy(string? statusMessage = null)
+            => new(AkkaHealthStatus.Healthy, statusMessage);
+
+        public static LivenessStatus Degraded(string? statusMessage = null)
+            => new(AkkaHealthStatus.Degraded, statusMessage);
+
+        public static LivenessStatus Unhealthy(string? statusMessage = null)
+            => new(AkkaHealthStatus.Unhealthy, statusMessage);
     }
 }

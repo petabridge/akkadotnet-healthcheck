@@ -18,7 +18,7 @@ namespace Akka.HealthCheck.Cluster
     public sealed class ClusterLivenessProbe : ReceiveActor
     {
         public static readonly LivenessStatus DefaultClusterLivenessStatus =
-            new LivenessStatus(true, "not yet joined cluster");
+            LivenessStatus.Degraded("not yet joined cluster");
 
         private readonly Akka.Cluster.Cluster _cluster = Akka.Cluster.Cluster.Get(Context.System);
         private readonly ILoggingAdapter _log = Context.GetLogger();
@@ -64,9 +64,9 @@ namespace Akka.HealthCheck.Cluster
         {
             var self = Self;
 
-            _cluster.RegisterOnMemberUp(() => { self.Tell(new LivenessStatus(true)); });
+            _cluster.RegisterOnMemberUp(() => { self.Tell(LivenessStatus.Healthy()); });
 
-            _cluster.RegisterOnMemberRemoved(() => { self.Tell(new LivenessStatus(false)); });
+            _cluster.RegisterOnMemberRemoved(() => { self.Tell(LivenessStatus.Unhealthy()); });
         }
     }
 }

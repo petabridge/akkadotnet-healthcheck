@@ -111,7 +111,7 @@ namespace Akka.HealthCheck.Persistence.Tests
             {
                 var status = PerformProbe();
                 status.IsLive.Should().BeFalse();
-                status.JournalRecovered.Should().BeFalse();
+                status.JournalRecovered.Should().BeNull();
                 status.JournalPersisted.Should().BeFalse();
                 status.SnapshotRecovered.Should().BeTrue();
                 status.SnapshotSaved.Should().BeFalse();
@@ -128,9 +128,9 @@ namespace Akka.HealthCheck.Persistence.Tests
             {
                 var status = PerformProbe();
                 status.IsLive.Should().BeFalse();
-                status.JournalRecovered.Should().BeFalse();
+                status.JournalRecovered.Should().BeNull();
                 status.JournalPersisted.Should().BeFalse();
-                status.SnapshotRecovered.Should().BeFalse();
+                status.SnapshotRecovered.Should().BeNull();
                 status.SnapshotSaved.Should().BeFalse();
                 var e = status.Failures!.Flatten().InnerExceptions[0];
                 e.Should().BeOfType<TestSnapshotStoreFailureException>();

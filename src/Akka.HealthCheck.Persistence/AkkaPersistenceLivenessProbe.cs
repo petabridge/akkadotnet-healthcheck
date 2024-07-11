@@ -18,17 +18,19 @@ namespace Akka.HealthCheck.Persistence
     {
         private readonly string? _message;
         
-        public PersistenceLivenessStatus(string message): this(null, null, false, false, Array.Empty<Exception>(), message)
+        public PersistenceLivenessStatus(AkkaHealthStatus status, string message)
+            : this(status, null, null, false, false, Array.Empty<Exception>(), message)
         {
         }
 
         public PersistenceLivenessStatus(
+            AkkaHealthStatus status,
             bool? journalRecovered,
             bool? snapshotRecovered,
             bool journalPersisted,
             bool snapshotSaved, 
             IReadOnlyCollection<Exception> failures, 
-            string? message = null): base(false)
+            string? message = null): base(status)
         {
             JournalRecovered = journalRecovered;
             SnapshotRecovered = snapshotRecovered;
@@ -38,7 +40,8 @@ namespace Akka.HealthCheck.Persistence
             _message = message;
         }
 
-        public override bool IsLive => JournalRecovered is true
+        public override bool IsLive => base.IsLive && 
+                                       JournalRecovered is true
                                        && SnapshotRecovered is true
                                        && JournalPersisted
                                        && SnapshotSaved
@@ -92,7 +95,7 @@ namespace Akka.HealthCheck.Persistence
         
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
-        private PersistenceLivenessStatus _currentLivenessStatus = new(message: "Warming up probe. Recovery status is still undefined");
+        private PersistenceLivenessStatus _currentLivenessStatus = new(AkkaHealthStatus.Degraded, "Warming up probe. Recovery status is still undefined");
         private IActorRef? _probe;
         private int _probeCounter;
         private bool _warmup = true;
@@ -183,7 +186,8 @@ namespace Akka.HealthCheck.Persistence
                         _log.Debug("Recreating persistence probe.");
                     
                     Timers.StartSingleTimer(TimeoutTimerKey, CheckTimeout.Instance, _timeout);
-                    _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, _warmup, _id, _logInfo)));
+                    _probe = Context.ActorOf(Props.Create(() => new SuicideProbe(Self, _warmup, _id, _logInfo))
+                        .WithSupervisorStrategy(Actor.SupervisorStrategy.StoppingStrategy));
                     Context.Watch(_probe);
                     _probe.Tell("hit" + _probeCounter);
                     _probeCounter++;
@@ -192,7 +196,7 @@ namespace Akka.HealthCheck.Persistence
                 case CheckTimeout:
                     const string errMsg = "Timeout while checking persistence liveness. Persistence liveness status is undefined.";
                     _log.Warning(errMsg);
-                    _currentLivenessStatus = new PersistenceLivenessStatus(errMsg);
+                    _currentLivenessStatus = new PersistenceLivenessStatus(AkkaHealthStatus.Unhealthy, errMsg);
                     PublishStatusUpdates();
                     
                     if(_probe is not null)
@@ -277,9 +281,15 @@ namespace Akka.HealthCheck.Persistence
             {
                 if(_debugLog)
                     _log.Debug($"{PersistenceId}: Recovery complete");
-                DeleteMessages(long.MaxValue);
-                DeleteSnapshots(new SnapshotSelectionCriteria(long.MaxValue));
+                Become(CleanupMessages);
             });
+            
+            CommandAny(_ => Stash.Stash());
+        }
+
+        private void CleanupMessages()
+        {
+            DeleteMessages(long.MaxValue);
             
             Command<DeleteMessagesSuccess>(_ =>
             {
@@ -287,11 +297,7 @@ namespace Akka.HealthCheck.Persistence
                 if(_debugLog)
                     _log.Debug($"{PersistenceId}: Journal events deleted");
                 
-                if(_deletedSnapshotStore is not null)
-                {
-                    Become(Active);
-                    Stash.UnstashAll();
-                }
+                Become(CleanupSnapshot);
             });
             
             Command<DeleteMessagesFailure>(fail =>
@@ -301,12 +307,15 @@ namespace Akka.HealthCheck.Persistence
                 if(_debugLog)
                     _log.Debug($"{PersistenceId}: Failed to delete journal events");
                 
-                if(_deletedSnapshotStore is not null)
-                {
-                    Become(Active);
-                    Stash.UnstashAll();
-                }
+                Become(CleanupSnapshot);
             });
+            
+            CommandAny(_ => Stash.Stash());
+        }
+
+        private void CleanupSnapshot()
+        {
+            DeleteSnapshots(new SnapshotSelectionCriteria(long.MaxValue));
             
             Command<DeleteSnapshotsSuccess>(_ =>
             {
@@ -314,11 +323,8 @@ namespace Akka.HealthCheck.Persistence
                 if(_debugLog)
                     _log.Debug($"{PersistenceId}: Snapshot deleted");
                 
-                if(_deletedJournal is not null)
-                {
-                    Become(Active);
-                    Stash.UnstashAll();
-                }
+                Become(Active);
+                Stash.UnstashAll();
             });
             
             Command<DeleteSnapshotsFailure>(fail =>
@@ -328,11 +334,8 @@ namespace Akka.HealthCheck.Persistence
                 if(_debugLog)
                     _log.Debug($"{PersistenceId}: Failed to delete snapshot");
                 
-                if(_deletedJournal is not null)
-                {
-                    Become(Active);
-                    Stash.UnstashAll();
-                }
+                Become(Active);
+                Stash.UnstashAll();
             });
             
             CommandAny(_ => Stash.Stash());
@@ -345,40 +348,46 @@ namespace Akka.HealthCheck.Persistence
                 _message = str;
                 if(_debugLog)
                     _log.Debug($"{PersistenceId}: Probe started, saving snapshot");
-                SaveSnapshot(str);
+                Become(SavingSnapshot(str));
             });
-            
-            Command<SaveSnapshotSuccess>(_ =>
-            {
-                _persistedSnapshotStore = true;
-                if(_debugLog)
-                    _log.Debug($"{PersistenceId}: Snapshot saved");
-                Persist(_message, 
-                    _ =>
-                    {
-                        _persistedJournal = true;
-                        if(_debugLog)
-                            _log.Debug($"{PersistenceId}: Journal persisted");
-                        SendRecoveryStatusWhenFinished();
-                    });
-            });
-            
-            Command<SaveSnapshotFailure>(fail =>
-            {
-                _log.Error(fail.Cause,"Failed to save snapshot store");
-                
-                _failures.Add(fail.Cause);
-                _persistedSnapshotStore = false;
-                Persist(_message, 
-                    _ =>
-                    {
-                        _persistedJournal = true;
-                        if(_debugLog)
-                            _log.Debug($"{PersistenceId}: Journal persisted");
-                        SendRecoveryStatusWhenFinished();
-                    });
-            });
+        }
 
+        private Action SavingSnapshot(string msg)
+        {
+            SaveSnapshot(msg);
+            return () =>
+            {
+                Command<SaveSnapshotSuccess>(_ =>
+                {
+                    _persistedSnapshotStore = true;
+                    if(_debugLog)
+                        _log.Debug($"{PersistenceId}: Snapshot saved");
+                    Become(PersistMessage(msg));
+                });
+            
+                Command<SaveSnapshotFailure>(fail =>
+                {
+                    _log.Error(fail.Cause,"Failed to save snapshot store");
+                
+                    _failures.Add(fail.Cause);
+                    _persistedSnapshotStore = false;
+                    Become(PersistMessage(msg));
+                });
+            };
+        }
+
+        private Action PersistMessage(string msg)
+        {
+            Persist(msg, 
+                _ =>
+                {
+                    _persistedJournal = true;
+                    if(_debugLog)
+                        _log.Debug($"{PersistenceId}: Journal persisted");
+                    SendRecoveryStatusWhenFinished();
+                });
+
+            return () => { };
         }
 
         public override string PersistenceId { get; }
@@ -386,7 +395,8 @@ namespace Akka.HealthCheck.Persistence
         private void SendRecoveryStatusWhenFinished()
         {
             // First case, snapshot failed to save or journal write was rejected, there will be no deletion.
-            if( (_persistedSnapshotStore is false && _persistedJournal is { }) || (_persistedJournal is false && _persistedSnapshotStore is { }))
+            if( (_persistedSnapshotStore is false && _persistedJournal is not null) || 
+                (_persistedJournal is false && _persistedSnapshotStore is not null))
             {
                 _probe.Tell(CreateStatus());
                 Context.Stop(Self);
@@ -462,10 +472,16 @@ namespace Akka.HealthCheck.Persistence
             _probe.Tell(CreateStatus(msg));
             Context.Stop(Self);
         }
+        
+        private bool IsHealthy => _recoveredJournal is true && 
+                                  _recoveredSnapshotStore is true && 
+                                  _persistedJournal is true && 
+                                  _persistedSnapshotStore is true; 
 
         private PersistenceLivenessStatus CreateStatus(string? message = null)
             => _firstAttempt
                 ? new PersistenceLivenessStatus(
+                    status: AkkaHealthStatus.Degraded,
                     journalRecovered: _recoveredJournal,
                     snapshotRecovered: _recoveredSnapshotStore,
                     journalPersisted: _persistedJournal ?? false,
@@ -473,8 +489,9 @@ namespace Akka.HealthCheck.Persistence
                     failures: _failures,
                     message: message)
                 : new PersistenceLivenessStatus(
-                    journalRecovered: _recoveredJournal ?? false,
-                    snapshotRecovered: _recoveredSnapshotStore ?? false,
+                    status: IsHealthy ? AkkaHealthStatus.Healthy : AkkaHealthStatus.Unhealthy,
+                    journalRecovered: _recoveredJournal,
+                    snapshotRecovered: _recoveredSnapshotStore,
                     journalPersisted: _persistedJournal ?? false,
                     snapshotSaved: _persistedSnapshotStore ?? false,
                     failures: _failures,
