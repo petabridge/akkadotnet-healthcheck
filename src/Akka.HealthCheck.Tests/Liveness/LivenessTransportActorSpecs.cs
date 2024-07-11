@@ -41,7 +41,7 @@ namespace Akka.HealthCheck.Tests.Liveness
             // we expect the LivenessTransportActor to throw this exception
             EventFilter.Exception<ProbeUpdateException>().ExpectOne(() =>
             {
-                fakeLiveness.Reply(new LivenessStatus(true));
+                fakeLiveness.Reply(LivenessStatus.Healthy());
 
                 AwaitCondition(() => testTransport.SystemCalls.Count == 2
                                      && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Go);
@@ -54,7 +54,7 @@ namespace Akka.HealthCheck.Tests.Liveness
             // should throw second exception when we try to change status again
             EventFilter.Exception<ProbeUpdateException>().ExpectOne(() =>
             {
-                fakeLiveness.Reply(new LivenessStatus(false));
+                fakeLiveness.Reply(LivenessStatus.Unhealthy());
 
                 AwaitCondition(() => testTransport.SystemCalls.Count == 4
                                      && testTransport.SystemCalls.Count(x =>
@@ -77,13 +77,13 @@ namespace Akka.HealthCheck.Tests.Liveness
                 Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, dict, true)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
-            fakeLiveness.Reply(new LivenessStatus(true));
+            fakeLiveness.Reply(LivenessStatus.Healthy());
 
             AwaitCondition(() => testTransport.SystemCalls.Count == 2
                                  && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Go);
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
-            fakeLiveness.Reply(new LivenessStatus(false));
+            fakeLiveness.Reply(LivenessStatus.Unhealthy());
             AwaitCondition(() => testTransport.SystemCalls.Count == 4
                                  && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Go) == 1
                                  && testTransport.SystemCalls.Count(x => x == TestStatusTransport.TransportCall.Stop) == 3,
@@ -101,12 +101,12 @@ namespace Akka.HealthCheck.Tests.Liveness
                 Sys.ActorOf(Props.Create(() => new LivenessTransportActor(testTransport, dict, true)));
 
             fakeLiveness.ExpectMsg<SubscribeToLiveness>();
-            fakeLiveness.Reply(new LivenessStatus(true));
+            fakeLiveness.Reply(LivenessStatus.Healthy());
 
             AwaitCondition(() => testTransport.SystemCalls.Count == 1
                                  && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Go);
 
-            fakeLiveness.Reply(new LivenessStatus(false));
+            fakeLiveness.Reply(LivenessStatus.Unhealthy());
             AwaitCondition(() => testTransport.SystemCalls.Count == 2
                                  && testTransport.SystemCalls[1] == TestStatusTransport.TransportCall.Stop);
         }
@@ -149,13 +149,13 @@ namespace Akka.HealthCheck.Tests.Liveness
             fakeLiveness2.ExpectMsg<SubscribeToLiveness>();
 
             // "second" status should still be false because it has not reported in yet
-            transportActor.Tell(new LivenessStatus(true), fakeLiveness1);
+            transportActor.Tell(LivenessStatus.Healthy(), fakeLiveness1);
             await AwaitConditionAsync(() => 
                 testTransport.SystemCalls.Count == 1 
                 && testTransport.SystemCalls[0] == TestStatusTransport.TransportCall.Stop);
             
             // both probe status is true, Go should be called
-            transportActor.Tell(new LivenessStatus(true), fakeLiveness2);
+            transportActor.Tell(LivenessStatus.Healthy(), fakeLiveness2);
             await AwaitConditionAsync(() => 
                 testTransport.SystemCalls.Count == 2 
                 && testTransport.SystemCalls[1] == TestStatusTransport.TransportCall.Go);
@@ -163,20 +163,20 @@ namespace Akka.HealthCheck.Tests.Liveness
             // probes reported true, Go should be called all the time
             foreach (var i in Enumerable.Range(2, 8))
             {
-                transportActor.Tell(new LivenessStatus(true), i % 2 == 0 ? fakeLiveness1 : fakeLiveness2);
+                transportActor.Tell(LivenessStatus.Healthy(), i % 2 == 0 ? fakeLiveness1 : fakeLiveness2);
                 await AwaitConditionAsync(() => 
                     testTransport.SystemCalls.Count == i + 1
                     && testTransport.SystemCalls[i] == TestStatusTransport.TransportCall.Go);
             }
             
             // Stop should be called as soon as one of the probe failed
-            transportActor.Tell(new LivenessStatus(false), fakeLiveness1);
+            transportActor.Tell(LivenessStatus.Unhealthy(), fakeLiveness1);
             await AwaitConditionAsync(() => 
                 testTransport.SystemCalls.Count == 11
                 && testTransport.SystemCalls[10] == TestStatusTransport.TransportCall.Stop);
             
             // Go should be called again as soon as the failing probe reports true
-            transportActor.Tell(new LivenessStatus(true), fakeLiveness1);
+            transportActor.Tell(LivenessStatus.Healthy(), fakeLiveness1);
             await AwaitConditionAsync(() => 
                 testTransport.SystemCalls.Count == 12
                 && testTransport.SystemCalls[11] == TestStatusTransport.TransportCall.Go);

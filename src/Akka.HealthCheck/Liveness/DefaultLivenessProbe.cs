@@ -22,7 +22,7 @@ namespace Akka.HealthCheck.Liveness
         private readonly LivenessStatus _livenessStatus;
         private readonly HashSet<IActorRef> _subscribers = new HashSet<IActorRef>();
 
-        public DefaultLivenessProbe() : this(new LivenessStatus(true, $"Live: {DateTimeOffset.UtcNow}"))
+        public DefaultLivenessProbe() : this(LivenessStatus.Healthy($"Live: {DateTimeOffset.UtcNow}"))
         {
            
         }
@@ -58,7 +58,7 @@ namespace Akka.HealthCheck.Liveness
         /// <returns><see cref="Props" /> for a <see cref="DefaultLivenessProbe" /> that will indicate the system is not live.</returns>
         public static Props MisconfiguredProbeProps(string key)
         {
-            return Props.Create(() => new DefaultLivenessProbe(new LivenessStatus(false,
+            return Props.Create(() => new DefaultLivenessProbe(LivenessStatus.Unhealthy(
                 $"akka.healthcheck.liveness.providers.{key} is misconfigured. No suitable type found.")));
         }
     }

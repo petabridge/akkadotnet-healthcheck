@@ -22,7 +22,7 @@ namespace Akka.HealthCheck.Tests
             private readonly LivenessStatus _livenessStatus;
             private readonly ReadinessStatus _readinessStatus;
 
-            public CustomProbe() : this(new LivenessStatus(true), new ReadinessStatus(true))
+            public CustomProbe() : this(LivenessStatus.Healthy(), new ReadinessStatus(true))
             {
             }
 
