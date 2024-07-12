@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
@@ -50,30 +51,18 @@ namespace Akka.HealthCheck.Hosting.Web.Probes
                     cancellationToken: cancellationToken);
                 return status.Status switch
                 {
-                    AkkaHealthStatus.Healthy => HealthCheckResult.Healthy(Healthy, new Dictionary<string, object>
+                    AkkaHealthStatus.Healthy => HealthCheckResult.Healthy(JoinString(Healthy, status.StatusMessage), new Dictionary<string, object>
                         {
-                            ["journal-recovered"] = status.JournalRecovered,
-                            ["snapshot-recovered"] = status.SnapshotRecovered,
-                            ["journal-persisted"] = status.JournalPersisted,
-                            ["snapshot-persisted"] = status.SnapshotSaved,
                             ["message"] = status.StatusMessage
                         }),
-                    AkkaHealthStatus.Unhealthy => HealthCheckResult.Unhealthy(UnHealthy, status.Failures,
+                    AkkaHealthStatus.Unhealthy => HealthCheckResult.Unhealthy(JoinString(UnHealthy, status.StatusMessage), status.Failure,
                         new Dictionary<string, object>
                         {
-                            ["journal-recovered"] = status.JournalRecovered,
-                            ["snapshot-recovered"] = status.SnapshotRecovered,
-                            ["journal-persisted"] = status.JournalPersisted,
-                            ["snapshot-persisted"] = status.SnapshotSaved,
                             ["message"] = status.StatusMessage
                         }),
-                    _ => HealthCheckResult.Degraded(Degraded, status.Failures,
+                    _ => HealthCheckResult.Degraded(JoinString(Degraded, status.StatusMessage), status.Failure,
                         new Dictionary<string, object>
                         {
-                            ["journal-recovered"] = status.JournalRecovered,
-                            ["snapshot-recovered"] = status.SnapshotRecovered,
-                            ["journal-persisted"] = status.JournalPersisted,
-                            ["snapshot-persisted"] = status.SnapshotSaved,
                             ["message"] = status.StatusMessage
                         })
                 };
@@ -83,5 +72,9 @@ namespace Akka.HealthCheck.Hosting.Web.Probes
                 return HealthCheckResult.Unhealthy(Exception, e, new Dictionary<string, object> { ["message"] = Exception });
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static string JoinString(string prefix, string? message)
+            => message is null ? prefix : $"prefix: {message}";
     }
 }

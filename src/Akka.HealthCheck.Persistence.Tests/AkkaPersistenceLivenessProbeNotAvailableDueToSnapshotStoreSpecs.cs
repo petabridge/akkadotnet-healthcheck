@@ -30,7 +30,9 @@ namespace Akka.HealthCheck.Persistence.Tests
 
             var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 3.Seconds())));
             ProbActor.Tell(new SubscribeToLiveness(TestActor));
-            ExpectMsg<LivenessStatus>().IsLive.Should().BeFalse("System should not be live");
+            var firstResult = ExpectMsg<LivenessStatus>();
+            firstResult.Status.Should().Be(AkkaHealthStatus.Degraded, "Initial status should be degraded, not unhealthy");
+            firstResult.IsLive.Should().BeTrue("Degraded should still report as live");
             ExpectMsg<LivenessStatus>(TimeSpan.FromMinutes(1)).IsLive.Should().BeFalse("System should not be live");
 
         }
