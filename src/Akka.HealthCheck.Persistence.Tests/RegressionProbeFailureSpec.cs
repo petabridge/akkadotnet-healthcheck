@@ -32,14 +32,14 @@ public class RegressionProbeFailureSpec: PersistenceTestKit
             Sys.EventStream.Subscribe(TestActor, typeof(LogEvent));
             var probe = Sys.ActorOf(Props.Create(() =>
                 new AkkaPersistenceLivenessProbe(true, 400.Milliseconds(), 3.Seconds())));
-            await FishForMessageAsync<LogEvent>(e => e.Message.ToString() is "Recreating persistence probe.");
+            await FishForMessageAsync<LogEvent>(e => e.Message.ToString() is "Recreating persistence warmup probe.");
 
             var stopwatch = Stopwatch.StartNew();
             // Default circuit breaker max-failures is 10
             foreach (var _ in Enumerable.Range(0, 15))
             {
                 stopwatch.Restart();
-                await FishForMessageAsync<LogEvent>(e => e.Message.ToString() is "Recreating persistence probe.");
+                await FishForMessageAsync<LogEvent>(e => e.Message.ToString() is "Recreating persistence warmup probe.");
                 stopwatch.Stop();
                 // In the original issue, suicide probe is being recreated immediately after failure without waiting
                 stopwatch.Elapsed.Should().BeGreaterThan(300.Milliseconds());

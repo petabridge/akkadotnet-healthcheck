@@ -23,17 +23,6 @@ public class LivenessProbeTimeoutSpec: PersistenceTestKit
     {
     }
     
-    [Fact(DisplayName = "AkkaPersistenceLivenessProbe should time out if SaveSnapshot does not respond")]
-    public async Task SaveSnapshotTimeoutTest()
-    {
-        using var cts = new CancellationTokenSource();
-        var delay = new SnapshotInterceptors.CancelableDelay(30.Minutes(), SnapshotInterceptors.Noop.Instance, cts.Token);
-
-        await WithSnapshotSave(
-            save => save.SetInterceptorAsync(delay),
-            () => TestTimeout(cts));
-    }
-
     [Fact(DisplayName = "AkkaPersistenceLivenessProbe should time out if snapshot recovery does not respond")]
     public async Task SnapshotLoadTimeoutTest()
     {
@@ -45,17 +34,6 @@ public class LivenessProbeTimeoutSpec: PersistenceTestKit
             () => TestTimeout(cts));
     }
     
-    [Fact(DisplayName = "AkkaPersistenceLivenessProbe should time out if journal Persist does not respond")]
-    public async Task JournalPersistTimeoutTest()
-    {
-        using var cts = new CancellationTokenSource();
-        var delay = new JournalInterceptors.CancelableDelay(30.Minutes(), JournalInterceptors.Noop.Instance, cts.Token);
-
-        await WithJournalWrite(
-            save => save.SetInterceptorAsync(delay),
-            () => TestTimeout(cts));
-    }
-
     [Fact(DisplayName = "AkkaPersistenceLivenessProbe should time out if journal recovery does not respond")]
     public async Task JournalRecoveryTimeoutTest()
     {
@@ -72,11 +50,12 @@ public class LivenessProbeTimeoutSpec: PersistenceTestKit
         var probeActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 500.Milliseconds())));
         probeActor.Tell(new SubscribeToLiveness(TestActor));
         var status = ExpectMsg<LivenessStatus>();
-        status.IsLive.Should().BeFalse();
+        status.Status.Should().Be(AkkaHealthStatus.Degraded);
+        status.IsLive.Should().BeTrue();
         status.StatusMessage.Should().StartWith("Warming up probe.");
 
         var timeoutStatusObj = await FishForMessageAsync(
-            msg => msg is LivenessStatus stat && !stat.StatusMessage.StartsWith("Warming up probe."), 
+            msg => msg is LivenessStatus stat && !stat.StatusMessage.StartsWith("Warming up probe.") && !stat.StatusMessage.StartsWith("Persistence warmup complete"), 
             6.Seconds());
 
         var timeoutStatus = (LivenessStatus)timeoutStatusObj;
