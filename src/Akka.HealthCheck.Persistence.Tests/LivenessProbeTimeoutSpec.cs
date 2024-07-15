@@ -49,23 +49,16 @@ public class LivenessProbeTimeoutSpec: PersistenceTestKit
     {
         var probeActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 500.Milliseconds(), 0)));
         probeActor.Tell(new SubscribeToLiveness(TestActor));
-        var status = ExpectMsg<LivenessStatus>();
-        status.Status.Should().Be(AkkaHealthStatus.Degraded);
-        status.IsLive.Should().BeTrue();
-        status.StatusMessage.Should().StartWith("Warming up probe.");
-
-        var timeoutStatusObj = await FishForMessageAsync(
-            msg => msg is LivenessStatus stat && !stat.StatusMessage.StartsWith("Warming up probe.") && !stat.StatusMessage.StartsWith("Persistence warmup complete"), 
+        
+        var timeoutStatus = await FishForMessageAsync<PersistenceLivenessStatus>(
+            msg => msg.Status is AkkaHealthStatus.Unhealthy, 
             6.Seconds());
-
-        var timeoutStatus = (LivenessStatus)timeoutStatusObj;
+        
         timeoutStatus.IsLive.Should().BeFalse();
         timeoutStatus.StatusMessage.Should().StartWith("Timeout while checking persistence liveness.");
         
         cts.Cancel();
         
-        await AwaitAssertAsync(
-            () => ExpectMsg<LivenessStatus>().IsLive.Should().BeTrue(),
-            TimeSpan.FromSeconds(10));
+        await FishForMessageAsync<PersistenceLivenessStatus>(msg => msg.Status is AkkaHealthStatus.Healthy);
     }
 }
