@@ -16,15 +16,17 @@ namespace Akka.HealthCheck.Persistence
     {
         private readonly TimeSpan _interval;
         private readonly TimeSpan _timeout;
+        private readonly int _maxRetry;
         
         public AkkaPersistenceLivenessProbeProvider(ActorSystem system) : base(system)
         {
             var config = system.Settings.Config.GetConfig("akka.healthcheck.liveness.persistence");
             _interval = config.GetTimeSpan("probe-interval", TimeSpan.FromSeconds(10));
             _timeout = config.GetTimeSpan("timeout", TimeSpan.FromSeconds(3));
+            _maxRetry = config.GetInt("unhealthy-threshold", 3);
         }
 
         public override Props ProbeProps => 
-            AkkaPersistenceLivenessProbe.PersistentHealthCheckProps(Settings.LogInfoEvents, _interval, _timeout);
+            AkkaPersistenceLivenessProbe.PersistentHealthCheckProps(Settings.LogInfoEvents, _interval, _timeout, _maxRetry);
     }
 }

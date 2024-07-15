@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Akka.Actor;
 using Akka.Event;
 using Akka.HealthCheck.Liveness;
@@ -49,8 +50,6 @@ namespace Akka.HealthCheck.Persistence
             Failure = failure;
             _message = message;
         }
-
-        public override bool IsLive => base.IsLive && Failure is null;
 
         public override string StatusMessage => _message ?? ToString();
 
@@ -110,10 +109,14 @@ namespace Akka.HealthCheck.Persistence
         private readonly TimeSpan _timeout;
         private readonly bool _logInfo;
 
-        public AkkaPersistenceLivenessProbe(bool logInfo, TimeSpan delay, TimeSpan timeout)
+        private readonly int _maxRetry;
+        private int _retryCount;
+        
+        public AkkaPersistenceLivenessProbe(bool logInfo, TimeSpan delay, TimeSpan timeout, int maxRetry)
         {
             _delay = delay;
             _timeout = timeout;
+            _maxRetry = maxRetry;
             _logInfo = logInfo;
             _log = Context.GetLogger();
             
@@ -122,9 +125,9 @@ namespace Akka.HealthCheck.Persistence
 
         public ITimerScheduler Timers { get; set; } = null!;
 
-        public static Props PersistentHealthCheckProps(bool logInfo, TimeSpan delay, TimeSpan timeout)
+        public static Props PersistentHealthCheckProps(bool logInfo, TimeSpan delay, TimeSpan timeout, int maxRetry)
         {
-            return Props.Create(() => new AkkaPersistenceLivenessProbe(logInfo, delay, timeout))
+            return Props.Create(() => new AkkaPersistenceLivenessProbe(logInfo, delay, timeout, maxRetry))
                 .WithDeploy(Deploy.Local);
         }
 
@@ -203,8 +206,7 @@ namespace Akka.HealthCheck.Persistence
                 case CheckTimeout:
                     const string errMsg = "Timeout while checking persistence liveness. Persistence liveness status is undefined.";
                     _log.Warning(errMsg);
-                    _currentLivenessStatus = PersistenceLivenessStatus.Unhealthy(null, errMsg);
-                    PublishStatusUpdates();
+                    HandleFailure(null, errMsg);
                     
                     if(_probe is not null)
                         Context.Stop(_probe);
@@ -214,23 +216,21 @@ namespace Akka.HealthCheck.Persistence
                     if(_logInfo)
                         _log.Debug("Persistence warmup complete");
                     
-                    _currentLivenessStatus = PersistenceLivenessStatus.Healthy("Persistence warmup complete");
-                    PublishStatusUpdates();
+                    HandleSuccess("Persistence warmup complete");
                     return true;
                 
                 case WarmupFailed fail:
                     if(_logInfo)
                         _log.Warning(fail.Cause, "Persistence warmup failed");
                     
-                    _currentLivenessStatus = PersistenceLivenessStatus.Unhealthy(fail.Cause, "Persistence warmup failed");
-                    PublishStatusUpdates();
+                    HandleFailure(fail.Cause, "Persistence warmup failed");
                     return true;
                     
                 default:
                     return HandleSubscriptions(message);
             }
         }
-
+        
         private bool Active(object message)
         {
             switch (message)
@@ -260,8 +260,7 @@ namespace Akka.HealthCheck.Persistence
                 case CheckTimeout:
                     const string errMsg = "Timeout while checking persistence liveness. Persistence liveness status is undefined.";
                     _log.Warning(errMsg);
-                    _currentLivenessStatus = PersistenceLivenessStatus.Unhealthy(null, errMsg);
-                    PublishStatusUpdates();
+                    HandleFailure(null, errMsg);
                     
                     if(_probe is not null)
                         Context.Stop(_probe);
@@ -272,8 +271,7 @@ namespace Akka.HealthCheck.Persistence
                     if(_logInfo)
                         _log.Debug("Received recovery status {0} from probe", status);
             
-                    _currentLivenessStatus = status;
-                    PublishStatusUpdates();
+                    HandleStatus(status);
                     return true;
                 
                 default:
@@ -291,6 +289,30 @@ namespace Akka.HealthCheck.Persistence
             Self.Tell(CreateProbe.Instance);
         }
 
+        private void HandleFailure(Exception? e, string? message)
+        {
+            _retryCount++;
+            _currentLivenessStatus = _retryCount > _maxRetry
+                ? PersistenceLivenessStatus.Unhealthy(e, message)
+                : PersistenceLivenessStatus.Degraded(e, message);
+            PublishStatusUpdates();
+        }
+
+        private void HandleSuccess(string? message)
+        {
+            _retryCount = 0;
+            _currentLivenessStatus = PersistenceLivenessStatus.Healthy(message);
+            PublishStatusUpdates();
+        }
+
+        private void HandleStatus(PersistenceLivenessStatus status)
+        {
+            if (status.Status is AkkaHealthStatus.Unhealthy or AkkaHealthStatus.Degraded)
+                HandleFailure(status.Failure, status.StatusMessage);
+            else
+                HandleSuccess(status.StatusMessage);
+        }
+        
         private void ScheduleProbeRestart()
         {
             Timers.StartSingleTimer(CreateProbe.Instance, CreateProbe.Instance, _delay);

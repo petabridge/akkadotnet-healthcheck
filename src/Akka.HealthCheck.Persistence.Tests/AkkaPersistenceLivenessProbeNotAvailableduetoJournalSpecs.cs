@@ -27,7 +27,7 @@ namespace Akka.HealthCheck.Persistence.Tests
         public void AkkaPersistenceLivenessProbeProvidert_Should_Report_Akka_Persistance_Is_Unavailable_With_Bad_Journal_Setup()
         {
             
-            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 3.Seconds())));
+            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 3.Seconds(), 0)));
             ProbActor.Tell(new SubscribeToLiveness(TestActor));
             var firstResult = ExpectMsg<LivenessStatus>();
             firstResult.Status.Should().Be(AkkaHealthStatus.Degraded, "Initial status should be degraded, not unhealthy");

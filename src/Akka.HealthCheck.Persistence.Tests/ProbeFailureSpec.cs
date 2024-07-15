@@ -79,5 +79,37 @@ namespace Akka.HealthCheck.Persistence.Tests
             
             return status;
         }
+
+        [Fact(DisplayName = "Failures should progressively change from healthy to degraded to unhealthy")]
+        public async Task FailStatusProgressionTest()
+        {
+            const int failureThreshold = 3;
+            var probe = Sys.ActorOf(AkkaPersistenceLivenessProbe.PersistentHealthCheckProps(true, 500.Milliseconds(), 3.Seconds(), failureThreshold));
+            probe.Tell(new SubscribeToLiveness(TestActor), TestActor);
+
+            // wait until probe returns a healthy status
+            FishForMessage<PersistenceLivenessStatus>(s => s.Status is AkkaHealthStatus.Healthy);
+            
+            await WithSnapshotLoad(load => load.Fail(), async () =>
+            {
+                PersistenceLivenessStatus status;
+
+                // wait until probe detects first failure
+                // needed to avoid race condition with decoupled suicide actor
+                FishForMessage<PersistenceLivenessStatus>(s => s.Status is AkkaHealthStatus.Degraded);
+                
+                // Below failure threshold, probe should report degraded
+                // first failure test already handled above
+                for (var i = 0; i < failureThreshold - 1; i++)
+                {
+                    status = await ExpectMsgAsync<PersistenceLivenessStatus>();
+                    status.Status.Should().Be(AkkaHealthStatus.Degraded);
+                }
+                
+                // exceeding failure threshold, probe should report unhealthy
+                status = await ExpectMsgAsync<PersistenceLivenessStatus>();
+                status.Status.Should().Be(AkkaHealthStatus.Unhealthy);
+            });
+        }
     }
 }

@@ -28,7 +28,7 @@ namespace Akka.HealthCheck.Persistence.Tests
         [Fact(DisplayName = "AkkaPersistenceLivenessProbe should correctly handle subscription requests")]
         public void AkkaPersistenceLivenessProbe_Should_Handle_Subscriptions_In_Any_State()
         {
-            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 3.Seconds())));
+            var ProbActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 3.Seconds(), 0)));
             ProbActor.Tell(new SubscribeToLiveness(TestActor));
             var firstResult = ExpectMsg<LivenessStatus>();
             firstResult.Status.Should().Be(AkkaHealthStatus.Degraded, "Initial status should be degraded, not unhealthy");
