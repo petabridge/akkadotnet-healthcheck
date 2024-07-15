@@ -1,3 +1,11 @@
+#### 1.5.26 July 16 2024 ####
+
+* [Bump Akka version to 1.5.26](https://github.com/akkadotnet/akka.net/releases/tag/1.5.26)
+* [Bump Akka.Hosting to 1.5.25](https://github.com/akkadotnet/Akka.Hosting/releases/tag/1.5.25)
+* [Healthcheck.Persistence: Make probe return degraded instead of unhealthy during warmup](https://github.com/petabridge/akkadotnet-healthcheck/pull/282)
+* [Healthcheck.Persistence: Simplify suicide probe](https://github.com/petabridge/akkadotnet-healthcheck/pull/283)
+* [Healthcheck.Persistence: Add failure threshold before probe returns an unhealthy result](https://github.com/petabridge/akkadotnet-healthcheck/pull/284)
+
 #### 1.5.24 June 11 2024 ####
 
 * [Bump Akka version to 1.5.24](https://github.com/akkadotnet/akka.net/releases/tag/1.5.24)
