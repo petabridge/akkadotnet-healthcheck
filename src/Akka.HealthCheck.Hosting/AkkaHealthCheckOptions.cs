@@ -164,8 +164,24 @@ namespace Akka.HealthCheck.Hosting
         /// <summary>
         /// Defines the interval for each persistence liveness health check probe refresh.
         /// Does not have any effect on readiness options.
+        /// Default value: 10 seconds
         /// </summary>
         public TimeSpan? PersistenceProbeInterval { get; set; }
+        
+        /// <summary>
+        /// Defines the timeout for each persistence liveness check operation
+        /// Does not have any effect on readiness options.
+        /// Default value: 3 seconds
+        /// </summary>
+        public TimeSpan? PersistenceProbeTimeout { get; set; }
+        
+        /// <summary>
+        /// Defines the number of failures that needs to happen before the probe returns an unhealthy status.
+        /// Any failure count below this threshold will be reported as degraded.
+        /// Default value: 3
+        /// </summary>
+        public int? PersistenceProbeUnhealthyThreshold { get; set; }
+        
 
         public ProviderOptions ClearProviders()
         {
@@ -198,8 +214,13 @@ namespace Akka.HealthCheck.Hosting
                 sb.AppendLine($"file.path = {FilePath}");
             if (TcpPort is { })
                 sb.AppendLine($"tcp.port = {TcpPort}");
+            
             if(PersistenceProbeInterval is not null)
                 sb.AppendLine($"persistence.probe-interval = {PersistenceProbeInterval.ToHocon()}");
+            if (PersistenceProbeTimeout is not null)
+                sb.AppendLine($"persistence.timeout = {PersistenceProbeTimeout.ToHocon()}");
+            if (PersistenceProbeUnhealthyThreshold is not null)
+                sb.Append($"persistence.unhealthy-threshold = {PersistenceProbeUnhealthyThreshold.ToHocon()}");
 
             return sb.Length > 0 ? sb : null;
         }

@@ -47,7 +47,7 @@ public class LivenessProbeTimeoutSpec: PersistenceTestKit
     
     private async Task TestTimeout(CancellationTokenSource cts)
     {
-        var probeActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 500.Milliseconds())));
+        var probeActor = Sys.ActorOf(Props.Create(() => new AkkaPersistenceLivenessProbe(true, 250.Milliseconds(), 500.Milliseconds(), 0)));
         probeActor.Tell(new SubscribeToLiveness(TestActor));
         var status = ExpectMsg<LivenessStatus>();
         status.Status.Should().Be(AkkaHealthStatus.Degraded);
