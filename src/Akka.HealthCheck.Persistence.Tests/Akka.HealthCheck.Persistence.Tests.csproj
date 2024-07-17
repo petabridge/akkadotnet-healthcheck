@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="akka.persistence.sqlite" />
-    <PackageReference Include="Akka.Persistence.TestKit.Xunit2" />
     <PackageReference Include="Akka.TestKit.Xunit2" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
@@ -18,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Akka.HealthCheck.Persistence.TestKit\Akka.HealthCheck.Persistence.TestKit.csproj" />
     <ProjectReference Include="..\Akka.HealthCheck.Persistence\Akka.HealthCheck.Persistence.csproj" />
   </ItemGroup>
 

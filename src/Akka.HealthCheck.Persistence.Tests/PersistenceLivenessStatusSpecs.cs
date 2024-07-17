@@ -4,7 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using Akka.Persistence.TestKit;
+using Akka.HealthCheck.Persistence.TestKit.Journal;
 using FluentAssertions;
 using Xunit;
 
