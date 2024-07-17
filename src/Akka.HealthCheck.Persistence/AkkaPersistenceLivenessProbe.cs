@@ -81,22 +81,6 @@ namespace Akka.HealthCheck.Persistence
         }
     }
 
-    internal sealed class WarmupComplete
-    {
-        public static readonly WarmupComplete Instance = new();
-        private WarmupComplete(){ }
-    }
-
-    internal sealed class WarmupFailed
-    {
-        public WarmupFailed(Exception cause)
-        {
-            Cause = cause;
-        }
-
-        public Exception Cause { get; }
-    }
-
     public class AkkaPersistenceLivenessProbe : ActorBase, IWithTimers
     {
         public static readonly string PersistenceId = $"Akka.HealthCheck-{Guid.NewGuid()}";
