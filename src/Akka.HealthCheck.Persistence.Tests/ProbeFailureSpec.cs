@@ -8,7 +8,9 @@ using System;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.HealthCheck.Liveness;
-using Akka.Persistence.TestKit;
+using Akka.HealthCheck.Persistence.TestKit;
+using Akka.HealthCheck.Persistence.TestKit.Journal;
+using Akka.HealthCheck.Persistence.TestKit.SnapshotStore;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using Xunit;
@@ -25,22 +27,20 @@ namespace Akka.HealthCheck.Persistence.Tests
         [Fact(DisplayName = "Status should reflect successful probe")]
         public void SuccessfulProbeTest()
         {
-            PerformWarmup();
             var status = PerformProbe();
             status.IsLive.Should().BeTrue();
             status.Failure.Should().BeNull();
         }
         
-        [Fact(DisplayName = "Journal recovery failed, probe should fail")]
+        [Fact(DisplayName = "Journal connection failed, probe should fail")]
         public async Task JournalRecoverFailTest()
         {
-            await WithJournalRecovery(recover => recover.Fail(), () =>
+            await WithJournalConnection(connect => connect.Fail(), async () =>
             {
-                PerformWarmup();
                 var status = PerformProbe();
                 status.IsLive.Should().BeFalse();
                 var e = status.Failure;
-                e.Should().NotBeNull().And.BeOfType<TestJournalFailureException>();
+                e.Should().NotBeNull().And.BeOfType<TestConnectionException>();
             });
         }
 
@@ -49,24 +49,11 @@ namespace Akka.HealthCheck.Persistence.Tests
         {
             await WithSnapshotLoad(load => load.Fail(), () =>
             {
-                PerformWarmup(true);
                 var status = PerformProbe();
                 status.IsLive.Should().BeFalse();
                 var e = status.Failure!;
                 e.Should().NotBeNull().And.BeOfType<TestSnapshotStoreFailureException>();
             });
-        }
-
-        private void PerformWarmup(bool expectFailed = false)
-        {
-            var warmupProbe = ActorOf(SuicideWarmupProbe.Props(TestActor, AkkaPersistenceLivenessProbe.PersistenceId, true));
-            Watch(warmupProbe);
-            if(expectFailed)
-                ExpectMsg<WarmupFailed>();
-            else
-                ExpectMsg<WarmupComplete>();
-            ExpectTerminated(warmupProbe);
-            Unwatch(warmupProbe);
         }
 
         private PersistenceLivenessStatus PerformProbe()

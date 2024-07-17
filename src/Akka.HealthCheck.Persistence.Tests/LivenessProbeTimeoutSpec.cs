@@ -9,7 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.HealthCheck.Liveness;
-using Akka.Persistence.TestKit;
+using Akka.HealthCheck.Persistence.TestKit;
+using Akka.HealthCheck.Persistence.TestKit.Journal;
+using Akka.HealthCheck.Persistence.TestKit.SnapshotStore;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using Xunit;
@@ -27,22 +29,18 @@ public class LivenessProbeTimeoutSpec: PersistenceTestKit
     public async Task SnapshotLoadTimeoutTest()
     {
         using var cts = new CancellationTokenSource();
-        var delay = new SnapshotInterceptors.CancelableDelay(30.Minutes(), SnapshotInterceptors.Noop.Instance, cts.Token);
+        var delay = new ConnectionInterceptors.CancelableDelay(30.Minutes(), ConnectionInterceptors.Noop.Instance, cts.Token);
 
-        await WithSnapshotLoad(
-            save => save.SetInterceptorAsync(delay),
-            () => TestTimeout(cts));
+        await WithSnapshotConnection(connect => connect.SetInterceptorAsync(delay), () => TestTimeout(cts));
     }
     
     [Fact(DisplayName = "AkkaPersistenceLivenessProbe should time out if journal recovery does not respond")]
     public async Task JournalRecoveryTimeoutTest()
     {
         using var cts = new CancellationTokenSource();
-        var delay = new JournalInterceptors.CancelableDelay(30.Minutes(), JournalInterceptors.Noop.Instance, cts.Token);
+        var delay = new ConnectionInterceptors.CancelableDelay(30.Minutes(), ConnectionInterceptors.Noop.Instance, cts.Token);
 
-        await WithJournalRecovery(
-            save => save.SetInterceptorAsync(delay),
-            () => TestTimeout(cts));
+        await WithJournalConnection(connect => connect.SetInterceptorAsync(delay), () => TestTimeout(cts));
     }
     
     private async Task TestTimeout(CancellationTokenSource cts)
