@@ -1,3 +1,7 @@
+#### 1.5.26.1 July 18 2024 ####
+
+* [HealthCheck.Persistence: Make suicide probe perform zero writes](https://github.com/petabridge/akkadotnet-healthcheck/pull/289)
+
 #### 1.5.26 July 16 2024 ####
 
 * [Bump Akka version to 1.5.26](https://github.com/akkadotnet/akka.net/releases/tag/1.5.26)
