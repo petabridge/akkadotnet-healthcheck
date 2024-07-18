@@ -1,4 +1,4 @@
-#### 1.5.26 July 18 2024 ####
+#### 1.5.26.1 July 18 2024 ####
 
 * [HealthCheck.Persistence: Make suicide probe perform zero writes](https://github.com/petabridge/akkadotnet-healthcheck/pull/289)
 
