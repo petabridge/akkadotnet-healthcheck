@@ -11,6 +11,7 @@ using Akka.Actor;
 using Akka.Event;
 using Akka.HealthCheck.Liveness;
 using Akka.Persistence;
+using Phobos.Actor.Common;
 
 #nullable enable
 namespace Akka.HealthCheck.Persistence
@@ -247,7 +248,7 @@ namespace Akka.HealthCheck.Persistence
     /// <summary>
     ///     Validate that the snapshot store and the journal and both working
     /// </summary>
-    internal class SuicideProbe : ReceivePersistentActor
+    internal class SuicideProbe : ReceivePersistentActor, INeverInstrumented
     {
         public static Props Props(IActorRef probe, string persistenceId, bool debugLog)
             => Actor.Props.Create(() => new SuicideProbe(probe, persistenceId, debugLog))
