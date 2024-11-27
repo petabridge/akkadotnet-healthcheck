@@ -8,15 +8,16 @@ using System;
 using System.Collections.Generic;
 using Akka.Actor;
 using Akka.Event;
+using Phobos.Actor.Common;
 
 namespace Akka.HealthCheck.Readiness
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ReceiveActor"/>
     /// <summary>
     ///     The default readiness probe implementation. Reports that the application
     ///     is ready as soon as the <see cref="T:Akka.Actor.ActorSystem" /> is up.
     /// </summary>
-    public sealed class DefaultReadinessProbe : ReceiveActor
+    public sealed class DefaultReadinessProbe : ReceiveActor, INeverInstrumented
     {
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly ReadinessStatus _readinessStatus;

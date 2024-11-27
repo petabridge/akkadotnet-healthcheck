@@ -82,7 +82,7 @@ namespace Akka.HealthCheck.Persistence
         }
     }
 
-    public class AkkaPersistenceLivenessProbe : ActorBase, IWithTimers
+    public class AkkaPersistenceLivenessProbe : ActorBase, IWithTimers, INeverInstrumented
     {
         public static readonly string PersistenceId = $"Akka.HealthCheck-{Guid.NewGuid()}";
         

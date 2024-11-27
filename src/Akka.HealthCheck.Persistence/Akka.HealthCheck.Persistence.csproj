@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <PackageReference Include="Akka.Persistence" />
-    <PackageReference Include="Phobos.Actor.Common" />
   </ItemGroup>
 
   <ItemGroup>

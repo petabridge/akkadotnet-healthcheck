@@ -11,6 +11,7 @@
   
   <ItemGroup>
 	  <PackageReference Include="Akka" />
+	  <PackageReference Include="Phobos.Actor.Common" />
 	  <Using Include="Akka.Event" />
   </ItemGroup>
 
