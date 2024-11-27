@@ -12,6 +12,7 @@ using System.Threading;
 using Akka.Actor;
 using Akka.Event;
 using Akka.HealthCheck.Readiness;
+using Phobos.Actor.Common;
 
 namespace Akka.HealthCheck.Transports
 {
@@ -19,7 +20,7 @@ namespace Akka.HealthCheck.Transports
     ///     Subscribes to <see cref="ReadinessStatus" /> changes and signals
     ///     the underlying <see cref="IStatusTransport" /> accordingly.
     /// </summary>
-    public sealed class ReadinessTransportActor : ReceiveActor
+    public sealed class ReadinessTransportActor : ReceiveActor, INeverInstrumented
     {
         private const int ReadinessTimeout = 1000;
         private readonly ILoggingAdapter _log = Context.GetLogger();

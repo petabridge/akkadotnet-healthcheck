@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Akka.Actor;
 using Akka.Event;
 using Akka.HealthCheck.Liveness;
+using Phobos.Actor.Common;
 
 namespace Akka.HealthCheck.Cluster
 {
@@ -15,7 +16,7 @@ namespace Akka.HealthCheck.Cluster
     ///     Algorithm that indicates that we are live if we are a member of the cluster, and we are not
     ///     if we are removed from the cluster's membership.
     /// </summary>
-    public sealed class ClusterLivenessProbe : ReceiveActor
+    public sealed class ClusterLivenessProbe : ReceiveActor, INeverInstrumented
     {
         public static readonly LivenessStatus DefaultClusterLivenessStatus =
             LivenessStatus.Degraded("not yet joined cluster");

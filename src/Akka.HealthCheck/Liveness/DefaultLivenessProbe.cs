@@ -8,15 +8,16 @@ using System;
 using System.Collections.Generic;
 using Akka.Actor;
 using Akka.Event;
+using Phobos.Actor.Common;
 
 namespace Akka.HealthCheck.Liveness
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ReceiveActor"/>
     /// <summary>
     ///     The default liveness probe implementation. Reports that the application
     ///     is live as soon as the <see cref="T:Akka.Actor.ActorSystem" /> is live.
     /// </summary>
-    public sealed class DefaultLivenessProbe : ReceiveActor
+    public sealed class DefaultLivenessProbe : ReceiveActor, INeverInstrumented
     {
         private readonly ILoggingAdapter _log = Context.GetLogger();
         private readonly LivenessStatus _livenessStatus;

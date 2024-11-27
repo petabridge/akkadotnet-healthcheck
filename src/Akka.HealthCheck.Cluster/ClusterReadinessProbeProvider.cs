@@ -10,6 +10,7 @@ using Akka.Actor;
 using Akka.Cluster;
 using Akka.Event;
 using Akka.HealthCheck.Readiness;
+using Phobos.Actor.Common;
 
 namespace Akka.HealthCheck.Cluster
 {
@@ -31,7 +32,7 @@ namespace Akka.HealthCheck.Cluster
     ///     meaning that we have been partitioned away from everyone else for a lengthy period of
     ///     time.
     /// </summary>
-    public sealed class ClusterReadinessProbe : ReceiveActor
+    public sealed class ClusterReadinessProbe : ReceiveActor, INeverInstrumented
     {
         public static readonly ReadinessStatus DefaultClusterReadinessStatus =
             new ReadinessStatus(true, "not yet joined cluster");

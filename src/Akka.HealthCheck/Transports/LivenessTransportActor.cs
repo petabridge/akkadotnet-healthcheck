@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Phobos.Actor.Common;
 
 namespace Akka.HealthCheck.Transports
 {
@@ -19,7 +20,7 @@ namespace Akka.HealthCheck.Transports
     ///     Subscribes to <see cref="LivenessStatus" /> changes and signals
     ///     the underlying <see cref="IStatusTransport" /> accordingly.
     /// </summary>
-    public sealed class LivenessTransportActor : ReceiveActor
+    public sealed class LivenessTransportActor : ReceiveActor, INeverInstrumented
     {
         private const int LivenessTimeout = 1000;
         private readonly List<IActorRef> _livenessProbes;
