@@ -1,3 +1,9 @@
+#### 1.5.31 November 27th 2024 ####
+
+* [Bump Akka version to 1.5.31](https://github.com/akkadotnet/akka.net/releases/tag/1.5.31)
+* [Bump Akka.Hosting to 1.5.31.1](https://github.com/akkadotnet/Akka.Hosting/releases/tag/1.5.31.1)
+* [Exclude all healthcheck actors from Phobos instrumentation](https://github.com/petabridge/akkadotnet-healthcheck/pull/292)
+
 #### 1.5.26.1 July 18 2024 ####
 
 * [HealthCheck.Persistence: Make suicide probe perform zero writes](https://github.com/petabridge/akkadotnet-healthcheck/pull/289)
