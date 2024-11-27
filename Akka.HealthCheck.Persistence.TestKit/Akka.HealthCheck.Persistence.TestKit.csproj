@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka.Persistence" Version="1.5.26" />
-    <PackageReference Include="Akka.TestKit" Version="1.5.26" />
-    <PackageReference Include="Akka.TestKit.Xunit2" Version="1.5.26" />
+    <PackageReference Include="Akka.Persistence" Version="1.5.31" />
+    <PackageReference Include="Akka.TestKit" Version="1.5.31" />
+    <PackageReference Include="Akka.TestKit.Xunit2" Version="1.5.31" />
   </ItemGroup>
 
   <ItemGroup>
