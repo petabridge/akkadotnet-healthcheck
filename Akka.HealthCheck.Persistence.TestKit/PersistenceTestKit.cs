@@ -29,7 +29,7 @@ public abstract class PersistenceTestKit : Akka.TestKit.Xunit2.TestKit
     /// <param name="setup">Test ActorSystem configuration</param>
     /// <param name="actorSystemName">Optional: The name of the actor system</param>
     /// <param name="output">TBD</param>
-    protected PersistenceTestKit(ActorSystemSetup setup, string actorSystemName = null, ITestOutputHelper output = null)
+    protected PersistenceTestKit(ActorSystemSetup setup, string? actorSystemName = null, ITestOutputHelper? output = null)
         : base(GetConfig(setup), actorSystemName, output)
     {
         var persistenceExtension = Akka.Persistence.Persistence.Instance.Apply(Sys);
@@ -48,7 +48,7 @@ public abstract class PersistenceTestKit : Akka.TestKit.Xunit2.TestKit
     /// <param name="config">Test ActorSystem configuration</param>
     /// <param name="actorSystemName">Optional: The name of the actor system</param>
     /// <param name="output">TBD</param>
-    protected PersistenceTestKit(Config config, string actorSystemName = null, ITestOutputHelper output = null)
+    protected PersistenceTestKit(Config config, string? actorSystemName = null, ITestOutputHelper? output = null)
         : base(GetConfig(config), actorSystemName, output)
     {
         var persistenceExtension = Akka.Persistence.Persistence.Instance.Apply(Sys);
@@ -66,7 +66,7 @@ public abstract class PersistenceTestKit : Akka.TestKit.Xunit2.TestKit
     /// </summary>
     /// <param name="actorSystemName">Optional: The name of the actor system</param>
     /// <param name="output">TBD</param>
-    protected PersistenceTestKit(string actorSystemName = null, ITestOutputHelper output = null)
+    protected PersistenceTestKit(string? actorSystemName = null, ITestOutputHelper? output = null)
         : this(Config.Empty, actorSystemName, output)
     {
     }
