@@ -48,10 +48,10 @@ public sealed class TestJournal : MemoryJournal
         }
     }
 
-    protected override async Task<IImmutableList<Exception>> WriteMessagesAsync(IEnumerable<AtomicWrite> messages)
+    protected override async Task<IImmutableList<Exception?>> WriteMessagesAsync(IEnumerable<AtomicWrite> messages)
     {
         await _connectionInterceptor.InterceptAsync();
-        var exceptions = new List<Exception>();
+        var exceptions = new List<Exception?>();
         foreach (var w in messages)
         {
             try
