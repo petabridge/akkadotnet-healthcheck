@@ -4,6 +4,7 @@
     <TargetFramework>$(NetTestVersion)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,5 +21,9 @@
     <EmbeddedResource Remove="snapshots\**" />
     <None Remove="snapshots\**" />
     <Content Remove="snapshots\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 </Project>

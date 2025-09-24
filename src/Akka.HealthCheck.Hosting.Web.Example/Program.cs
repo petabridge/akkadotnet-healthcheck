@@ -1,5 +1,8 @@
 using Akka.Cluster.Hosting;
 using Akka.Hosting;
+using Akka.Remote.Hosting;
+using Akka.Serialization;
+using LogLevel = Akka.Event.LogLevel;
 
 namespace Akka.HealthCheck.Hosting.Web.Example;
 
@@ -9,21 +12,28 @@ public static class Program
     {
         var webBuilder = WebApplication.CreateBuilder(args);
 
+        webBuilder.Logging
+            .AddConsole();
+        
         webBuilder.Services
             // Register all of the health check service with IServiceCollection
-            .WithAkkaHealthCheck(HealthCheckType.All) 
-            .AddAkka("actor-system", (builder, serviceProvider) =>
+            .WithAkkaHealthCheck(HealthCheckType.All)
+            .AddHealthChecks();
+        
+        webBuilder.Services.AddAkka("actor-system", (builder, serviceProvider) =>
             {
                 builder
                     .AddHocon("akka.cluster.min-nr-of-members = 1", HoconAddMode.Prepend)
+                    .WithRemoting()
                     .WithClustering()
-                    // Automatically detects which health checks were registered inside the health check middleware and starts them
-                    .WithWebHealthCheck(serviceProvider)
                     .AddStartup((system, _) =>
                     {
                         var cluster = Akka.Cluster.Cluster.Get(system);
                         cluster.Join(cluster.SelfAddress);
                     });
+                
+                // Automatically detects which health checks were registered inside the health check middleware and starts them
+                builder.WithWebHealthCheck(serviceProvider);
             });
 
         var app = webBuilder.Build();
@@ -39,5 +49,4 @@ public static class Program
 
         await app.RunAsync();
     }
-
 }
