@@ -1,4 +1,8 @@
-# Akka.HealthCheck
+# Akka.HealthCheck - DEPRECATED
+
+## This library is no longer maintained. Please see ["You Don't Need to Use Akka.HealthChecks Anymore
+"](https://petabridge.com/blog/you-dont-need-akka-healthchecks-anymore/)
+
 A configurable library for exposing Akka nodes inside common healthcheck systems and environments, such as [Kubernetes Liveness and Readiness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/) and [ASP.NET health checks](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks).
 
 # Table of contents
